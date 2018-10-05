@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="73d69512-14bb-4a9d-9b13-f4bab5daff2e" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/base_library.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/maple_cli.exe.manifest" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/out00-Analysis.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/out00-EXE.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/out00-PKG.pkg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/out00-PKG.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/out00-PYZ.pyz" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/out00-PYZ.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/out00-Tree.toc" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/warnmaple_cli.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/maple_cli/xref-maple_cli.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
-    </list>
+    <list default="true" id="73d69512-14bb-4a9d-9b13-f4bab5daff2e" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
