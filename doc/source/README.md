@@ -3,6 +3,8 @@
 
 MAPLE - Multi-purpose API Programming Language Extension
 
+For detailed documentation see doc/build/html/index.html
+
 ## Introduction
 
 
