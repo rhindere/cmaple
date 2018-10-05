@@ -1,0 +1,7 @@
+Autologging==1.1.0
+jsonpath_ng==1.4.3
+requests==2.19.1
+xmltodict==0.11.0
+objectpath==0.5
+urllib3==1.23
+beautifulsoup4==4.6.3

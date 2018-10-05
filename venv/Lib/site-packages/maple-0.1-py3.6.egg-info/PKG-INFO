@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: maple
+Version: 0.1
+Summary: MAPLE - Multipurpose API Programming Language Extension
+Home-page: UNKNOWN
+Author: Ron Hinderer
+Author-email: rhindere@cisco.com
+License: UNKNOWN
+Description: See README.md
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: Cisco Sample Code License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown

@@ -1,0 +1,27 @@
+[tree]
+logging_level=INFO
+#Create a MAPLE tree
+RUN tree=MapleTree(logging_level={tree$logging_level})
+[leafs]
+#Create a threatgrid leaf
+RUN TG_leaf = {tree$RUN tree}.add_leaf_instance(leaf_type=tg,name=Hackathon_TG,TG_host=panacea.threatgrid.com,TG_API_key=4dnikf1f877uj3cr3gmve58ro8,default_get_item_limit=200)
+#Create an AMP leaf
+RUN AMP_leaf = {tree$RUN tree}.add_leaf_instance(leaf_type=amp,name=Hackathon,AMP_host=api.amp.cisco.com,AMP_API_client_ID=e9635f53c8af9fec51fc,AMP_API_key=9f69f254-0298-419f-a2df-9ac7ce47d514,default_get_item_limit=200)
+[queries]
+#Define a threatgrid query
+TG_query_url_1 = api/v2/samples?api_key=4dnikf1f877uj3cr3gmve58ro8&after=after=2018-09-18T00:00:00&user_only=true"
+#Run the threatgrid query and store results in {queries$RUN query_tg_1}
+RUN query_tg_1 = {leafs$RUN TG_leaf}.GET_API_path(url={queries$TG_query_url_1})
+#Query the responses from threatgrid to get back a list of id's
+RUN TG_id_list = {leafs$RUN TG_leaf}.query_json_field(query_field=id,json_to_query={queries$RUN query_tg_1})
+#Run multiple queries iterating over values in the TG id list substituting each value in the list for ~id~
+TG_query_url_2 = api/v2/samples/~id~/analysis/iocs?api_key=4dnikf1f877uj3cr3gmve58ro8
+RUN query_tg_2 = {leafs$RUN TG_leaf}.query_with_list(query_url={queries$TG_query_url_2},query_list={queries$RUN TG_id_list})
+RUN pprint_0=output.pretty_print(_object={queries$RUN query_tg_2})
+RUN TG_ip_list = {leafs$RUN TG_leaf}.query_json_field(query_field=IP,json_to_query={queries$RUN query_tg_2})
+#Query amp computer activity for each TG ioc IP
+AMP_query_url = v1/computers/activity?q=~IP~
+RUN query_amp = {leafs$RUN AMP_leaf}.query_with_list(query_url={queries$AMP_query_url},query_list={queries$RUN TG_ip_list})
+RUN pprint_1=output.pretty_print(_object={queries$RUN query_amp})
+#RUN create_csv = {leafs$RUN AMP_leaf}.create_response_csv()
+#RUN pickle_0=output.create_pickle(struct={queries$RUN query_amp},file=query_amp_results_pickle.pickle)

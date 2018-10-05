@@ -1,0 +1,21 @@
+[tree]
+logging_level=INFO
+RUN tree=MapleTree(logging_level={tree$logging_level})
+[leaf:fmc_1]
+host=10.122.109.176
+domain=Global
+type=fmc
+name=fmc_1
+leaf_args=leaf_type={leaf:fmc_1$type},name={leaf:fmc_1$name},json_file_path=@model_json_file,FMC_host={leaf:fmc_1$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_1$domain}
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_1$leaf_args})
+RUN domain_id={leaf:fmc_1$RUN leaf}.get_domain_id(domain={leaf:fmc_1$domain})
+[leaf:fmc_1/set_1]
+#RUN api_paths={leaf:fmc_1$RUN leaf}.get_all_API_paths_list()
+#RUN tabbed_0=output.tabbed_print(_object={leaf:fmc_1/set_1$RUN api_paths})
+url=https://{leaf:fmc_1$host}/api/fmc_config/v1/domain/{leaf:fmc_1$RUN domain_id}/policy/accesspolicies
+#url=https://{leaf:fmc_1$host}/api/fmc_config/v1/domain/{leaf:fmc_1$RUN domain_id}/object/applications
+RUN results={leaf:fmc_1$RUN leaf}.walk_API_path_gets(url={leaf:fmc_1/set_1$url})
+RUN tabbed=output.tabbed_print(_object={leaf:fmc_1/set_1$RUN results})
+#RUN outline=output.create_outline(_dict={leaf:fmc_1/set_1$RUN results},file=@results_file,responses_only=True)
+RUN pickle=output.create_pickle(struct={leaf:fmc_1/set_1$RUN results},file=results_pickle.pickle)
+RUN pprint=output.pretty_print(_object={leaf:fmc_1/set_1$RUN results})

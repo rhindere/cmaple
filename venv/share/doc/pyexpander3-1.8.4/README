@@ -1,0 +1,30 @@
+About:
+    Pyexpander is a powerful macro processing language based on python.
+    Instead of simple macro replacement it offers evaluation of arbitrary
+    python expressions and execution of python code. Pyexpander is Turing
+    Complete. 
+
+Homepage:
+    http://pyexpander.sourceforge.net/
+    and:
+    https://sourceforge.net/projects/pyexpander/
+
+Documentation:
+    Documentation is in the directory "doc". You can read it by entering
+    "file://<path-to-pyexpander>/doc/index.html" as URL in your browser.
+
+    The documenation is also available on the web at:
+    http://pyexpander.sourceforge.net/
+    
+    The sources are written ReStructuredText format. docutils
+    (http://docutils.sourceforge.net/) is used to generate html
+    documentation from this format. In the source distribution, generated
+    html documentation is already included.
+    
+Installation:
+
+    You can install the program with pip, as a debian or rpm package or
+    from it's source. All is described here:
+
+    http://pyexpander.sourceforge.net/pyexpander-install.html
+

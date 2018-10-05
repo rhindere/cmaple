@@ -1,0 +1,72 @@
+missing module named 'multiprocessing.forking' - imported by C:\Users\rhindere\Documents\PycharmProjects\maple_project\venv\lib\site-packages\PyInstaller\loader\rthooks\pyi_rth_multiprocessing.py
+missing module named multiprocessing.get_context - imported by multiprocessing, multiprocessing.pool, multiprocessing.managers, multiprocessing.sharedctypes
+missing module named multiprocessing.TimeoutError - imported by multiprocessing, multiprocessing.pool
+missing module named multiprocessing.BufferTooShort - imported by multiprocessing, multiprocessing.connection
+missing module named multiprocessing.AuthenticationError - imported by multiprocessing, multiprocessing.connection
+missing module named multiprocessing.set_start_method - imported by multiprocessing, multiprocessing.spawn
+missing module named multiprocessing.get_start_method - imported by multiprocessing, multiprocessing.spawn
+missing module named 'win32com.gen_py' - imported by win32com, C:\Users\rhindere\Documents\PycharmProjects\maple_project\venv\lib\site-packages\PyInstaller\loader\rthooks\pyi_rth_win32comgenpy.py
+missing module named pyimod03_importers - imported by C:\Users\rhindere\Documents\PycharmProjects\maple_project\venv\lib\site-packages\PyInstaller\loader\rthooks\pyi_rth_pkgres.py
+missing module named 'com.sun' - imported by pkg_resources._vendor.appdirs
+missing module named com - imported by pkg_resources._vendor.appdirs
+missing module named 'pkg_resources.extern.pyparsing' - imported by pkg_resources._vendor.packaging.markers, pkg_resources._vendor.packaging.requirements
+missing module named StringIO - imported by urllib3.packages.six, requests.compat, six, pkg_resources._vendor.six
+missing module named __builtin__ - imported by pkg_resources._vendor.pyparsing
+missing module named ordereddict - imported by pkg_resources._vendor.pyparsing
+missing module named __main__ - imported by pkg_resources
+missing module named pkg_resources.extern.packaging - imported by pkg_resources.extern, pkg_resources
+missing module named pkg_resources.extern.appdirs - imported by pkg_resources.extern, pkg_resources
+missing module named 'pkg_resources.extern.six.moves' - imported by pkg_resources, pkg_resources._vendor.packaging.requirements
+missing module named pkg_resources.extern.six - imported by pkg_resources.extern, pkg_resources
+missing module named resource - imported by posix, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named posix - imported by os, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named _posixsubprocess - imported by subprocess, multiprocessing.util, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named readline - imported by cmd, code, pdb, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+excluded module named _frozen_importlib - imported by importlib, importlib.abc, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named _frozen_importlib_external - imported by importlib._bootstrap, importlib, importlib.abc, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named _winreg - imported by platform, requests.utils, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py, pkg_resources._vendor.appdirs
+missing module named _scproxy - imported by urllib.request
+missing module named java - imported by platform, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named 'java.lang' - imported by platform, xml.sax._exceptions, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named vms_lib - imported by platform, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named termios - imported by tty, getpass, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named urllib.getproxies_environment - imported by urllib, requests.compat
+missing module named urllib.proxy_bypass_environment - imported by urllib, requests.compat
+missing module named urllib.proxy_bypass - imported by urllib, requests.compat
+missing module named urllib.getproxies - imported by urllib, requests.compat
+missing module named urllib.urlencode - imported by urllib, requests.compat
+missing module named urllib.unquote_plus - imported by urllib, requests.compat
+missing module named urllib.quote_plus - imported by urllib, requests.compat
+missing module named urllib.unquote - imported by urllib, requests.compat
+missing module named urllib.quote - imported by urllib, requests.compat
+missing module named grp - imported by shutil, tarfile, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named _dummy_threading - imported by dummy_threading, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named org - imported by copy, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named pwd - imported by posixpath, shutil, tarfile, http.server, webbrowser, netrc, getpass, distutils.util, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named 'org.python' - imported by pickle, xml.sax, C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple_cli.py
+missing module named sets - imported by pytz.tzinfo
+missing module named UserDict - imported by pytz.lazy
+missing module named ujson - imported by objectpath.utils.json_ext
+missing module named simplejson - imported by requests.compat, objectpath.utils.json_ext
+missing module named cStringIO - imported by cPickle, objectpath.core.parser
+missing module named copy_reg - imported by cPickle, cStringIO
+runtime module named urllib3.packages.six.moves - imported by http.client, urllib3.connectionpool, urllib3.util.response, 'urllib3.packages.six.moves.urllib', urllib3.response, urllib3.util.queue
+missing module named backports - imported by urllib3.packages.ssl_match_hostname
+missing module named _abcoll - imported by urllib3.packages.ordered_dict
+missing module named dummy_thread - imported by urllib3.packages.ordered_dict
+missing module named thread - imported by urllib3.packages.ordered_dict
+missing module named "'urllib3.packages.six.moves.urllib'.parse" - imported by urllib3.request, urllib3.poolmanager
+missing module named Queue - imported by urllib3.util.queue
+missing module named cPickle - imported by ply.yacc
+missing module named six.moves.xrange - imported by six.moves, jsonpath_ng.jsonpath
+runtime module named six.moves - imported by jsonpath_ng.jsonpath
+missing module named Cookie - imported by requests.compat
+missing module named cookielib - imported by requests.compat
+missing module named urllib2 - imported by requests.compat
+missing module named urlparse - imported by requests.compat
+missing module named socks - imported by urllib3.contrib.socks
+missing module named cryptography - imported by urllib3.contrib.pyopenssl, requests
+missing module named 'OpenSSL.crypto' - imported by urllib3.contrib.pyopenssl
+missing module named 'cryptography.x509' - imported by urllib3.contrib.pyopenssl
+missing module named 'cryptography.hazmat' - imported by urllib3.contrib.pyopenssl
+missing module named OpenSSL - imported by urllib3.contrib.pyopenssl

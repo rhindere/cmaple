@@ -1,0 +1,13 @@
+[tree]
+logging_level=INFO
+RUN tree=MapleTree(name=mig_tree_1,logging_level={tree$logging_level})
+[leaf:fmc_1]
+host=10.1.101.39
+domain=Global
+type=fmc
+name=fmc_mig_1
+leaf_args=leaf_type={leaf:fmc_1$type},name={leaf:fmc_1$name},json_file_path=@model_json_file,FMC_host={leaf:fmc_1$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_1$domain},restore_responses=False
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_1$leaf_args})
+RUN domain_id={leaf:fmc_1$RUN leaf}.get_domain_id(domain={leaf:fmc_1$domain})
+[leaf]
+RUN migrate = {leaf:fmc_1$RUN leaf}.or_migrate_config(source_config_path=mig_tree_1\\fmc_mig_2)

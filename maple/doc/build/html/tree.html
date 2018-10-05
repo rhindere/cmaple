@@ -1,0 +1,160 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>The Tree Object &#8212; MAPLE 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The FMC Leaf" href="fmc.html" />
+    <link rel="prev" title="MAPLE Modules" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-maple.tree">
+<span id="the-tree-object"></span><h1>The Tree Object<a class="headerlink" href="#module-maple.tree" title="Permalink to this headline">¶</a></h1>
+<p>Created on May 20, 2018</p>
+<p>&#64;author: <a class="reference external" href="mailto:rhindere&#37;&#52;&#48;cisco&#46;com">rhindere<span>&#64;</span>cisco<span>&#46;</span>com</a></p>
+<p>tree.py is the top level script for MAPLE
+(Multi-purpose API Programming Language Extension).  Defines the main
+class MapleTree which serves as the overarching control point for
+MAPLE leafs.  Leafs implement the specific functionality for a
+given products API.  MapleTree also provides leaf management functions.</p>
+<p>Copyright (c) 2018 Cisco and/or its affiliates.</p>
+<p>This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.0 (the “License”). You may obtain a copy of the
+License at</p>
+<blockquote>
+<div><a class="reference external" href="https://developer.cisco.com/docs/licenses">https://developer.cisco.com/docs/licenses</a></div></blockquote>
+<p>All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an “AS
+IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied.</p>
+<dl class="class">
+<dt id="maple.tree.MapleTree">
+<em class="property">class </em><code class="descclassname">maple.tree.</code><code class="descname">MapleTree</code><span class="sig-paren">(</span><em>name=None</em>, <em>tree_dir=None</em>, <em>logging_config_dict={}</em>, <em>logging_level='INFO'</em>, <em>log_file_mode='w'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/maple/tree.html#MapleTree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maple.tree.MapleTree" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class defines the top level object for MAPLE; the ‘tree’ object.</p>
+<p>The tree object provides methods to instantiate and manage MAPLE ‘leaf’ objects.</p>
+<dl class="method">
+<dt id="maple.tree.MapleTree.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name=None</em>, <em>tree_dir=None</em>, <em>logging_config_dict={}</em>, <em>logging_level='INFO'</em>, <em>log_file_mode='w'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/maple/tree.html#MapleTree.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#maple.tree.MapleTree.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>__init__ receives a kwargs dict to define parameters.  This allows __init__ to pass these parameters
+to the superclass.</p>
+<p>Returns an FMC leaf object.</p>
+<dl class="docutils">
+<dt>name: string, keyword, default=None</dt>
+<dd>The name of this MAPLE tree.  The name is required and will be used to create a working directory
+for the tree object.</dd>
+<dt>tree_dir: string, keyword, default=None</dt>
+<dd>The path to the desired location for the tree’s working directory.  Together with the tree name, will
+be used to create the tree’s working directory (e.g. leaf_dir/name)</dd>
+<dt>logging_level: string, keyword, default=None</dt>
+<dd>The desired logging level for the tree object (inherited by all leaf objects</dd>
+<dt>log_file_mode: string, keyword, default=’w’</dt>
+<dd>The file mode for the log file.  Default is ‘w’ for write mode.</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MAPLE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="README.html">MAPLE Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="README.html#maple-cli">MAPLE CLI</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">MAPLE Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">The Tree Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fmc.html">The FMC Leaf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="amp.html">The AMP Leaf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="threatgrid.html">The ThreatGrid Leaf</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">MAPLE Modules</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">MAPLE Modules</a></li>
+      <li>Next: <a href="fmc.html" title="next chapter">The FMC Leaf</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;Cisco.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/tree.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

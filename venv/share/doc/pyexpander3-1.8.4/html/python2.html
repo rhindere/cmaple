@@ -1,0 +1,311 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyexpander for users not familiar with python version 2 &#8212; pyexpander 1.8.4 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.8.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyexpander for users not familiar with python version 3" href="python3.html" />
+    <link rel="prev" title="EPICS support in pyexpander" href="epics-support.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="python3.html" title="pyexpander for users not familiar with python version 3"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="epics-support.html" title="EPICS support in pyexpander"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pyexpander-for-users-not-familiar-with-python-version-2">
+<h1>pyexpander for users not familiar with python version 2<a class="headerlink" href="#pyexpander-for-users-not-familiar-with-python-version-2" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Pyexpander is based on the python programming language not just with respect to
+it’s implementation. Expressions and statements are, in fact, python code. This
+page shows some simple use cases for pyexpander for users that do not yet know
+python. If you are interested in learning python you can find some information
+at the <a class="reference external" href="http://docs.python.org">official python documentation site</a> and at
+the <a class="reference external" href="http://docs.python.org/tutorial/index.html">Python tutorial</a>.</p>
+</div>
+<div class="section" id="comments">
+<h2>Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
+<p>Comments in python start with a “#” character and extend to the end of the
+line. If you want to have several consecutive lines as a comment, each line has
+to start with a “#” character. Here are some examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(
+a=1 # here is a comment
+# here is a comment
+# spanning several
+# lines
+)
+</pre></div>
+</div>
+</div>
+<div class="section" id="a-word-on-indentation">
+<h2>A word on indentation<a class="headerlink" href="#a-word-on-indentation" title="Permalink to this headline">¶</a></h2>
+<p>The indentation of lines (the number of spaces they start with) is part of the
+syntax in python. This means that for python commands that span more than one
+line, indentation matters. If you get an error message like “unexpected indent”
+you know that the problem is the indentation of lines. As a rule of thumb,
+python statements that follow a “$py” command should either all be in the same
+line as the “$py” command and immediately follow the opening bracket or, if
+there is more than one line, all should start in column one. Here are some
+examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py( a=1)     # indentation error due to the space between &quot;(&quot; and &quot;a&quot;
+$py(a=1; b=1) # correct, spaces *within* the line are allowed
+$py(a=1)      # correct
+$py(
+  a=1         # indentation error since &quot;a&quot; is not in column 1 of the line
+)
+$py(
+a=1           # correct
+)
+$py(
+a=1           # correct
+b=2
+)
+</pre></div>
+</div>
+<p>Note that due to python indentation rules, the closing bracket “)” of the “$py”
+command should be in column 1 if it is in a line of it’s own. Otherwise, with
+certain python statements, an indentation error may occur.</p>
+</div>
+<div class="section" id="defining-variables">
+<h2>Defining variables<a class="headerlink" href="#defining-variables" title="Permalink to this headline">¶</a></h2>
+<p>Python variable names start with a letter or a “_” and may be followed by an arbitrary number of letters, digits and the “_” character.</p>
+<p>You define a variable by placing a variable name, a “=” character and a value. Here are some examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(my_number= 1)
+$py(my_var1= 2)
+</pre></div>
+</div>
+<div class="section" id="literals">
+<h3>Literals<a class="headerlink" href="#literals" title="Permalink to this headline">¶</a></h3>
+<p>You often define variables with constant values, also called literals.
+Integers, floating point numbers and strings can be written the same way as in
+C. Here are some examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(my_integer=3)
+$py(my_float1=1.23)
+$py(my_float2=3.1E8)
+$py(my_string=&quot;abc&quot;)
+$py(my_line=&quot;This is a line with LF at the end.\n&quot;)
+</pre></div>
+</div>
+</div>
+<div class="section" id="setting-more-than-one-variable">
+<h3>Setting more than one variable<a class="headerlink" href="#setting-more-than-one-variable" title="Permalink to this headline">¶</a></h3>
+<p>Python statements are separated by a “;” character or by a newline character. You can define more than one variable like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(a=1; b=2; c=3)
+</pre></div>
+</div>
+<p>or like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(
+a=1
+b=2
+c=3
+)
+</pre></div>
+</div>
+</div>
+<div class="section" id="simple-expressions">
+<h3>Simple expressions<a class="headerlink" href="#simple-expressions" title="Permalink to this headline">¶</a></h3>
+<p>Simple arithmetic expressions in python are the same as in c. Here are some examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(
+a=2+4
+b=1.4-3.8
+c=3*4
+d=a*b
+e=2**4 # 2**4==16
+)
+</pre></div>
+</div>
+</div>
+<div class="section" id="mathematical-functions">
+<h3>Mathematical functions<a class="headerlink" href="#mathematical-functions" title="Permalink to this headline">¶</a></h3>
+<p>Common mathematical functions are in the “math” package in python. You have to import this package once in order to be able to use these functions. Here is an example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(
+from math import * # import mathematical functions
+e= exp(1)  # exponential function
+a= sqrt(2) # square root
+)
+</pre></div>
+</div>
+</div>
+<div class="section" id="string-expressions">
+<h3>String expressions<a class="headerlink" href="#string-expressions" title="Permalink to this headline">¶</a></h3>
+<p>Strings can be concatenated with “+”:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(a=&quot;ab&quot;+&quot;cd&quot;) # now a is &quot;abcd&quot;
+</pre></div>
+</div>
+<p>The “%” operator works according to the string formatting rules for the
+“printf” command in C. It is an infix operator, a format string must be
+followed by a “%” and a single value or a tuple of values. A tuple is a comma
+separated list of values enclosed in round brackets. Here are some examples:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$py(
+a= &quot;%02d&quot; % 3 # a==&quot;03&quot;
+b= &quot;%d %3.4f&quot; % (2, 123.456789) # b= &quot;2 123.4568&quot;
+)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="for-loops">
+<h2>For loops<a class="headerlink" href="#for-loops" title="Permalink to this headline">¶</a></h2>
+<p>This section describes the “$for” statement of pyexpander which is very close
+to the for-statement in python.</p>
+<p>For loops in python are a bit different from C. A typical loop statement
+consists of a variable or a tuple of variables, the keyword “in” and an
+“iterable” datatype, typically a list. If you simply want to have a loop
+variable starting with a number, increase by 1 at each run, and end with
+another number, you typically use the “xrange” function. In pure python a
+for-loop running from 0 to 3 would look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="nb">print</span> <span class="s2">&quot;i is now:&quot;</span><span class="p">,</span><span class="n">i</span>
+</pre></div>
+</div>
+<p>The “$for” statement in pyexpander is a bit different, but the specification of
+the loop limit and loop variable are the same:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$for(i in xrange(4))
+i now: $(i)
+$endfor
+</pre></div>
+</div>
+<p>Note the the number given to “xrange” is <em>not</em> part of the iteration. In the
+example above, i never has the value 4, the last value of i is 3.</p>
+<p>If “xrange” is provided with two numbers, the first number is the start number
+and the second number is the end number plus one.  Here is an example where i
+runs from 3 to 5:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$for(i in xrange(3,6))
+i now: $(i)
+$endfor
+</pre></div>
+</div>
+<p>If “xrange” is provided with 3 numbers, the first ist the start, the second is
+the end plus the step and the third is the step. Here is an example where i
+takes the values 10, 8 and 6:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>$for(i in xrange(10, 4, -2))
+i now: $(i)
+$endfor
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction to pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference-expander.html">pyexpander reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epics-support.html">EPICS support in pyexpander</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pyexpander for users not familiar with python version 2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comments">Comments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-word-on-indentation">A word on indentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#defining-variables">Defining variables</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#literals">Literals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setting-more-than-one-variable">Setting more than one variable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simple-expressions">Simple expressions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mathematical-functions">Mathematical functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#string-expressions">String expressions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#for-loops">For loops</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python3.html">pyexpander for users not familiar with python version 3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="expander-options.html">expander.py and expander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="msi2pyexpander-options.html">msi2pyexpander.py and msi2pyexpander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install.html">Installing pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install-by-setup.html">Installing pyexpander by running setup.py</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="epics-support.html"
+                        title="previous chapter">EPICS support in pyexpander</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="python3.html"
+                        title="next chapter">pyexpander for users not familiar with python version 3</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/python2.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="python3.html" title="pyexpander for users not familiar with python version 3"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="epics-support.html" title="EPICS support in pyexpander"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Helmholtz-Zentrum Berlin GmbH.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+    </div>
+  </body>
+</html>

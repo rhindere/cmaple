@@ -1,0 +1,11 @@
+[tree]
+logging_level=INFO
+RUN tree=MapleTree(logging_level={tree$logging_level})
+[leafs]
+RUN HTML_leaf = {tree$RUN tree}.add_leaf_instance(leaf_type=html,name=Hackathon_TG)
+RUN load_raw = {leafs$RUN HTML_leaf}.load_raw_text(file=bi_output_ded.html)
+RUN findshas = {leafs$RUN HTML_leaf}.regex_findall(regex=<strong>SHA256:</strong><code>([^<]+)</code>)
+RUN AMP_leaf = {tree$RUN tree}.add_leaf_instance(leaf_type=amp,name=Hackathon,AMP_host=api.amp.cisco.com,AMP_API_client_ID=b73313ad271b882c8118,AMP_API_key=4fd9e8c8-b1bc-4d63-ac8e-300c24f158d0,default_get_item_limit=200)
+AMP_query_url = v1/computers/activity?q=~sha256~
+RUN query_amp = {leafs$RUN AMP_leaf}.query_with_list(query_url={leafs$AMP_query_url},query_list={leafs$RUN findshas})
+RUN pprint_1=output.pretty_print(_object={leafs$RUN query_amp})

@@ -1,0 +1,866 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pyexpander.parser &#8212; pyexpander 1.8.4 documentation</title>
+    <link rel="stylesheet" href="../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.8.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyexpander 1.8.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for pyexpander.parser</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;implement the parser for pyexpander.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">bisect</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">__version__</span><span class="o">=</span> <span class="s2">&quot;1.8.4&quot;</span> <span class="c1">#VERSION#</span>
+
+<span class="c1"># pylint: disable= invalid-name</span>
+
+<span class="c1"># we use &#39;\n&#39; as line separator and rely on python&#39;s built in line end</span>
+<span class="c1"># conversion to &#39;\n&#39; on all platforms.</span>
+<span class="c1"># You may howver, use change_linesep() to change the line separator.</span>
+
+<span class="n">LINESEP</span><span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="n">LINESEP_LEN</span><span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">LINESEP</span><span class="p">)</span>
+
+<div class="viewcode-block" id="change_linesep"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.change_linesep">[docs]</a><span class="k">def</span> <span class="nf">change_linesep</span><span class="p">(</span><span class="n">sep</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;change line separator, this is here just for tests.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># pylint: disable= global-statement</span>
+    <span class="k">global</span> <span class="n">LINESEP</span><span class="p">,</span> <span class="n">LINESEP_LEN</span>
+    <span class="n">LINESEP</span><span class="o">=</span> <span class="n">sep</span>
+    <span class="n">LINESEP_LEN</span><span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sep</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IndexedString"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.IndexedString">[docs]</a><span class="k">class</span> <span class="nc">IndexedString</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;a string together with row column information.</span>
+
+<span class="sd">    Here is an example:</span>
+
+<span class="sd">    &gt;&gt;&gt; txt=&#39;&#39;&#39;01234</span>
+<span class="sd">    ... 67</span>
+<span class="sd">    ... 9abcd&#39;&#39;&#39;</span>
+<span class="sd">    &gt;&gt;&gt; l=IndexedString(txt)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(0)</span>
+<span class="sd">    (1, 1)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(1)</span>
+<span class="sd">    (1, 2)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(4)</span>
+<span class="sd">    (1, 5)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(5)</span>
+<span class="sd">    (1, 6)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(6)</span>
+<span class="sd">    (2, 1)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(7)</span>
+<span class="sd">    (2, 2)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(8)</span>
+<span class="sd">    (2, 3)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(9)</span>
+<span class="sd">    (3, 1)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(13)</span>
+<span class="sd">    (3, 5)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(14)</span>
+<span class="sd">    (3, 6)</span>
+<span class="sd">    &gt;&gt;&gt; l.rowcol(16)</span>
+<span class="sd">    (3, 8)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># pylint: disable= too-few-public-methods</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">st</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_st</span><span class="o">=</span><span class="n">st</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">=</span><span class="kc">None</span>
+    <span class="k">def</span> <span class="nf">_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;calculate and remember positions where lines begin.&quot;&quot;&quot;</span>
+        <span class="n">l</span><span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_st</span><span class="p">)</span>
+        <span class="n">pos</span><span class="o">=</span><span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">lineno</span><span class="o">=</span><span class="mi">1</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># look for the standard lineseparator in the string:</span>
+            <span class="n">p</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_st</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">LINESEP</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># not found</span>
+                <span class="k">break</span>
+            <span class="n">pos</span><span class="o">=</span> <span class="n">p</span><span class="o">+</span><span class="n">LINESEP_LEN</span>
+            <span class="k">if</span> <span class="n">pos</span><span class="o">&gt;=</span><span class="n">l</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">lineno</span><span class="o">+=</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lineno</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+<div class="viewcode-block" id="IndexedString.rowcol"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.IndexedString.rowcol">[docs]</a>    <span class="k">def</span> <span class="nf">rowcol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;calculate (row,column) from a string position.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lines</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_list</span><span class="p">()</span>
+        <span class="n">idx</span><span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">off</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_lines</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">pos</span><span class="o">-</span><span class="n">off</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span></div>
+<div class="viewcode-block" id="IndexedString.st"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.IndexedString.st">[docs]</a>    <span class="k">def</span> <span class="nf">st</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return the raw string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_st</span></div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;IndexedString(...)&quot;</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Note: if repr(some object) gets too long since</span>
+        <span class="c1"># repr(IndexedString(..)) basically prints the whole input file</span>
+        <span class="c1"># you may in-comment the following line in order to make</span>
+        <span class="c1"># the output shorter:</span>
+        <span class="c1">#return &quot;IndexedString(...)&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;IndexedString(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_st</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParseException"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParseException">[docs]</a><span class="k">class</span> <span class="nc">ParseException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;used for Exceptions in this module.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rowcol</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ParseException</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">rowcol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="o">=</span> <span class="n">pos</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rowcol</span><span class="o">=</span> <span class="n">rowcol</span>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rowcol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> line </span><span class="si">%d</span><span class="s2">, col </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                   <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">rowcol</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">rowcol</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> position: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span></div>
+
+<span class="n">rx_pyIdent</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([A-Za-z_][\w\.]*)$&#39;</span><span class="p">)</span>
+
+<span class="n">rx_csv</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s*,\s*&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="scanPyIdentList"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.scanPyIdentList">[docs]</a><span class="k">def</span> <span class="nf">scanPyIdentList</span><span class="p">(</span><span class="n">st</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;scan a list of python identifiers.</span>
+
+<span class="sd">    Here are some examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; scanPyIdentList(&quot;a,b&quot;)</span>
+<span class="sd">    [&#39;a&#39;, &#39;b&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; scanPyIdentList(&quot;a,b.d, c&quot;)</span>
+<span class="sd">    [&#39;a&#39;, &#39;b.d&#39;, &#39;c&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; scanPyIdentList(&quot;a,b.d, c&amp;&quot;)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: list of python identifiers expected</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lst</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">rx_csv</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+        <span class="n">m</span><span class="o">=</span> <span class="n">rx_pyIdent</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">elm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;list of python identifiers expected&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lst</span></div>
+
+<span class="n">rx_py_in</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^\s*(.*?)\s*\b(in)\b\s*(.*?)\s*$&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="scanPyIn"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.scanPyIn">[docs]</a><span class="k">def</span> <span class="nf">scanPyIn</span><span class="p">(</span><span class="n">st</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;scan a python &quot;in&quot; statement.</span>
+
+<span class="sd">    Here are some examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; scanPyIn(&quot; (a,b) in k.items() &quot;)</span>
+<span class="sd">    (&#39;(a,b)&#39;, &#39;in&#39;, &#39;k.items()&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">m</span><span class="o">=</span> <span class="n">rx_py_in</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;python </span><span class="se">\&quot;</span><span class="s2">in</span><span class="se">\&quot;</span><span class="s2"> expression expected&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span></div>
+
+<span class="n">rx_bracketed</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\{[A-Za-z_]\w*\}&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="parseBracketed"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.parseBracketed">[docs]</a><span class="k">def</span> <span class="nf">parseBracketed</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span><span class="n">pos</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;parse an identifier in curly brackets.</span>
+
+<span class="sd">    Here are some examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; def test(st,pos):</span>
+<span class="sd">    ...     idxst= IndexedString(st)</span>
+<span class="sd">    ...     (a,b)= parseBracketed(idxst,pos)</span>
+<span class="sd">    ...     print(st[a:b])</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;{abc}&#39;,0)</span>
+<span class="sd">    {abc}</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;{ab8c}&#39;,0)</span>
+<span class="sd">    {ab8c}</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;{c}&#39;,0)</span>
+<span class="sd">    {c}</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;{}&#39;,0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: command enclosed in curly brackets at line 1, col 1</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;{abc&#39;,0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: command enclosed in curly brackets at line 1, col 1</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;x{ab8c}&#39;,1)</span>
+<span class="sd">    {ab8c}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+    <span class="n">st</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()</span>
+    <span class="n">m</span><span class="o">=</span> <span class="n">rx_bracketed</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">st</span><span class="p">,</span><span class="n">pos</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;command enclosed in curly brackets at&quot;</span><span class="p">,</span>
+                             <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">())</span></div>
+
+<span class="n">rx_StringLiteralStart</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&#39;&#39;(UR|Ur|uR|ur|r|u|R|U|)(&quot;&quot;&quot;|&#39;&#39;&#39;</span> <span class="o">+</span> \
+                                  <span class="sd">&quot;&quot;&quot;&#39;&#39;&#39;&quot;&quot;&quot;</span> <span class="o">+</span> \
+                                  <span class="sa">r</span><span class="sd">&#39;&#39;&#39;|&#39;|&quot;)&#39;&#39;&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="parseStringLiteral"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.parseStringLiteral">[docs]</a><span class="k">def</span> <span class="nf">parseStringLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span><span class="n">pos</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;parse a python string literal.</span>
+
+<span class="sd">    returns 2 numbers, the index where the string starts and</span>
+<span class="sd">    the index of the first character *after* the string</span>
+
+<span class="sd">    Here are some examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; def test(st,pos):</span>
+<span class="sd">    ...     idxst= IndexedString(st)</span>
+<span class="sd">    ...     (a,b)= parseStringLiteral(idxst,pos)</span>
+<span class="sd">    ...     print(st[a:b])</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;&quot;abc&quot;&#39;&#39;&#39;,0)</span>
+<span class="sd">    &quot;abc&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;&#39;&#39;&#39;ab&#39;c&#39;d&#39;&#39;&#39;&quot;,0)</span>
+<span class="sd">    &#39;&#39;&#39;ab&#39;c&#39;d&#39;&#39;&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;&#39;&#39;&#39;ab&#39;cd&#39;&#39;&#39;&#39;&quot;,0)</span>
+<span class="sd">    &#39;&#39;&#39;ab&#39;cd&#39;&#39;&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;U&quot;abc&quot;&#39;&#39;&#39;,0)</span>
+<span class="sd">    U&quot;abc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;xU&quot;abc&quot;&#39;&#39;&#39;,1)</span>
+<span class="sd">    U&quot;abc&quot;</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;xUr&quot;abc&quot;&#39;&#39;&#39;,1)</span>
+<span class="sd">    Ur&quot;abc&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;xUr&quot;ab\\&quot;c&quot;&#39;&#39;&#39;,1)</span>
+<span class="sd">    Ur&quot;ab\\&quot;</span>
+
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;xUr&quot;ab\&quot;c&quot;&#39;&#39;&#39;,1)</span>
+<span class="sd">    Ur&quot;ab\&quot;c&quot;</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;xUr&quot;ab\&quot;c&quot;&#39;&#39;&#39;,0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: start of string expected at line 1, col 1</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;&quot;ab&#39;&#39;&#39;,0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: end of string not found at line 1, col 1</span>
+<span class="sd">    &gt;&gt;&gt; test(r&quot;&#39;&#39;&#39;ab&#39;&quot;,0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: end of string not found at line 1, col 1</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;&quot;ab\&quot;&#39;&#39;&#39;,0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: end of string not found at line 1, col 1</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+    <span class="n">st</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()</span>
+    <span class="n">m</span><span class="o">=</span> <span class="n">rx_StringLiteralStart</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">st</span><span class="p">,</span><span class="n">pos</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;start of string expected at&quot;</span><span class="p">,</span>
+                             <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+    <span class="n">prefix</span><span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">starter</span><span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># &quot;&quot;&quot; or &#39;&#39;&#39; or &quot; or &#39;</span>
+    <span class="c1">#is_unicode= False</span>
+    <span class="c1">#is_raw= False</span>
+    <span class="c1">#if -1!=prefix.find(&quot;r&quot;):</span>
+    <span class="c1">#    is_raw= True</span>
+    <span class="c1">#elif -1!=prefix.find(&quot;R&quot;):</span>
+    <span class="c1">#    is_raw= True</span>
+    <span class="c1">#if -1!=prefix.find(&quot;u&quot;):</span>
+    <span class="c1">#    is_unicode= True</span>
+    <span class="c1">#elif -1!=prefix.find(&quot;U&quot;):</span>
+    <span class="c1">#    is_unicode= True</span>
+    <span class="n">startpos</span><span class="o">=</span> <span class="n">pos</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">starter</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">idx</span><span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">starter</span><span class="p">,</span> <span class="n">startpos</span><span class="p">)</span>
+        <span class="c1"># if startpos&gt;len(st), idx is also -1</span>
+        <span class="k">if</span> <span class="n">idx</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;end of string not found at&quot;</span><span class="p">,</span>
+                                 <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">st</span><span class="p">[</span><span class="n">idx</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span>
+            <span class="c1"># maybe escaped quote char</span>
+            <span class="n">e</span><span class="o">=</span> <span class="kc">None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">st</span><span class="p">[</span><span class="n">idx</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span>
+                    <span class="c1"># only then it is an escaped quote char</span>
+                    <span class="n">startpos</span><span class="o">=</span> <span class="n">idx</span><span class="o">+</span><span class="mi">1</span>
+                    <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">_e</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">=</span> <span class="n">_e</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;end of string not found at&quot;</span><span class="p">,</span>
+                                     <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+        <span class="k">break</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">starter</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># simple single quoted string</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="n">idx</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="parseComment"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.parseComment">[docs]</a><span class="k">def</span> <span class="nf">parseComment</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span><span class="n">pos</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;parse a python comment.</span>
+
+<span class="sd">    Here are some examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; def test(st,pos,sep=None):</span>
+<span class="sd">    ...     if sep:</span>
+<span class="sd">    ...         change_linesep(sep)</span>
+<span class="sd">    ...     idxst= IndexedString(st)</span>
+<span class="sd">    ...     (a,b)= parseComment(idxst,pos)</span>
+<span class="sd">    ...     print(repr(st[a:b]))</span>
+<span class="sd">    ...     change_linesep(os.linesep)</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;#abc&quot;,0)</span>
+<span class="sd">    &#39;#abc&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;#abc\nef&quot;,0,&quot;\n&quot;)</span>
+<span class="sd">    &#39;#abc\n&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;#abc\r\nef&quot;,0,&quot;\r\n&quot;)</span>
+<span class="sd">    &#39;#abc\r\n&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;xy#abc&quot;,2)</span>
+<span class="sd">    &#39;#abc&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;xy#abc\nef&quot;,2,&quot;\n&quot;)</span>
+<span class="sd">    &#39;#abc\n&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;xy#abc\nef&quot;,3)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: start of comment not found at line 1, col 4</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+    <span class="n">st</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">st</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;#&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;start of comment not found at&quot;</span><span class="p">,</span>
+                             <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+    <span class="n">idx_lf</span><span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">LINESEP</span><span class="p">,</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">idx_lf</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">st</span><span class="p">))</span>
+    <span class="k">return</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="n">idx_lf</span><span class="o">+</span><span class="n">LINESEP_LEN</span><span class="p">)</span></div>
+
+<span class="n">rx_CodePart</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;&#39;&#39;((?:UR|Ur|uR|ur|r|u|R|U|)(?:&quot;&quot;&quot;|&#39;&#39;&#39;</span> <span class="o">+</span> <span class="s2">&quot;&quot;&quot;&#39;&#39;&#39;&quot;&quot;&quot;</span> <span class="o">+</span> \
+                        <span class="sa">r</span><span class="sd">&#39;&#39;&#39;|&#39;|&quot;)|#|\(|\))&#39;&#39;&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="parseCode"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.parseCode">[docs]</a><span class="k">def</span> <span class="nf">parseCode</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span><span class="n">pos</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;parse python code, it MUST start with a &#39;(&#39;.</span>
+
+<span class="sd">    Here are some examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; def test(st,pos):</span>
+<span class="sd">    ...     idxst= IndexedString(st)</span>
+<span class="sd">    ...     (a,b)= parseCode(idxst,pos)</span>
+<span class="sd">    ...     print(st[a:b])</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;(a+b)&#39;,0)</span>
+<span class="sd">    (a+b)</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;(a+(b*c))&#39;,0)</span>
+<span class="sd">    (a+(b*c))</span>
+<span class="sd">    &gt;&gt;&gt; test(r&#39;(a+(b*c)+&quot;)&quot;)&#39;,0)</span>
+<span class="sd">    (a+(b*c)+&quot;)&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; test(r&quot;(a+(b*c)+&#39;&#39;&#39;)&#39;&#39;&#39;)&quot;,0)</span>
+<span class="sd">    (a+(b*c)+&#39;&#39;&#39;)&#39;&#39;&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(r&quot;(a+(b*c)+&#39;&#39;&#39;)&#39;&#39;&#39;+# comment )\n)&quot;,0)</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    ParseException: end of bracket expression not found at line 1, col 1</span>
+<span class="sd">    &gt;&gt;&gt;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;(a+(b*c)+&#39;&#39;&#39;)&#39;&#39;&#39;+# comment )\n)&quot;,0)</span>
+<span class="sd">    (a+(b*c)+&#39;&#39;&#39;)&#39;&#39;&#39;+# comment )</span>
+<span class="sd">    )</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+    <span class="n">st</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">st</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;(&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;start of bracket expression not found at&quot;</span><span class="p">,</span>
+                             <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+    <span class="n">startpos</span><span class="o">=</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">m</span><span class="o">=</span> <span class="n">rx_CodePart</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">startpos</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;end of bracket expression not found at&quot;</span><span class="p">,</span>
+                                 <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+        <span class="n">matched</span><span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">matched</span><span class="o">==</span><span class="s2">&quot;#&quot;</span><span class="p">:</span>
+            <span class="c1"># a comment</span>
+            <span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">b</span><span class="p">)</span><span class="o">=</span> <span class="n">parseComment</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+            <span class="n">startpos</span><span class="o">=</span> <span class="n">b</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">matched</span><span class="o">==</span><span class="s2">&quot;(&quot;</span><span class="p">:</span>
+            <span class="c1"># an inner bracket</span>
+            <span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">b</span><span class="p">)</span><span class="o">=</span> <span class="n">parseCode</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+            <span class="n">startpos</span><span class="o">=</span> <span class="n">b</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">matched</span><span class="o">==</span><span class="s2">&quot;)&quot;</span><span class="p">:</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># from here it must be a string literal</span>
+        <span class="p">(</span><span class="n">_</span><span class="p">,</span><span class="n">b</span><span class="p">)</span><span class="o">=</span> <span class="n">parseStringLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+        <span class="n">startpos</span><span class="o">=</span> <span class="n">b</span>
+        <span class="k">continue</span></div>
+
+<div class="viewcode-block" id="ParsedItem"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedItem">[docs]</a><span class="k">class</span> <span class="nc">ParsedItem</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;base class of parsed items.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_idxst</span><span class="o">=</span> <span class="n">idxst</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="o">=</span> <span class="n">start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_end</span><span class="o">=</span> <span class="n">end</span>
+<div class="viewcode-block" id="ParsedItem.string"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedItem.string">[docs]</a>    <span class="k">def</span> <span class="nf">string</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return the string that represents the ParsedItem.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_end</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span></div>
+<div class="viewcode-block" id="ParsedItem.start"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedItem.start">[docs]</a>    <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return the start of the ParsedItem in the source string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span></div>
+<div class="viewcode-block" id="ParsedItem.end"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedItem.end">[docs]</a>    <span class="k">def</span> <span class="nf">end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return the end of the ParsedItem in the source string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_end</span></div>
+<div class="viewcode-block" id="ParsedItem.rowcol"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedItem.rowcol">[docs]</a>    <span class="k">def</span> <span class="nf">rowcol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;calculate (row,column) from a string position.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">pos</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ParsedItem.positions"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedItem.positions">[docs]</a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return start and end of ParsedItem in the source string.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_end</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;(&#39;</span><span class="si">%s</span><span class="s2">&#39;, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> \
+               <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">(),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">()))</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> \
+                <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idxst</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_end</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ParsedLiteral"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedLiteral">[docs]</a><span class="k">class</span> <span class="nc">ParsedLiteral</span><span class="p">(</span><span class="n">ParsedItem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;class of a parsed literal.</span>
+
+<span class="sd">    A literal is a substring in the input that shouldn&#39;t be modified by</span>
+<span class="sd">    pyexpander.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">ParsedItem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParsedComment"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedComment">[docs]</a><span class="k">class</span> <span class="nc">ParsedComment</span><span class="p">(</span><span class="n">ParsedItem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;class of a parsed comment.</span>
+
+<span class="sd">    A comment in pyexpander starts with &#39;$#&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">ParsedItem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParsedVar"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedVar">[docs]</a><span class="k">class</span> <span class="nc">ParsedVar</span><span class="p">(</span><span class="n">ParsedItem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;class of a parsed variable.</span>
+
+<span class="sd">    A variable in pyexpander has the form &quot;$(identifier)&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">ParsedItem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParsedEval"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedEval">[docs]</a><span class="k">class</span> <span class="nc">ParsedEval</span><span class="p">(</span><span class="n">ParsedItem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;class of an pyexpander expression.</span>
+
+<span class="sd">    A pyexpander expression has the form &quot;$(expression)&quot; e.g. &quot;$(a+1)&quot;. This is</span>
+<span class="sd">    different from ParsedVar where the string within the brackets is a simple</span>
+<span class="sd">    identifier.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">ParsedItem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParsedPureCommand"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedPureCommand">[docs]</a><span class="k">class</span> <span class="nc">ParsedPureCommand</span><span class="p">(</span><span class="n">ParsedItem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;class of a pyexpander command without arguments.</span>
+
+<span class="sd">    A pure command has the form &quot;$name&quot;. Such a command has no arguments which</span>
+<span class="sd">    would be enclosed in round brackets immediately following the name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">ParsedItem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParsedCommand"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedCommand">[docs]</a><span class="k">class</span> <span class="nc">ParsedCommand</span><span class="p">(</span><span class="n">ParsedItem</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;class of a pyexpander command with arguments.</span>
+
+<span class="sd">    A command has the form &quot;$name(argument1, argument2, ...)&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">ident</span><span class="p">):</span>
+        <span class="n">ParsedItem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idxst</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ident</span><span class="o">=</span> <span class="n">ident</span>
+<div class="viewcode-block" id="ParsedCommand.args"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.ParsedCommand.args">[docs]</a>    <span class="k">def</span> <span class="nf">args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;return the arguments of the command.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">()</span></div>
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;(&#39;</span><span class="si">%s</span><span class="s2">&#39;, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> \
+               <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">(),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">string</span><span class="p">()),</span> \
+               <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ident</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> \
+                <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idxst</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_end</span><span class="p">),</span> \
+                <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ident</span><span class="p">))</span></div>
+
+
+<span class="n">rx_DollarFollows</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;([A-Za-z_]\w*|\(|\{|#)&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="parseDollar"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.parseDollar">[docs]</a><span class="k">def</span> <span class="nf">parseDollar</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;parse things that follow a dollar.</span>
+
+<span class="sd">    Here are some examples:</span>
+
+<span class="sd">    &gt;&gt;&gt; def test(st,pos):</span>
+<span class="sd">    ...   idxst= IndexedString(st)</span>
+<span class="sd">    ...   (p,elm)= parseDollar(idxst,pos)</span>
+<span class="sd">    ...   print(&quot;Parsed: %s&quot; % elm)</span>
+<span class="sd">    ...   print(&quot;rest of string:%s&quot; % st[p:])</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;$abc&quot;,0)</span>
+<span class="sd">    Parsed: (&#39;ParsedPureCommand&#39;, (1, 3), &#39;abc&#39;)</span>
+<span class="sd">    rest of string:</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;$abc%&amp;/&quot;,0)</span>
+<span class="sd">    Parsed: (&#39;ParsedPureCommand&#39;, (1, 3), &#39;abc&#39;)</span>
+<span class="sd">    rest of string:%&amp;/</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;$abc(2*3)&quot;,0)</span>
+<span class="sd">    Parsed: (&#39;ParsedCommand&#39;, (5, 7), &#39;2*3&#39;, &#39;abc&#39;)</span>
+<span class="sd">    rest of string:</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot; $abc(2*sin(x))&quot;,1)</span>
+<span class="sd">    Parsed: (&#39;ParsedCommand&#39;, (6, 13), &#39;2*sin(x)&#39;, &#39;abc&#39;)</span>
+<span class="sd">    rest of string:</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot; $abc(2*sin(x))bn&quot;,1)</span>
+<span class="sd">    Parsed: (&#39;ParsedCommand&#39;, (6, 13), &#39;2*sin(x)&#39;, &#39;abc&#39;)</span>
+<span class="sd">    rest of string:bn</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot; $# a comment\nnew line&quot;,1)</span>
+<span class="sd">    Parsed: (&#39;ParsedComment&#39;, (3, 13), &#39; a comment\n&#39;)</span>
+<span class="sd">    rest of string:new line</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;$(abc)&quot;,0)</span>
+<span class="sd">    Parsed: (&#39;ParsedVar&#39;, (2, 4), &#39;abc&#39;)</span>
+<span class="sd">    rest of string:</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;$(abc*2)&quot;,0)</span>
+<span class="sd">    Parsed: (&#39;ParsedEval&#39;, (2, 6), &#39;abc*2&#39;)</span>
+<span class="sd">    rest of string:</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot; $(2*x(y))abc&quot;,1)</span>
+<span class="sd">    Parsed: (&#39;ParsedEval&#39;, (3, 8), &#39;2*x(y)&#39;)</span>
+<span class="sd">    rest of string:abc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+    <span class="n">st</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">st</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;$&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;&#39;$&#39; expected at&quot;</span><span class="p">,</span>
+                             <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+    <span class="n">m</span><span class="o">=</span> <span class="n">rx_DollarFollows</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;unexpected characters after &#39;$&#39; at&quot;</span><span class="p">,</span>
+                             <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+    <span class="n">matched</span><span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">matched</span><span class="o">==</span><span class="s2">&quot;#&quot;</span><span class="p">:</span>
+        <span class="c1"># an expander comment</span>
+        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span><span class="o">=</span> <span class="n">parseComment</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedComment</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">matched</span><span class="o">==</span><span class="s2">&quot;(&quot;</span><span class="p">:</span>
+        <span class="c1"># pylint: disable= redefined-variable-type</span>
+        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span><span class="o">=</span> <span class="n">parseCode</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">m_ident</span><span class="o">=</span> <span class="n">rx_pyIdent</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m_ident</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedVar</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedEval</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">matched</span><span class="o">==</span><span class="s2">&quot;{&quot;</span><span class="p">:</span>
+        <span class="c1"># a purecommand enclosed in &quot;{}&quot; brackets</span>
+        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span><span class="o">=</span> <span class="n">parseBracketed</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedPureCommand</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+    <span class="c1"># from here: a purecommand or a command</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">nextchar</span><span class="o">=</span> <span class="n">st</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()]</span>
+    <span class="k">except</span> <span class="ne">IndexError</span> <span class="k">as</span> <span class="n">_</span><span class="p">:</span>
+        <span class="n">nextchar</span><span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">nextchar</span><span class="o">==</span><span class="s2">&quot;(&quot;</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span><span class="o">=</span> <span class="n">parseCode</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">())</span>
+        <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedCommand</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">a</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">b</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="n">matched</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+    <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedPureCommand</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">(),</span> <span class="n">elm</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="parseBackslash"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.parseBackslash">[docs]</a><span class="k">def</span> <span class="nf">parseBackslash</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;parses a backslash.</span>
+
+<span class="sd">    &gt;&gt;&gt; import os</span>
+<span class="sd">    &gt;&gt;&gt; def test(st,pos,sep=None):</span>
+<span class="sd">    ...     if sep:</span>
+<span class="sd">    ...         change_linesep(sep)</span>
+<span class="sd">    ...     idxst= IndexedString(st)</span>
+<span class="sd">    ...     (p,elm)= parseBackslash(idxst,pos)</span>
+<span class="sd">    ...     print(&quot;Parsed: %s&quot; % elm)</span>
+<span class="sd">    ...     print(&quot;rest of string:%s&quot; % repr(st[p:]))</span>
+<span class="sd">    ...     change_linesep(os.linesep)</span>
+<span class="sd">    ...</span>
+<span class="sd">    &gt;&gt;&gt; test(r&quot;\abc&quot;,0)</span>
+<span class="sd">    Parsed: (&#39;ParsedLiteral&#39;, (0, 0), &#39;\\&#39;)</span>
+<span class="sd">    rest of string:&#39;abc&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\&quot;,0)</span>
+<span class="sd">    Parsed: (&#39;ParsedLiteral&#39;, (0, 0), &#39;\\&#39;)</span>
+<span class="sd">    rest of string:&#39;&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\rab&quot;,0,&quot;\r&quot;)</span>
+<span class="sd">    Parsed: None</span>
+<span class="sd">    rest of string:&#39;ab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\rab&quot;,0,&quot;\n&quot;)</span>
+<span class="sd">    Parsed: (&#39;ParsedLiteral&#39;, (0, 0), &#39;\\&#39;)</span>
+<span class="sd">    rest of string:&#39;\rab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\rab&quot;,0,&quot;\r\n&quot;)</span>
+<span class="sd">    Parsed: (&#39;ParsedLiteral&#39;, (0, 0), &#39;\\&#39;)</span>
+<span class="sd">    rest of string:&#39;\rab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\nab&quot;,0,&quot;\r&quot;)</span>
+<span class="sd">    Parsed: (&#39;ParsedLiteral&#39;, (0, 0), &#39;\\&#39;)</span>
+<span class="sd">    rest of string:&#39;\nab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\nab&quot;,0,&quot;\n&quot;)</span>
+<span class="sd">    Parsed: None</span>
+<span class="sd">    rest of string:&#39;ab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\nab&quot;,0,&quot;\r\n&quot;)</span>
+<span class="sd">    Parsed: (&#39;ParsedLiteral&#39;, (0, 0), &#39;\\&#39;)</span>
+<span class="sd">    rest of string:&#39;\nab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\r\nab&quot;,0,&quot;\r&quot;)</span>
+<span class="sd">    Parsed: None</span>
+<span class="sd">    rest of string:&#39;\nab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\r\nab&quot;,0,&quot;\n&quot;)</span>
+<span class="sd">    Parsed: (&#39;ParsedLiteral&#39;, (0, 0), &#39;\\&#39;)</span>
+<span class="sd">    rest of string:&#39;\r\nab&#39;</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;\\\r\nab&quot;,0,&quot;\r\n&quot;)</span>
+<span class="sd">    Parsed: None</span>
+<span class="sd">    rest of string:&#39;ab&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># backslash found</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+    <span class="n">st</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">st</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">!=</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="s2">&quot;backslash expected at&quot;</span><span class="p">,</span>
+                             <span class="n">rowcol</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">rowcol</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+    <span class="n">l_</span><span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="o">&gt;=</span><span class="n">l_</span><span class="p">:</span>
+        <span class="c1"># no more characters</span>
+        <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># at least one more character</span>
+        <span class="n">nextchar</span><span class="o">=</span> <span class="n">st</span><span class="p">[</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">nextchar</span><span class="o">==</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span>
+            <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">pos</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nextchar</span><span class="o">==</span><span class="s2">&quot;$&quot;</span><span class="p">:</span>
+            <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">pos</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pos</span><span class="o">+</span><span class="n">LINESEP_LEN</span><span class="o">&gt;=</span><span class="n">l_</span><span class="p">:</span>
+            <span class="c1"># not enough characters for LINESEP</span>
+            <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">LINESEP_LEN</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">st</span><span class="p">[</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">i</span><span class="p">]</span><span class="o">!=</span><span class="n">LINESEP</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                    <span class="c1"># no line separator follows</span>
+                    <span class="n">elm</span><span class="o">=</span> <span class="n">ParsedLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">pos</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span>
+            <span class="k">return</span><span class="p">(</span><span class="n">pos</span><span class="o">+</span><span class="n">LINESEP_LEN</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+<span class="n">rx_top</span><span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(\$|</span><span class="se">\\</span><span class="s1">)&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="parseAll"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.parseAll">[docs]</a><span class="k">def</span> <span class="nf">parseAll</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;parse everything.</span>
+
+<span class="sd">    &gt;&gt;&gt; def test(st,pos):</span>
+<span class="sd">    ...     idxst= IndexedString(st)</span>
+<span class="sd">    ...     pprint(parseAll(idxst,pos))</span>
+<span class="sd">    ...</span>
+
+<span class="sd">    &gt;&gt;&gt; test(&quot;abc&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 2), &#39;abc&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;abc$xyz&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 2), &#39;abc&#39;)</span>
+<span class="sd">    (&#39;ParsedPureCommand&#39;, (4, 6), &#39;xyz&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;abc${xyz}efg&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 2), &#39;abc&#39;)</span>
+<span class="sd">    (&#39;ParsedPureCommand&#39;, (5, 7), &#39;xyz&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (9, 11), &#39;efg&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;abc$xyz(2*4)&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 2), &#39;abc&#39;)</span>
+<span class="sd">    (&#39;ParsedCommand&#39;, (8, 10), &#39;2*4&#39;, &#39;xyz&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;abc$(2*4)ab&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 2), &#39;abc&#39;)</span>
+<span class="sd">    (&#39;ParsedEval&#39;, (5, 7), &#39;2*4&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (9, 10), &#39;ab&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;abc\\$(2*4)ab&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 2), &#39;abc&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (4, 4), &#39;$&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (5, 11), &#39;(2*4)ab&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;ab$func(1+2)\\\nnew line&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 1), &#39;ab&#39;)</span>
+<span class="sd">    (&#39;ParsedCommand&#39;, (8, 10), &#39;1+2&#39;, &#39;func&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (14, 21), &#39;new line&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;ab$func(1+2)\nnew line&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 1), &#39;ab&#39;)</span>
+<span class="sd">    (&#39;ParsedCommand&#39;, (8, 10), &#39;1+2&#39;, &#39;func&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (12, 20), &#39;\nnew line&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; test(&quot;ab$(xyz)(56)&quot;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 1), &#39;ab&#39;)</span>
+<span class="sd">    (&#39;ParsedVar&#39;, (4, 6), &#39;xyz&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (8, 11), &#39;(56)&#39;)</span>
+
+<span class="sd">    &gt;&gt;&gt; test(r&#39;&#39;&#39;</span>
+<span class="sd">    ... Some text with a macro: $(xy)</span>
+<span class="sd">    ... an escaped dollar: \$(xy)</span>
+<span class="sd">    ... a macro within letters: abc${xy}def</span>
+<span class="sd">    ... a pyexpander command structure:</span>
+<span class="sd">    ... $if(a=1)</span>
+<span class="sd">    ... here</span>
+<span class="sd">    ... $else</span>
+<span class="sd">    ... there</span>
+<span class="sd">    ... $endif</span>
+<span class="sd">    ... now a continued\</span>
+<span class="sd">    ... line</span>
+<span class="sd">    ... from here:$# the rest is a comment</span>
+<span class="sd">    ... now an escaped continued\\</span>
+<span class="sd">    ... line</span>
+<span class="sd">    ... &#39;&#39;&#39;,0)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (0, 24), &#39;\nSome text with a macro: &#39;)</span>
+<span class="sd">    (&#39;ParsedVar&#39;, (27, 28), &#39;xy&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (30, 49), &#39;\nan escaped dollar: &#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (51, 51), &#39;$&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (52, 83), &#39;(xy)\na macro within letters: abc&#39;)</span>
+<span class="sd">    (&#39;ParsedPureCommand&#39;, (86, 87), &#39;xy&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (89, 124), &#39;def\na pyexpander command structure:\n&#39;)</span>
+<span class="sd">    (&#39;ParsedCommand&#39;, (129, 131), &#39;a=1&#39;, &#39;if&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (133, 138), &#39;\nhere\n&#39;)</span>
+<span class="sd">    (&#39;ParsedPureCommand&#39;, (140, 143), &#39;else&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (144, 150), &#39;\nthere\n&#39;)</span>
+<span class="sd">    (&#39;ParsedPureCommand&#39;, (152, 156), &#39;endif&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (157, 172), &#39;\nnow a continued&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (175, 189), &#39;line\nfrom here:&#39;)</span>
+<span class="sd">    (&#39;ParsedComment&#39;, (192, 214), &#39; the rest is a comment\n&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (215, 238), &#39;now an escaped continued&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (239, 239), &#39;\\&#39;)</span>
+<span class="sd">    (&#39;ParsedLiteral&#39;, (241, 246), &#39;\nline\n&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">IndexedString</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;idxst par wrong: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">repr</span><span class="p">(</span><span class="n">idxst</span><span class="p">))</span>
+    <span class="n">st</span><span class="o">=</span> <span class="n">idxst</span><span class="o">.</span><span class="n">st</span><span class="p">()</span>
+    <span class="n">parselist</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">l</span><span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">st</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pos</span><span class="o">&gt;=</span><span class="n">l</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">parselist</span>
+        <span class="n">m</span><span class="o">=</span> <span class="n">rx_top</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">parselist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ParsedLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">st</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">parselist</span>
+        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span><span class="o">&gt;</span><span class="n">pos</span><span class="p">:</span>
+            <span class="n">parselist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ParsedLiteral</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">==</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span><span class="o">=</span> <span class="n">parseBackslash</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">elm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">parselist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elm</span><span class="p">)</span>
+            <span class="n">pos</span><span class="o">=</span> <span class="n">p</span>
+            <span class="k">continue</span>
+        <span class="c1"># from here it must be a dollar sign</span>
+        <span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">elm</span><span class="p">)</span><span class="o">=</span> <span class="n">parseDollar</span><span class="p">(</span><span class="n">idxst</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+        <span class="n">parselist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">elm</span><span class="p">)</span>
+        <span class="k">continue</span></div>
+
+<div class="viewcode-block" id="pprint"><a class="viewcode-back" href="../../pyexpander.html#pyexpander.parser.pprint">[docs]</a><span class="k">def</span> <span class="nf">pprint</span><span class="p">(</span><span class="n">parselist</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;pretty print a parselist.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">elm</span> <span class="ow">in</span> <span class="n">parselist</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">elm</span><span class="p">))</span></div>
+
+<span class="k">def</span> <span class="nf">_test</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;perform the doctest tests.&quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">doctest</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;testing...&quot;</span><span class="p">)</span>
+    <span class="n">doctest</span><span class="o">.</span><span class="n">testmod</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">_test</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction to pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference-expander.html">pyexpander reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../epics-support.html">EPICS support in pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../python2.html">pyexpander for users not familiar with python version 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../python3.html">pyexpander for users not familiar with python version 3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../expander-options.html">expander.py and expander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../msi2pyexpander-options.html">msi2pyexpander.py and msi2pyexpander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pyexpander-install.html">Installing pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pyexpander-install-by-setup.html">Installing pyexpander by running setup.py</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">pyexpander 1.8.4 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Helmholtz-Zentrum Berlin GmbH.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+    </div>
+  </body>
+</html>

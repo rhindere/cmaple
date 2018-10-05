@@ -1,0 +1,21 @@
+[tree]
+logging_level=INFO
+RUN tree=MapleTree(logging_level={tree$logging_level})
+[leafs]
+RUN TG_leaf = {tree$RUN tree}.add_leaf_instance(leaf_type=tg,name=Hackathon_TG,TG_host=panacea.threatgrid.com,TG_API_key=4dnikf1f877uj3cr3gmve58ro8,default_get_item_limit=200)
+#RUN AMP_leaf = {tree$RUN tree}.add_leaf_instance(leaf_type=amp,name=Hackathon,AMP_host=api.amp.cisco.com,AMP_API_client_ID=e9635f53c8af9fec51fc,AMP_API_key=9f69f254-0298-419f-a2df-9ac7ce47d514,default_get_item_limit=200)
+[queries]
+#TG_query_url = api/v2/iocs/feeds/ips?api_key=6g2r13gl2t5g6moef3m24ubajq&after=2018-09-18T17:00:00
+#TG_query_url = api/v2/samples/search?api_key=6g2r13gl2t5g6moef3m24ubajq&checksum=5a0d64cc41bb8455f38b4b31c6e69af9e7fd022b0ea9ea0c32c371def24d67fb
+#TG_to_AMP_query_field = sample_sha256
+TG_query_url_1 = api/v2/samples?api_key=4dnikf1f877uj3cr3gmve58ro8&after=after=2018-09-18T00:00:00&user_only=true"
+
+TG_query_url_2 = api/v2/samples/{}/analysis/iocs?api_key=6g2r13gl2t5g6moef3m24ubajq&checksum=5a0d64cc41bb8455f38b4b31c6e69af9e7fd022b0ea9ea0c32c371def24d67fb
+TG_to_AMP_query_field = IP
+#AMP_query_url = v1/computers/activity?q=~{queries$TG_to_AMP_query_field}~
+RUN query_tg = {leafs$RUN TG_leaf}.GET_API_path(url={queries$TG_query_url_1})
+RUN pprint_0=output.pretty_print(_object={queries$RUN query_tg})
+#RUN query_amp = {leafs$RUN AMP_leaf}.query_with_list(query_url={queries$AMP_query_url},query_list={queries$RUN query_tg})
+#RUN pprint_1=output.pretty_print(_object={queries$RUN query_amp})
+#RUN pickle_0=output.create_pickle(struct={queries$RUN query_amp},file=query_amp_results_pickle.pickle)
+#5.149.252.152

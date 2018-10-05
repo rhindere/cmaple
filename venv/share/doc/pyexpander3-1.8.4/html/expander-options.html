@@ -1,0 +1,187 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>expander.py and expander3.py command line options &#8212; pyexpander 1.8.4 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.8.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="msi2pyexpander.py and msi2pyexpander3.py command line options" href="msi2pyexpander-options.html" />
+    <link rel="prev" title="pyexpander for users not familiar with python version 3" href="python3.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="msi2pyexpander-options.html" title="msi2pyexpander.py and msi2pyexpander3.py command line options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="python3.html" title="pyexpander for users not familiar with python version 3"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="expander-py-and-expander3-py-command-line-options">
+<h1>expander.py and expander3.py command line options<a class="headerlink" href="#expander-py-and-expander3-py-command-line-options" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="h">
+<h2><code class="docutils literal"><span class="pre">-h</span></code><a class="headerlink" href="#h" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Show help for command line options.</div></blockquote>
+</div>
+<div class="section" id="summary">
+<h2><code class="docutils literal"><span class="pre">--summary</span></code><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Print a summary of the function of the program.</div></blockquote>
+</div>
+<div class="section" id="f-file-file-file">
+<h2><code class="docutils literal"><span class="pre">-f</span> <span class="pre">FILE</span> <span class="pre">--file</span> <span class="pre">FILE</span></code><a class="headerlink" href="#f-file-file-file" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Specify a FILE to process. This option may be used more than once to
+process more than one file but note than this option is not really needed.
+Files can also be specified directly after the other command line options.
+If not given, the program gets it’s input from stdin.</div></blockquote>
+</div>
+<div class="section" id="eval">
+<h2><code class="docutils literal"><span class="pre">--eval</span></code><a class="headerlink" href="#eval" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Evaluate PYTHONEXPRESSION in global context.</div></blockquote>
+</div>
+<div class="section" id="i-path-include-path">
+<h2><code class="docutils literal"><span class="pre">-I</span> <span class="pre">PATH</span> <span class="pre">--include</span> <span class="pre">PATH</span></code><a class="headerlink" href="#i-path-include-path" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Add PATH to the list of include paths.</div></blockquote>
+</div>
+<div class="section" id="s-simple-vars">
+<h2><code class="docutils literal"><span class="pre">-s</span> <span class="pre">--simple-vars</span></code><a class="headerlink" href="#s-simple-vars" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Allow variables without brackets.</div></blockquote>
+</div>
+<div class="section" id="a-auto-continuation">
+<h2><code class="docutils literal"><span class="pre">-a</span> <span class="pre">--auto-continuation</span></code><a class="headerlink" href="#a-auto-continuation" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Assume ‘’ at the end of lines with commands.</div></blockquote>
+</div>
+<div class="section" id="i-auto-indent">
+<h2><code class="docutils literal"><span class="pre">-i</span> <span class="pre">--auto-indent</span></code><a class="headerlink" href="#i-auto-indent" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Automatically indent macros.</div></blockquote>
+</div>
+<div class="section" id="no-stdin-msg">
+<h2><code class="docutils literal"><span class="pre">--no-stdin-msg</span></code><a class="headerlink" href="#no-stdin-msg" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div>Do not print a message on stderr when the program is reading it’s input
+from stdin.</div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction to pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference-expander.html">pyexpander reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epics-support.html">EPICS support in pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python2.html">pyexpander for users not familiar with python version 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python3.html">pyexpander for users not familiar with python version 3</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">expander.py and expander3.py command line options</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#h"><code class="docutils literal"><span class="pre">-h</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#summary"><code class="docutils literal"><span class="pre">--summary</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#f-file-file-file"><code class="docutils literal"><span class="pre">-f</span> <span class="pre">FILE</span> <span class="pre">--file</span> <span class="pre">FILE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#eval"><code class="docutils literal"><span class="pre">--eval</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i-path-include-path"><code class="docutils literal"><span class="pre">-I</span> <span class="pre">PATH</span> <span class="pre">--include</span> <span class="pre">PATH</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#s-simple-vars"><code class="docutils literal"><span class="pre">-s</span> <span class="pre">--simple-vars</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#a-auto-continuation"><code class="docutils literal"><span class="pre">-a</span> <span class="pre">--auto-continuation</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#i-auto-indent"><code class="docutils literal"><span class="pre">-i</span> <span class="pre">--auto-indent</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#no-stdin-msg"><code class="docutils literal"><span class="pre">--no-stdin-msg</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="msi2pyexpander-options.html">msi2pyexpander.py and msi2pyexpander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install.html">Installing pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install-by-setup.html">Installing pyexpander by running setup.py</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="python3.html"
+                        title="previous chapter">pyexpander for users not familiar with python version 3</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="msi2pyexpander-options.html"
+                        title="next chapter">msi2pyexpander.py and msi2pyexpander3.py command line options</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/expander-options.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="msi2pyexpander-options.html" title="msi2pyexpander.py and msi2pyexpander3.py command line options"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="python3.html" title="pyexpander for users not familiar with python version 3"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Helmholtz-Zentrum Berlin GmbH.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+    </div>
+  </body>
+</html>

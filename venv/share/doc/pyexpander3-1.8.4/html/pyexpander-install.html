@@ -1,0 +1,224 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Installing pyexpander &#8212; pyexpander 1.8.4 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.8.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installing pyexpander by running setup.py" href="pyexpander-install-by-setup.html" />
+    <link rel="prev" title="msi2pyexpander.py and msi2pyexpander3.py command line options" href="msi2pyexpander-options.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyexpander-install-by-setup.html" title="Installing pyexpander by running setup.py"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="msi2pyexpander-options.html" title="msi2pyexpander.py and msi2pyexpander3.py command line options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installing-pyexpander">
+<h1>Installing pyexpander<a class="headerlink" href="#installing-pyexpander" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="parts-of-pyexpander">
+<h2>Parts of pyexpander<a class="headerlink" href="#parts-of-pyexpander" title="Permalink to this headline">¶</a></h2>
+<p>pyexpander consists of scripts, python modules, documentation and configuration
+files.</p>
+<p>pyexpander is available on <a class="reference external" href="https://pypi.python.org/pypi">pypi</a>, as a debian
+or rpm package, as a tar.gz and zip file. The following chapters describe how
+to install pyexpander.</p>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>pyexpander requires at least <a class="reference external" href="https://www.python.org">Python</a> version 2.5 or newer.
+It can also run with python 3.</p>
+<p>pyexpander is tested on <a class="reference external" href="https://www.debian.org">debian</a> and
+<a class="reference external" href="https://getfedora.org">Fedora</a> linux distributions but should run on all
+linux distributions. It probably also runs on other flavours of unix, probably
+even MacOS, but this is not tested.</p>
+<p>It may run on windows, escpecially the <a class="reference external" href="https://www.cygwin.com">Cygwin</a>
+environment, but this is also not tested.</p>
+</div>
+<div class="section" id="install-from-pypi-with-pip">
+<h2>Install from pypi with pip<a class="headerlink" href="#install-from-pypi-with-pip" title="Permalink to this headline">¶</a></h2>
+<p>In order to install pyexpander with <a class="reference external" href="https://en.wikipedia.org/wiki/Pip_(package_manager)">pip</a>,
+you use the command <a class="footnote-reference" href="#id3" id="id1">[1]</a> <a class="footnote-reference" href="#id4" id="id2">[2]</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip3</span> <span class="n">install</span> <span class="n">pyexpander</span>
+</pre></div>
+</div>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>This is the example for python 3, for python 2 the command is “pip”</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Your python 3 version of pip may have a different name, e.g. “pip-3” or “pip-3.2”</td></tr>
+</tbody>
+</table>
+<p>You find documentation for the usage of pip at <a class="reference external" href="https://docs.python.org/3/installing/index.html#installing-index">Installing Python Modules</a>.</p>
+</div>
+<div class="section" id="install-from-a-debian-package">
+<h2>Install from a debian package<a class="headerlink" href="#install-from-a-debian-package" title="Permalink to this headline">¶</a></h2>
+<p>There are packages for some of the recent debian versions. In order to see
+what debian version you use enter:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">debian_version</span>
+</pre></div>
+</div>
+<p>Download the package here:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://bitbucket.org/goetzpf/pyexpander/downloads">pyexpander downloads at Bitbucket</a></li>
+<li><a class="reference external" href="https://sourceforge.net/projects/pyexpander/files/?source=navbar">mirror of pyexpander downloads at Sourceforge</a></li>
+</ul>
+<p>and install with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dpkg</span> <span class="o">-</span><span class="n">i</span> <span class="o">&lt;</span><span class="n">PACKAGENAME</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The packages may with other debian versions or debian package based
+distributions like ubuntu, but this is not tested. As a last resort you may
+always install from source (see <a class="reference internal" href="#install-from-source-tar-gz-or-zip-file">Install from source (tar.gz or zip file)</a>) or
+use the python package manager (pip).</p>
+</div>
+<div class="section" id="install-from-a-rpm-package">
+<h2>Install from a rpm package<a class="headerlink" href="#install-from-a-rpm-package" title="Permalink to this headline">¶</a></h2>
+<p>There are packages for some of the recent fedora versions.
+In order to see what fedora version you use enter:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">fedora</span><span class="o">-</span><span class="n">release</span>
+</pre></div>
+</div>
+<p>Download the package here:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://bitbucket.org/goetzpf/pyexpander/downloads">pyexpander downloads at Bitbucket</a></li>
+<li><a class="reference external" href="https://sourceforge.net/projects/pyexpander/files/?source=navbar">mirror of pyexpander downloads at Sourceforge</a></li>
+</ul>
+<p>and install with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">rpm</span> <span class="o">-</span><span class="n">ivh</span>  <span class="o">&lt;</span><span class="n">PACKAGENAME</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The packages may work with other fedora versions or rpm package based
+distributions like, redhat, scientific linux or opensuse, but this was not
+tested. As a last resort you may always install from source (see <a class="reference internal" href="#install-from-source-tar-gz-or-zip-file">Install from
+source (tar.gz or zip file)</a>) or use the python package manager (pip).</p>
+</div>
+<div class="section" id="install-from-source-tar-gz-or-zip-file">
+<h2>Install from source (tar.gz or zip file)<a class="headerlink" href="#install-from-source-tar-gz-or-zip-file" title="Permalink to this headline">¶</a></h2>
+<p>You should do this only if it is impossible to use one of the methods described
+above. You find further information about this method in:</p>
+<blockquote>
+<div><a class="reference internal" href="pyexpander-install-by-setup.html"><span class="doc">Installing pyexpander by running setup.py</span></a></div></blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction to pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference-expander.html">pyexpander reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epics-support.html">EPICS support in pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python2.html">pyexpander for users not familiar with python version 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python3.html">pyexpander for users not familiar with python version 3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="expander-options.html">expander.py and expander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="msi2pyexpander-options.html">msi2pyexpander.py and msi2pyexpander3.py command line options</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing pyexpander</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#parts-of-pyexpander">Parts of pyexpander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-pypi-with-pip">Install from pypi with pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-a-debian-package">Install from a debian package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-a-rpm-package">Install from a rpm package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-from-source-tar-gz-or-zip-file">Install from source (tar.gz or zip file)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install-by-setup.html">Installing pyexpander by running setup.py</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="msi2pyexpander-options.html"
+                        title="previous chapter">msi2pyexpander.py and msi2pyexpander3.py command line options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="pyexpander-install-by-setup.html"
+                        title="next chapter">Installing pyexpander by running setup.py</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pyexpander-install.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="pyexpander-install-by-setup.html" title="Installing pyexpander by running setup.py"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="msi2pyexpander-options.html" title="msi2pyexpander.py and msi2pyexpander3.py command line options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Helmholtz-Zentrum Berlin GmbH.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+    </div>
+  </body>
+</html>

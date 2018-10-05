@@ -1,0 +1,576 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>MAPLE Introduction &#8212; MAPLE 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MAPLE Modules" href="modules.html" />
+    <link rel="prev" title="Welcome to maple’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="maple-introduction">
+<span id="maple-introduction"></span><h1>MAPLE Introduction<a class="headerlink" href="#maple-introduction" title="Permalink to this headline">¶</a></h1>
+<p>MAPLE - Multi-purpose API Programming Language Extension</p>
+<div class="section" id="introduction">
+<span id="introduction"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>MAPLE has the following overarching goals:</p>
+<ol class="simple">
+<li>Provide a common interface to multiple input/output methods for working with data including API, html, text, syslog, snmp, etc.</li>
+<li>Enable these input/output methods to exchange information in real time or batch.</li>
+<li>Where possible, maintain resiliency to updates to these input/output methods through intelligent adaptation.</li>
+<li>Provide high level interfaces for non-programmers to access advanced input/output methods in a reusable fashion.</li>
+<li>Enable fast onboard of new input/output methods.</li>
+</ol>
+<p>MAPLE currently supports the FMC, AMP and ThreatGrid APIs with many others in development.</p>
+<p>MAPLE currently offers two interfaces to supported input/output methods:</p>
+<ol class="simple">
+<li>Programmatic with Python</li>
+<li>MAPLE CLI - a configuration file type syntax allowing non-programmers to use MAPLE functionality.</li>
+</ol>
+<p>Examples of using MAPLE with each interface will be given below.</p>
+</div>
+<div class="section" id="the-maple-object-model">
+<span id="the-maple-object-model"></span><h2>The MAPLE Object Model<a class="headerlink" href="#the-maple-object-model" title="Permalink to this headline">¶</a></h2>
+<hr class="docutils" />
+<div class="section" id="the-tree-object-maple-s-top-level-controller-object">
+<span id="the-tree-object-maple-s-top-level-controller-object"></span><h3>The “tree” object - MAPLE’s top level controller object<a class="headerlink" href="#the-tree-object-maple-s-top-level-controller-object" title="Permalink to this headline">¶</a></h3>
+<p>The top level object for MAPLE is the “tree”.  The tree provides the methods to instantiate and manage “leaf” objects (the specific input/output method interfaces).  The tree also provides helper methods common to all leaf types.</p>
+<p>In future releases of MAPLE, the tree object will also provide translation services and multi-threaded leaf instance management.</p>
+<p>Using Python a tree object is instantiated as follows:</p>
+<p><strong><em>from maple.tree import MapleTree</em></strong>
+<strong><em>tree=MapleTree(name=[tree_name],tree_dir=[file_path],logging_level=[logging_level])</em></strong></p>
+<div class="section" id="tree-parameters">
+<span id="tree-parameters"></span><h4>Tree Parameters<a class="headerlink" href="#tree-parameters" title="Permalink to this headline">¶</a></h4>
+<p>name: string, keyword, default=None - <strong>Required</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>​The name of this MAPLE tree.  The name is required and will be used to create a 
+working directory for the tree object.
+</pre></div>
+</div>
+<p>tree_dir: string, keyword, default=None - <strong>Required</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>​The path to the desired location for the tree&#39;s working directory.
+Together with the tree name, will be used to create the tree&#39;s working 
+directory (e.g. tree_dir/name).
+</pre></div>
+</div>
+<p>logging_level: string, keyword, default=INFO</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">desired</span> <span class="n">logging</span> <span class="n">level</span> <span class="k">for</span> <span class="n">the</span> <span class="n">tree</span> <span class="nb">object</span> <span class="p">(</span><span class="n">inherited</span> <span class="n">by</span> <span class="nb">all</span> <span class="n">leaf</span> <span class="n">objects</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="the-leaf-object-maples-input-output-interface">
+<span id="the-leaf-object-maples-input-output-interface"></span><h3>The “leaf” object - MAPLEs input/output interface<a class="headerlink" href="#the-leaf-object-maples-input-output-interface" title="Permalink to this headline">¶</a></h3>
+<p>The “leaf” object defines the native interface to the respective supported input/output methods.  The leaf object is instantiated and managed by the tree object.</p>
+<p>Using Python, a leaf object is instantiated as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<span class="c1"># First get a tree object</span>
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+                       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
+                       <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
+<span class="c1"># Now attach the leaf object...</span>
+<span class="n">leaf</span> <span class="o">=</span> \
+    <span class="n">maple_tree</span><span class="o">.</span><span class="n">add_leaf_instance</span><span class="p">(</span><span class="s1">&#39;[leaf_type]&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;[leaf_name]&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">leaf</span> <span class="n">specific</span> <span class="n">keyword</span> <span class="n">args</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="section" id="leaf-parameters">
+<span id="leaf-parameters"></span><h4>Leaf Parameters<a class="headerlink" href="#leaf-parameters" title="Permalink to this headline">¶</a></h4>
+<p>leaf_type: string, keyword, default=None - <strong>Required</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">text</span> <span class="n">label</span> <span class="k">for</span> <span class="n">the</span> <span class="n">leaf</span> <span class="nb">type</span><span class="o">.</span> <span class="n">Currently</span> <span class="n">one</span> <span class="n">of</span><span class="p">;</span> <span class="n">fmc</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">tg</span> <span class="p">(</span><span class="n">ThreatGrid</span><span class="p">)</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>name: string, keyword, default=None - <strong>Required</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">user</span> <span class="n">defined</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">leaf</span> <span class="n">instance</span><span class="o">.</span> <span class="n">Together</span> <span class="k">with</span> <span class="n">the</span> <span class="n">tree_dir</span><span class="p">,</span> <span class="n">tree</span> <span class="n">name</span><span class="p">,</span> 
+<span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">create</span> <span class="n">the</span> <span class="n">leaf</span><span class="s1">&#39;s working directory (e.g. leaf_dir/tree name/leaf name)</span>
+</pre></div>
+</div>
+<p>[leaf specific keyword arguments passed to respective leaf object]: keyword</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;variable_name=variable_value&quot;</span>
+<span class="n">The</span> <span class="n">leaf</span> <span class="n">specific</span> <span class="n">keywords</span> <span class="n">required</span> <span class="n">to</span> <span class="n">instantiate</span> <span class="ow">and</span> <span class="n">conduct</span> <span class="n">leaf</span> <span class="n">operations</span><span class="o">.</span>  
+<span class="n">See</span> <span class="n">specific</span> <span class="n">leaf</span> <span class="nb">type</span> <span class="k">for</span> <span class="n">required</span> <span class="ow">and</span> <span class="n">optional</span> <span class="n">keyword</span> <span class="n">arguments</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>For a list of supported operations for each leaf, run maple_cli.py with the ‘-h’ parameter.</p>
+</div>
+</div>
+<div class="section" id="currently-supported-leaf-types">
+<span id="currently-supported-leaf-types"></span><h3>Currently supported leaf types<a class="headerlink" href="#currently-supported-leaf-types" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="fmc-rest-api">
+<span id="fmc-rest-api"></span><h4>FMC REST API<a class="headerlink" href="#fmc-rest-api" title="Permalink to this headline">¶</a></h4>
+<p>MAPLE supports the FMC Rest API both for reading and writing.</p>
+<p>MAPLE bases most FMC operations on the current API model as defined in the file named ‘api-docs-fmcwithll.json’ and obtained from the target FMC.  This file currently resides in the directory ‘/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api’.  This file provides the API model to MAPLE:FMC which is used for many of the operations to derive urls, etc.  This file can be copied from the target FMC using scp and placed in a directory of the users choice.  The path to this file must be provided when the FMC leaf instance is instantiated.</p>
+<div class="section" id="fmc-rest-api-instantiating-an-fmc-leaf-with-python">
+<span id="fmc-rest-api-instantiating-an-fmc-leaf-with-python"></span><h5>FMC REST API - Instantiating an FMC leaf with Python<a class="headerlink" href="#fmc-rest-api-instantiating-an-fmc-leaf-with-python" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<span class="c1"># First get a tree object</span>
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+                       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
+                       <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
+<span class="n">model_json_file</span><span class="o">=</span> \
+    <span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple\fmc\api-docs-fmcwithll.json&#39;</span>
+<span class="n">FMC_leaf</span> <span class="o">=</span> \
+    <span class="n">maple_tree</span><span class="o">.</span><span class="n">add_leaf_instance</span><span class="p">(</span><span class="s1">&#39;fmc&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fmc_leaf_1&#39;</span><span class="p">,</span>
+    <span class="n">json_file_path</span><span class="o">=</span><span class="n">model_json_file</span><span class="p">,</span> <span class="n">FMC_host</span><span class="o">=</span><span class="s1">&#39;10.1.101.39&#39;</span><span class="p">,</span>
+    <span class="n">FMC_username</span><span class="o">=</span><span class="s1">&#39;rest_admin&#39;</span><span class="p">,</span> <span class="n">FMC_password</span><span class="o">=</span><span class="s1">&#39;C1sc0123&#39;</span><span class="p">,</span> <span class="n">default_get_item_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="fmc-leaf-keyword-parameters-used-in-fmc-leaf-instantiation-call">
+<span id="fmc-leaf-keyword-parameters-used-in-fmc-leaf-instantiation-call"></span><h5>FMC Leaf Keyword Parameters (used in FMC leaf instantiation call)<a class="headerlink" href="#fmc-leaf-keyword-parameters-used-in-fmc-leaf-instantiation-call" title="Permalink to this headline">¶</a></h5>
+<p>json_file_path: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>​The path to the json model file.  This file is typically named &#39;api-docs-fmcwithll.json&#39; and obtained from the 
+target FMC.  Typically resides in the directory /var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api&#39;.  This file 
+provides the API model to MAPLE:FMC which is used for many of the operations to derive urls, etc.
+</pre></div>
+</div>
+<p>FMC_host: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">ip</span> <span class="n">address</span> <span class="ow">or</span> <span class="n">fqdn</span> <span class="n">of</span> <span class="n">the</span> <span class="n">FMC</span>
+</pre></div>
+</div>
+<p>FMC_port: integer, keyword, default=443</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">TCP</span><span class="o">/</span><span class="n">IP</span> <span class="n">FMC</span> <span class="n">management</span> <span class="n">port</span>
+</pre></div>
+</div>
+<p>FMC_username: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">username</span> <span class="k">for</span> <span class="n">FMC</span>
+</pre></div>
+</div>
+<p>FMC_password: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">password</span> <span class="k">for</span> <span class="n">FMC</span>
+</pre></div>
+</div>
+<p>FMC_domain: string, keyword, default=’Global’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">target</span> <span class="n">FMC</span> <span class="n">domain</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>API_path_delimiter: string, keyword, default=’/’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">default</span> <span class="n">delimiter</span> <span class="k">for</span> <span class="n">the</span> <span class="n">API</span> <span class="n">path</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>API_version: string, keyword, default=’v1’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">API</span> <span class="n">version</span> <span class="n">supported</span> <span class="n">by</span> <span class="n">the</span> <span class="n">target</span> <span class="n">FMC</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>verify: boolean, keyword, default=False</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">verify</span> <span class="n">the</span> <span class="n">certificate</span><span class="o">.</span>  <span class="n">If</span> <span class="kc">False</span> <span class="n">disable</span> <span class="n">verification</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>default_get_item_limit: integer, keyword, default=400</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">default</span> <span class="n">number</span> <span class="n">of</span> <span class="n">items</span> <span class="n">to</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">GET</span> <span class="n">request</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>rpm_retries: integer, keyword, default=5</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">number</span> <span class="n">of</span> <span class="n">times</span> <span class="n">to</span> <span class="n">retry</span> <span class="ow">in</span> <span class="n">response</span> <span class="n">to</span> <span class="n">a</span> <span class="mi">429</span> <span class="n">error</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>backoff_timer: integer, keyword, default=30</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">interval</span> <span class="n">to</span> <span class="n">wait</span> <span class="n">between</span> <span class="n">retry</span> <span class="n">attempts</span>
+</pre></div>
+</div>
+<p>persist_responses: boolean, keyword, default=True</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">responses</span> <span class="n">will</span> <span class="n">be</span> <span class="n">pickle</span> <span class="n">persisted</span> <span class="n">by</span> <span class="n">url</span> <span class="n">into</span> <span class="n">the</span> <span class="n">leaf</span><span class="s1">&#39;s working directory.</span>
+</pre></div>
+</div>
+<p>restore_responses: boolean, keyword, default=False</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">pickled</span> <span class="n">persistent</span> <span class="n">responses</span> <span class="n">will</span> <span class="n">be</span> <span class="n">restored</span> <span class="n">prior</span> <span class="n">to</span> <span class="nb">all</span> <span class="n">other</span> <span class="n">operations</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="amp-rest-api">
+<span id="amp-rest-api"></span><h4>AMP REST API<a class="headerlink" href="#amp-rest-api" title="Permalink to this headline">¶</a></h4>
+<p>MAPLE supports the AMP API for read/write.</p>
+<p>At the time of writing, limited testing has been performed for write operations</p>
+<div class="section" id="amp-rest-api-instantiating-an-amp-leaf-with-python">
+<span id="amp-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>AMP REST API - Instantiating an AMP leaf with Python<a class="headerlink" href="#amp-rest-api-instantiating-an-amp-leaf-with-python" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<span class="c1"># First get a tree object</span>
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+                       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
+                       <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
+<span class="c1"># Now attach the AMP leaf...</span>
+<span class="n">AMP_leaf</span> <span class="o">=</span> <span class="n">maple_tree</span><span class="o">.</span><span class="n">add_leaf_instance</span><span class="p">(</span><span class="s1">&#39;amp&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;amp_leaf_1&#39;</span><span class="p">,</span>
+                                        <span class="n">AMP_host</span><span class="o">=</span><span class="s1">&#39;api.amp.cisco.com&#39;</span><span class="p">,</span>
+                                        <span class="n">AMP_API_client_ID</span><span class="o">=</span><span class="s1">&#39;your_amp_client_id&#39;</span><span class="p">,</span>
+                                        <span class="n">AMP_API_key</span><span class="o">=</span><span class="s1">&#39;your_amp_api_key&#39;</span><span class="p">,</span>
+                                        <span class="n">default_get_item_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parameters">
+<span id="parameters"></span><h5>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h5>
+<p>AMP_host: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">ip</span> <span class="n">address</span> <span class="ow">or</span> <span class="n">fqdn</span> <span class="n">of</span> <span class="n">ThreatGrid</span>
+</pre></div>
+</div>
+<p>AMP_API_client_ID: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">AMP</span> <span class="n">API</span> <span class="n">client</span> <span class="n">ID</span>
+</pre></div>
+</div>
+<p>AMP_API_key: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">AMP</span> <span class="n">API</span> <span class="n">key</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>API_path_delimiter: string, keyword, default=’/’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">default</span> <span class="n">delimiter</span> <span class="k">for</span> <span class="n">the</span> <span class="n">API</span> <span class="n">path</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>API_version: string, keyword, default=’v1’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">API</span> <span class="n">version</span> <span class="n">supported</span> <span class="n">by</span> <span class="n">the</span> <span class="n">target</span> <span class="n">ThreatGrid</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>verify: boolean, keyword, default=False</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">verify</span> <span class="n">the</span> <span class="n">certificate</span><span class="o">.</span>  <span class="n">If</span> <span class="kc">False</span> <span class="n">disable</span> <span class="n">verification</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>default_get_item_limit: integer, keyword, default=400</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">default</span> <span class="n">number</span> <span class="n">of</span> <span class="n">items</span> <span class="n">to</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">GET</span> <span class="n">request</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>rpm_retries: integer, keyword, default=5</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">number</span> <span class="n">of</span> <span class="n">times</span> <span class="n">to</span> <span class="n">retry</span> <span class="ow">in</span> <span class="n">response</span> <span class="n">to</span> <span class="n">a</span> <span class="mi">429</span> <span class="n">error</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>backoff_timer: integer, keyword, default=30</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">interval</span> <span class="n">to</span> <span class="n">wait</span> <span class="n">between</span> <span class="n">retry</span> <span class="n">attempts</span>
+</pre></div>
+</div>
+<p>persist_responses: boolean, keyword, default=True</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">responses</span> <span class="n">will</span> <span class="n">be</span> <span class="n">pickle</span> <span class="n">persisted</span> <span class="n">by</span> <span class="n">url</span> <span class="n">into</span> <span class="n">the</span> <span class="n">leaf</span><span class="s1">&#39;s working directory.</span>
+</pre></div>
+</div>
+<p>restore_responses: boolean, keyword, default=False</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">pickled</span> <span class="n">persistent</span> <span class="n">responses</span> <span class="n">will</span> <span class="n">be</span> <span class="n">restored</span> <span class="n">prior</span> <span class="n">to</span> <span class="nb">all</span> <span class="n">other</span> <span class="n">operations</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="threatgrid-rest-api">
+<span id="threatgrid-rest-api"></span><h4>ThreatGrid REST API<a class="headerlink" href="#threatgrid-rest-api" title="Permalink to this headline">¶</a></h4>
+<p>MAPLE supports the ThreatGrid API for read/write.</p>
+<p>At the time of writing, limited testing has been performed for write operations</p>
+<div class="section" id="threatgrid-rest-api-instantiating-an-amp-leaf-with-python">
+<span id="threatgrid-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>ThreatGrid REST API - Instantiating an AMP leaf with Python<a class="headerlink" href="#threatgrid-rest-api-instantiating-an-amp-leaf-with-python" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<span class="c1"># First get a tree object</span>
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+                       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
+                       <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
+<span class="c1"># Now attach the ThreatGrid leaf...</span>
+<span class="n">TG_leaf</span> <span class="o">=</span> <span class="n">maple_tree</span><span class="o">.</span><span class="n">add_leaf_instance</span><span class="p">(</span><span class="n">leaf_type</span><span class="o">=</span><span class="s1">&#39;tg&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tg_leaf_1&#39;</span><span class="p">,</span>
+                                       <span class="n">TG_host</span><span class="o">=</span><span class="s1">&#39;panacea.threatgrid.com&#39;</span><span class="p">,</span>
+                                       <span class="n">TG_API_key</span><span class="o">=</span><span class="s1">&#39;your_threatgrid_api_key&#39;</span><span class="p">,</span>
+                                       <span class="n">default_get_item_limit</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parameters">
+<span id="id1"></span><h5>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h5>
+<p>TG_host: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">ip</span> <span class="n">address</span> <span class="ow">or</span> <span class="n">fqdn</span> <span class="n">of</span> <span class="n">ThreatGrid</span>
+</pre></div>
+</div>
+<p>TG_API_key: string, keyword, default=None</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">AMP</span> <span class="n">API</span> <span class="n">key</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>API_path_delimiter: string, keyword, default=’/’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">default</span> <span class="n">delimiter</span> <span class="k">for</span> <span class="n">the</span> <span class="n">API</span> <span class="n">path</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>API_version: string, keyword, default=’v1’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">API</span> <span class="n">version</span> <span class="n">supported</span> <span class="n">by</span> <span class="n">the</span> <span class="n">target</span> <span class="n">ThreatGrid</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>verify: boolean, keyword, default=False</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">verify</span> <span class="n">the</span> <span class="n">certificate</span><span class="o">.</span>  <span class="n">If</span> <span class="kc">False</span> <span class="n">disable</span> <span class="n">verification</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>default_get_item_limit: integer, keyword, default=400</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">default</span> <span class="n">number</span> <span class="n">of</span> <span class="n">items</span> <span class="n">to</span> <span class="n">request</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">GET</span> <span class="n">request</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>rpm_retries: integer, keyword, default=5</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">number</span> <span class="n">of</span> <span class="n">times</span> <span class="n">to</span> <span class="n">retry</span> <span class="ow">in</span> <span class="n">response</span> <span class="n">to</span> <span class="n">a</span> <span class="mi">429</span> <span class="n">error</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>backoff_timer: integer, keyword, default=30</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">interval</span> <span class="n">to</span> <span class="n">wait</span> <span class="n">between</span> <span class="n">retry</span> <span class="n">attempts</span>
+</pre></div>
+</div>
+<p>persist_responses: boolean, keyword, default=True</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">responses</span> <span class="n">will</span> <span class="n">be</span> <span class="n">pickle</span> <span class="n">persisted</span> <span class="n">by</span> <span class="n">url</span> <span class="n">into</span> <span class="n">the</span> <span class="n">leaf</span><span class="s1">&#39;s working directory.</span>
+</pre></div>
+</div>
+<p>restore_responses: boolean, keyword, default=False</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">If</span> <span class="kc">True</span><span class="p">,</span> <span class="n">pickled</span> <span class="n">persistent</span> <span class="n">responses</span> <span class="n">will</span> <span class="n">be</span> <span class="n">restored</span> <span class="n">prior</span> <span class="n">to</span> <span class="nb">all</span> <span class="n">other</span> <span class="n">operations</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="maple-logging">
+<span id="maple-logging"></span><h3>MAPLE logging<a class="headerlink" href="#maple-logging" title="Permalink to this headline">¶</a></h3>
+<p>MAPLE logs to “maple.log” located in tree_dir/tree_name</p>
+</div>
+</div>
+</div>
+<div class="section" id="maple-cli">
+<span id="maple-cli"></span><h1>MAPLE CLI<a class="headerlink" href="#maple-cli" title="Permalink to this headline">¶</a></h1>
+<p>MAPLE CLI is a macro language interface for MAPLE.  It can be used to provide a simple macro language to peform MAPLE operations.</p>
+<p>MAPLE CLI operations are defined using a combination of 3 input types:</p>
+<ol class="simple">
+<li>Parameters passed to maple_cli.py on the command line.</li>
+<li>Parameters stored in a parameters text file.</li>
+<li>The operations config file which defines the actual MAPLE input/output operations.</li>
+</ol>
+<p>MAPLE CLI parameters are primarily used for network connection and credential passing as well as some operational parameters such as file and directory paths.</p>
+<div class="section" id="maple-command-line-parameters">
+<span id="maple-command-line-parameters"></span><h2>MAPLE Command Line Parameters<a class="headerlink" href="#maple-command-line-parameters" title="Permalink to this headline">¶</a></h2>
+<p>The following parameters can be passed to maple_cli.py either on the command line or in the parameters file:</p>
+<p>Long form ‘-rest_admin_user’ or short form ‘-rau’, default=’rest_admin’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">REST</span> <span class="n">admin</span> <span class="n">user</span> <span class="n">name</span> <span class="n">configured</span> <span class="ow">in</span> <span class="n">FMC</span>
+</pre></div>
+</div>
+<p>Long form ‘-rest_admin_password’ or short form ‘-rap’, default=’C1sc0123’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">REST</span> <span class="n">admin</span> <span class="n">user</span> <span class="n">password</span> <span class="n">configured</span> <span class="ow">in</span> <span class="n">FMC</span>
+</pre></div>
+</div>
+<p>Long form ‘-operations_config_file’ or short form ‘-ocf’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">full</span> <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">operations</span> <span class="n">configuration</span> <span class="n">file</span>
+</pre></div>
+</div>
+<p>Long form ‘-maple_working_dir’ or short form ‘-mwd’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">full</span> <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">working</span> <span class="n">directory</span> <span class="k">for</span> <span class="n">maple</span>
+</pre></div>
+</div>
+<div class="section" id="passing-parameters-to-maple-from-a-text-file">
+<span id="passing-parameters-to-maple-from-a-text-file"></span><h3>Passing parameters to MAPLE from a text file<a class="headerlink" href="#passing-parameters-to-maple-from-a-text-file" title="Permalink to this headline">¶</a></h3>
+<p>maple_cli_parameters.txt</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="n">containing</span> <span class="n">init</span> <span class="n">parameters</span> <span class="k">for</span> <span class="n">maple_cli</span><span class="o">.</span>  <span class="n">Edit</span> <span class="n">this</span> <span class="n">file</span> <span class="n">to</span> <span class="n">suit</span><span class="o">.</span>  
+<span class="n">Username</span> <span class="ow">and</span> <span class="n">password</span> <span class="k">for</span> <span class="n">FMC</span> <span class="ow">is</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">file</span> <span class="n">but</span> <span class="n">you</span> <span class="n">can</span> <span class="n">remove</span> <span class="n">them</span> <span class="ow">and</span> <span class="k">pass</span> <span class="n">instead</span> <span class="n">on</span> <span class="n">cli</span><span class="o">.</span>  
+<span class="n">Edit</span> <span class="k">for</span> <span class="n">your</span> <span class="n">own</span> <span class="n">system</span> <span class="k">if</span> <span class="n">you</span> <span class="n">choose</span> <span class="n">to</span> <span class="n">hard</span> <span class="n">code</span> <span class="n">them</span> <span class="n">here</span><span class="o">.</span>  <span class="n">Run</span> <span class="n">maple_cli</span><span class="o">.</span><span class="n">py</span> <span class="ow">or</span> 
+<span class="n">maple_cli</span><span class="o">.</span><span class="n">exe</span> <span class="k">with</span> <span class="o">-</span><span class="n">h</span> <span class="n">to</span> <span class="n">get</span> <span class="n">a</span> <span class="n">brief</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">parameters</span> <span class="ow">and</span> <span class="n">exposed</span> <span class="n">operations</span><span class="o">.</span>
+<span class="n">Pass</span> <span class="n">this</span> <span class="n">file</span> <span class="k">as</span> <span class="n">an</span> <span class="n">argument</span> <span class="n">to</span> <span class="n">maple_cli</span> <span class="ow">and</span> <span class="n">precede</span> <span class="n">it</span> <span class="k">with</span> <span class="n">an</span> <span class="o">@</span> <span class="n">symbol</span> <span class="p">(</span><span class="n">enclosing</span> 
+<span class="ow">in</span> <span class="n">quotes</span> <span class="n">may</span> <span class="n">be</span> <span class="n">required</span> <span class="n">one</span> <span class="n">some</span> <span class="n">OS</span> <span class="n">types</span><span class="p">)</span><span class="o">.</span>  <span class="n">Example</span><span class="p">:</span>
+
+    <span class="n">maple_cli</span><span class="o">.</span><span class="n">py</span> <span class="nd">@maple_cli_parameters</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>You can also pass any of the arguments in this file directly on the command line or use a combination of cli, file parameters.</p>
+</div>
+</div>
+<div class="section" id="the-maple-operations-configuration-file">
+<span id="the-maple-operations-configuration-file"></span><h2>The MAPLE operations configuration file<a class="headerlink" href="#the-maple-operations-configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>MAPLE CLI operations are defined in an “operations” configuration file.  This file is read by maple_cli to execute MAPLE operations.</p>
+<p>Characteristics of the operations config file:</p>
+<ol class="simple">
+<li>​An INI config style file read by maple_cli.py to run API and utility functions. Example of this file below with inline comments:</li>
+<li>Lines beginning with “RUN” are API or utility function calls.  RUN is always followed by an arbitrary unique label. RUN results are stored in a Python structure indexed by “RUN label”.</li>
+<li>Anything enclosed in {} is a substitution.  In the example below, {tree$logging_level} will be substituted with the value in section “tree” and item “logging_level”.  When this construct appears before a set of parentheses, the substitution will be a class instance or class method stored in the respective section/item.</li>
+<li>Anything preceded with “&#64;” symbol will be substituted for the parameter of the same name in maple_cli_parameters.txt.</li>
+<li>Comment out lines with a # symbol.</li>
+</ol>
+</div>
+<div class="section" id="maple-cli-output-options-current-support">
+<span id="maple-cli-output-options-current-support"></span><h2>MAPLE CLI output options - current support<a class="headerlink" href="#maple-cli-output-options-current-support" title="Permalink to this headline">¶</a></h2>
+<p>The results can be displayed in a few different formats for now as follows:</p>
+<ol>
+<li><p class="first">output.tabbed_print</p>
+<p>Will dump the API responses to stdout.  Pipe to a file to save.</p>
+</li>
+<li><p class="first">output.create_outline</p>
+<p>Will dump the results to an indented outline format suitable to import into Word or create mindmaps in “The Brain” or paste into MindManager.</p>
+</li>
+<li><p class="first">output.create_pickle</p>
+<p>Creates a Python pickle file that can be reloaded for further processing.</p>
+</li>
+<li><p class="first">output.pretty_print</p>
+<p>Uses the Python Pretty Print module to produce readable output of Python objects</p>
+</li>
+</ol>
+</div>
+<div class="section" id="example-operations-config-file">
+<span id="example-operations-config-file"></span><h2>Example operations config file:<a class="headerlink" href="#example-operations-config-file" title="Permalink to this headline">¶</a></h2>
+<p>The following configurations file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
+[tree]
+#RH – sets the logging level for MAPLE.  Log file is maple.log in default directory
+logging_level=INFO
+#RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an &#39;@&#39;, it will be replaced with
+#the value passed either on the command line or in the parameters file.
+RUN tree=MapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
+#RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: &#39;leaf&#39; is an arbitrary label.
+[leaf:fmc_src]
+host=10.1.101.40
+domain=Global
+type=fmc
+name=fmc_mig_2
+#RH – creates a substitution variable to hold the arguments for creating the leaf object.  Not necessary, only for readability
+leaf_args=leaf_type={leaf:fmc_src$type},name={leaf:fmc_src$name},json_file_path=@model_json_file,FMC_host={leaf:fmc_src$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_src$domain},restore_responses=False
+#RH – adds the leaf instance for the FMC to the tree
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_src$leaf_args})
+#RH – gets the domain id for the given domain
+RUN domain_id={leaf:fmc_src$RUN leaf}.get_domain_id(domain={leaf:fmc_srcdomain})
+[get]
+# If security zones are to be migrated, the device records and physical interfaces need to be obtained due to json model anomalies in fmc
+RUN dr = {leaf:fmc_srcRUN leaf}.get_all_items(url=devices/devicerecords)
+# Get a list of all the device
+RUN did = {leaf:fmc_srcRUN leaf}.query_json_field(query_field=items.id,json_to_query={get$RUN dr})
+#Get all device records
+#Run multiple get iterating over values in the device id list substituting each value in the list for ~id~
+drs = devices/devicerecords/~id~
+RUN drq = {leaf:fmc_srcRUN leaf}.query_with_list(query_url={get$drs},query_list={get$RUN did})
+RUN pp_drq=output.pretty_print(_object={get$RUN drq})
+#Get all physical interfaces for each device
+#Run multiple get iterating over values in the device id list substituting each value in the list for ~id~
+piu = devices/devicerecords/~id~/physicalinterfaces
+RUN piq = {leaf:fmc_srcRUN leaf}.query_with_list(query_url={get$piu},query_list={get$RUN did})
+RUN pp_piq=output.pretty_print(_object={get$RUN piq})
+#Get the nat policies
+RUN nat={leaf:fmc_srcRUN leaf}.walk_API_path_gets(url=policy/ftdnatpolicies)
+RUN pp_nat=output.pretty_print(_object={get$RUN nat})
+#Get the access policies
+RUN ap={leaf:fmc_srcRUN leaf}.walk_API_path_gets(url=policy/accesspolicies)
+RUN pp_ap=output.pretty_print(_object={get$RUN ap})
+[leaf:fmc_1]
+host=10.1.101.39
+domain=Global
+type=fmc
+name=fmc_mig_1
+leaf_args=leaf_type={leaf:fmc_1$type},name={leaf:fmc_1$name},json_file_path=@model_json_file,FMC_host={leaf:fmc_1$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_1$domain},restore_responses=False
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_1$leaf_args})
+RUN domain_id={leaf:fmc_1$RUN leaf}.get_domain_id(domain={leaf:fmc_1$domain})
+[leaf]
+RUN migrate = {leaf:fmc_1$RUN leaf}.or_migrate_config(source_config_path=mig_tree_1\\fmc_mig_2)
+</pre></div>
+</div>
+</div>
+<div class="section" id="maple-cli-logging">
+<span id="maple-cli-logging"></span><h2>MAPLE CLI Logging<a class="headerlink" href="#maple-cli-logging" title="Permalink to this headline">¶</a></h2>
+<p>MAPLE CLI logs to “maple_cli.log” in the directory where it is launched.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">MAPLE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MAPLE Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-maple-object-model">The MAPLE Object Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-tree-object-maple-s-top-level-controller-object">The “tree” object - MAPLE’s top level controller object</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#tree-parameters">Tree Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#the-leaf-object-maples-input-output-interface">The “leaf” object - MAPLEs input/output interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#leaf-parameters">Leaf Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#currently-supported-leaf-types">Currently supported leaf types</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#fmc-rest-api">FMC REST API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#amp-rest-api">AMP REST API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#threatgrid-rest-api">ThreatGrid REST API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#maple-logging">MAPLE logging</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#maple-cli">MAPLE CLI</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#maple-command-line-parameters">MAPLE Command Line Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#passing-parameters-to-maple-from-a-text-file">Passing parameters to MAPLE from a text file</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-maple-operations-configuration-file">The MAPLE operations configuration file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#maple-cli-output-options-current-support">MAPLE CLI output options - current support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-operations-config-file">Example operations config file:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#maple-cli-logging">MAPLE CLI Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">MAPLE Modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to maple’s documentation!</a></li>
+      <li>Next: <a href="modules.html" title="next chapter">MAPLE Modules</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;Cisco.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/README.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

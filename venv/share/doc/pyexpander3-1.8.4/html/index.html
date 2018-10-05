@@ -1,0 +1,217 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Welcome to pyexpander’s documentation! &#8212; pyexpander 1.8.4 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.8.4',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction to pyexpander" href="introduction.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction to pyexpander"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <a class="reference external image-reference" href="http://www.helmholtz-berlin.de"><img alt="_images/logo_hzb_big.png" class="align-right" src="_images/logo_hzb_big.png" /></a>
+<div class="section" id="welcome-to-pyexpander-s-documentation">
+<h1>Welcome to pyexpander’s documentation!<a class="headerlink" href="#welcome-to-pyexpander-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="pyexpander-a-powerful-turing-complete-macro-processor">
+<h2>pyexpander - a powerful turing complete macro processor<a class="headerlink" href="#pyexpander-a-powerful-turing-complete-macro-processor" title="Permalink to this headline">¶</a></h2>
+<p>pyexpander is a macro processor that allows to embed python code in text files.</p>
+<p>Some of the features are:</p>
+<ul class="simple">
+<li>Variables like <code class="docutils literal"><span class="pre">$(VAR)</span></code> are replaced.</li>
+<li>Valid python expressions like <code class="docutils literal"><span class="pre">$(2+3/2)</span></code> are evaluated.</li>
+<li>Arbitrary python code like in <code class="docutils literal"><span class="pre">$py(import</span> <span class="pre">math;</span> <span class="pre">math.pi)</span></code> can be executed.</li>
+<li>The functionality is available as a script and a python library.</li>
+<li>The program is availiable for python version 2 and version 3.</li>
+</ul>
+<p>See <a class="reference internal" href="introduction.html"><span class="doc">Introduction to pyexpander</span></a> for more information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Author:</th><td class="field-body">Goetz Pfeiffer (<a class="reference external" href="mailto:Goetz&#46;Pfeiffer&#37;&#52;&#48;helmholtz-berlin&#46;de">Goetz<span>&#46;</span>Pfeiffer<span>&#64;</span>helmholtz-berlin<span>&#46;</span>de</a>, <a class="reference external" href="mailto:goetzpf&#37;&#52;&#48;googlemail&#46;com">goetzpf<span>&#64;</span>googlemail<span>&#46;</span>com</a>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="introduction">
+<h3>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h3>
+<p>This gives a first impression on pyexpander’s capabilities:</p>
+<p><a class="reference internal" href="introduction.html"><span class="doc">Introduction to pyexpander</span></a></p>
+</div>
+<div class="section" id="reference-documents">
+<h3>Reference documents<a class="headerlink" href="#reference-documents" title="Permalink to this headline">¶</a></h3>
+<p>This is the reference of the pyexpander language:</p>
+<p><a class="reference internal" href="reference-expander.html"><span class="doc">pyexpander reference</span></a></p>
+</div>
+<div class="section" id="full-list-of-documents">
+<h3>Full list of documents<a class="headerlink" href="#full-list-of-documents" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction to pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference-expander.html">pyexpander reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epics-support.html">EPICS support in pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python2.html">pyexpander for users not familiar with python version 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python3.html">pyexpander for users not familiar with python version 3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="expander-options.html">expander.py and expander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="msi2pyexpander-options.html">msi2pyexpander.py and msi2pyexpander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install.html">Installing pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install-by-setup.html">Installing pyexpander by running setup.py</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="license-and-copyright">
+<h2>License and copyright<a class="headerlink" href="#license-and-copyright" title="Permalink to this headline">¶</a></h2>
+<p>Copyright (c) 2017 by <a class="reference external" href="https://www.helmholtz-berlin.de">Helmholtz-Zentrum Berlin</a>.</p>
+<p>This software of this project can be used under GPL v.3, see <a class="reference internal" href="license.html"><span class="doc">pyexpander license</span></a>.</p>
+</div>
+<div class="section" id="download-and-install">
+<h2>Download and install<a class="headerlink" href="#download-and-install" title="Permalink to this headline">¶</a></h2>
+<p>By using <a class="reference external" href="https://en.wikipedia.org/wiki/Pip_(package_manager)">pip</a>, installing
+pyexpander is a single line command. This and other installation methods
+are described in</p>
+<p><a class="reference internal" href="pyexpander-install.html"><span class="doc">Installing pyexpander</span></a></p>
+</div>
+<div class="section" id="pyexpander-at-bitbucket">
+<h2>pyexpander at Bitbucket<a class="headerlink" href="#pyexpander-at-bitbucket" title="Permalink to this headline">¶</a></h2>
+<p>You find the Bitbucket summary page for pyexpander at
+<a class="reference external" href="https://bitbucket.org/goetzpf/pyexpander/src/default">pyexpander at Bitbucket</a>.</p>
+</div>
+<div class="section" id="pyexpander-at-sourceforge-mirror">
+<h2>pyexpander at sourceforge (mirror)<a class="headerlink" href="#pyexpander-at-sourceforge-mirror" title="Permalink to this headline">¶</a></h2>
+<p>You find the sourceforge summary page for pyexpander at
+<a class="reference external" href="https://sourceforge.net/projects/pyexpander">pyexpander</a>.</p>
+</div>
+<div class="section" id="the-source">
+<h2>The source<a class="headerlink" href="#the-source" title="Permalink to this headline">¶</a></h2>
+<p>You can browse the mercurial repository here:</p>
+<p><a class="reference external" href="https://bitbucket.org/goetzpf/pyexpander/src/default">repository at Bitbucket</a>.</p>
+<p><a class="reference external" href="http://pyexpander.hg.sourceforge.net/hgweb/pyexpander/pyexpander">repository at Sourceforge</a>.</p>
+<p>or clone it with this command:</p>
+<p>Bitbucket:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hg</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">hg</span><span class="nd">@bitbucket</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">goetzpf</span><span class="o">/</span><span class="n">pyexpander</span>
+</pre></div>
+</div>
+<p>Sourceforge (mirror):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hg</span> <span class="n">clone</span> <span class="n">ssh</span><span class="p">:</span><span class="o">//</span><span class="n">goetzpf</span><span class="nd">@hg</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">sf</span><span class="o">.</span><span class="n">net</span><span class="o">/</span><span class="n">p</span><span class="o">/</span><span class="n">pyexpander</span><span class="o">/</span><span class="n">code</span> <span class="n">pyexpander</span>
+</pre></div>
+</div>
+<p>You can then commit changes in your own repository copy.</p>
+<p>If you plan to share these changes you can create a mercurial
+<a class="reference external" href="http://mercurial.selenic.com/wiki/Bundle">bundle</a> and send it to my e-mail
+address.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction to pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference-expander.html">pyexpander reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="epics-support.html">EPICS support in pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python2.html">pyexpander for users not familiar with python version 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python3.html">pyexpander for users not familiar with python version 3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="expander-options.html">expander.py and expander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="msi2pyexpander-options.html">msi2pyexpander.py and msi2pyexpander3.py command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install.html">Installing pyexpander</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pyexpander-install-by-setup.html">Installing pyexpander by running setup.py</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="next chapter">Introduction to pyexpander</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction to pyexpander"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">pyexpander 1.8.4 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Helmholtz-Zentrum Berlin GmbH.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.6.
+    </div>
+  </body>
+</html>

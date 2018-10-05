@@ -1,0 +1,5 @@
+-results_file=results.txt
+-model_json_file=C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple\api-docs-fmcwithll.json
+-rest_admin_user=admin
+-rest_admin_password=C1sc0123
+-operations_config_file=operations_config.txt
