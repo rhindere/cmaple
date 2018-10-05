@@ -1,4 +1,3 @@
-README.md
 setup.py
 maple/__init__.py
 maple/input_validations.py

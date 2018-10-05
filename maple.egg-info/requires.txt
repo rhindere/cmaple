@@ -4,4 +4,4 @@ requests
 xmltodict
 objectpath
 urllib3
-beautifulsoup4
+pytz

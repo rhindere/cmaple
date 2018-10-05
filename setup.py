@@ -1,7 +1,6 @@
 import setuptools
 
-with open("README.md", "r") as fh:
-    long_description = 'See README.md'
+long_description = 'See README.md'
 
 setuptools.setup(
     name="maple",
