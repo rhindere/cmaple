@@ -184,10 +184,10 @@ def get_empty_dict():
 
 @logged(logger)
 @traced(logger)
-def process_json_request(url,responses_dict,headers,method,credentials_dict,json_body="",
-                         verify=False,success_status_code=200,include_filter_regex=None,
-                         exclude_filter_regex=None,use_cache=False,
-                         stop_on_error=False,API_path_keywords_list=[],get_item_limit=25):
+def process_json_request(url, responses_dict, headers, method, credentials_dict, json_body="",
+                         verify=False, success_status_code=200, include_filter_regex=None,
+                         exclude_filter_regex=None, use_cache=False,
+                         stop_on_error=False, API_path_keywords_list=[], get_item_limit=25):
 
     print('Processing url %s...' % url, file=sys.stderr)
     store_status = None
@@ -195,11 +195,11 @@ def process_json_request(url,responses_dict,headers,method,credentials_dict,json
     exclude_filtered = False
     include_filtered = True
     cache_hit = False
-    if exclude_filter_regex and re.search(exclude_filter_regex,url):
-        logger.debug('URL %s matched exclude filter regex %s, filtering...' % (url,exclude_filter_regex))
+    if exclude_filter_regex and re.search(exclude_filter_regex, url):
+        logger.debug('URL %s matched exclude filter regex %s, filtering...' % (url, exclude_filter_regex))
         exclude_filtered = True
-    elif include_filter_regex and not re.search(include_filter_regex,url):
-        logger.debug('URL %s did not match include filter regex %s, filtering...' % (url,include_filter_regex))
+    elif include_filter_regex and not re.search(include_filter_regex, url):
+        logger.debug('URL %s did not match include filter regex %s, filtering...' % (url, include_filter_regex))
         include_filtered = False
     if use_cache and url in responses_dict:
         logger.debug('url %s was found in the cache...' % (url))
