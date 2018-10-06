@@ -400,6 +400,10 @@ The results can be displayed in a few different formats for now as follows:
 The following configurations file
 
 ```
+#This maple_cli example will migrate access and nat polcies between FMCs
+#regardless of software version and platform.  All dependent objects will be
+#migrated to support the access and nat policy definitions.
+#
 #RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
 [tree]
 #RH – sets the logging level for MAPLE.  Log file is maple.log in default directory

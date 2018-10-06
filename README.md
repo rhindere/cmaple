@@ -257,7 +257,7 @@ MAPLE supports the ThreatGrid API for read/write.
 
 At the time of writing, limited testing has been performed for write operations 
 
-    For a list of supported operations for the FMC leaf, run maple_cli.py 
+    For a list of supported operations for the ThreatGrid leaf, run maple_cli.py 
     with the '-h threatgrid' parameters.
 
 ##### ThreatGrid REST API - Instantiating an AMP leaf with Python
@@ -400,6 +400,10 @@ The results can be displayed in a few different formats for now as follows:
 The following configurations file
 
 ```
+#This maple_cli example will migrate access and nat polcies between FMCs
+#regardless of software version and platform.  All dependent objects will be
+#migrated to support the access and nat policy definitions.
+#
 #RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
 [tree]
 #RH – sets the logging level for MAPLE.  Log file is maple.log in default directory
