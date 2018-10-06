@@ -25,6 +25,12 @@ MAPLE currently offers two interfaces to supported input/output methods:
 
 Examples of using MAPLE with each interface will be given below.
 
+    For additional python examples, see the sample code in the 'python_examples' 
+    directory.
+    
+    For additional maple_cli examples, see the sample files in the
+    'maple_cli_examples' directory.
+
 ## The MAPLE Object Model
 
 ---
@@ -87,7 +93,7 @@ name: string, keyword, default=None - **Required**
 	The leaf specific keywords required to instantiate and conduct leaf operations.  
 	See specific leaf type for required and optional keyword arguments.
 
-For a list of supported operations for each leaf, run maple_cli.py with the '-h' parameter.
+**__For a list of supported operations for each leaf, run maple_cli.py with the '-h' parameter.**__
 
 ### Currently supported leaf types
 
@@ -96,6 +102,9 @@ For a list of supported operations for each leaf, run maple_cli.py with the '-h'
 MAPLE supports the FMC Rest API both for reading and writing.
 
 MAPLE bases most FMC operations on the current API model as defined in the file named 'api-docs-fmcwithll.json' and obtained from the target FMC.  This file currently resides in the directory '/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api'.  This file provides the API model to MAPLE:FMC which is used for many of the operations to derive urls, etc.  This file can be copied from the target FMC using scp and placed in a directory of the users choice.  The path to this file must be provided when the FMC leaf instance is instantiated.
+
+    For a list of supported operations for the FMC leaf, run maple_cli.py 
+    with the '-h fmc' parameters.
 
 ##### FMC REST API - Instantiating an FMC leaf with Python
 
@@ -178,6 +187,9 @@ MAPLE supports the AMP API for read/write.
 
 At the time of writing, limited testing has been performed for write operations 
 
+    For a list of supported operations for the AMP leaf, run maple_cli.py 
+    with the '-h amp' parameters.
+
 ##### AMP REST API - Instantiating an AMP leaf with Python
 
 ```python
@@ -244,6 +256,9 @@ restore_responses: boolean, keyword, default=False
 MAPLE supports the ThreatGrid API for read/write.
 
 At the time of writing, limited testing has been performed for write operations 
+
+    For a list of supported operations for the FMC leaf, run maple_cli.py 
+    with the '-h threatgrid' parameters.
 
 ##### ThreatGrid REST API - Instantiating an AMP leaf with Python
 

@@ -73,6 +73,21 @@ class MyParser(argparse.ArgumentParser):
         if file is None:
             file = sys.stdout
         self._print_message(self.format_help(), file)
+        if len(sys.argv) >= 3:
+            if sys.argv[2] == 'fmc':
+                self.show_fmc_leaf_help()
+            elif sys.argv[2] == 'amp':
+                self.show_amp_leaf_help()
+            elif sys.argv[2] == 'threatgrid':
+                self.show_tg_leaf_help()
+            else:
+                print('leaf type %s not found...' % sys.argv[2])
+                print('\tcurrent leaf types = fmc, amp, threatgrid')
+                sys.exit()
+        else:
+            self.show_all_leafs()
+
+    def show_all_leafs(self):
         self.show_fmc_leaf_help()
         self.show_amp_leaf_help()
         self.show_tg_leaf_help()

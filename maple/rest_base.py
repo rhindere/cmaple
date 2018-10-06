@@ -652,7 +652,7 @@ class RestBase(object):
 
         return json_dict
 
-    def set_json_properties_by_objectpath(self, json_dict=None, properties_dict=None):
+    def _set_json_properties_by_objectpath(self, json_dict=None, properties_dict=None):
 
         """Sets properties in json_dict from properties_dict.
 
