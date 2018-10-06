@@ -71,23 +71,6 @@ def restore_responses(leaf_dir, responses_dict):
                 url = response_dict['url']
                 responses_dict[url] = response_dict
 
-# @logged(logger)
-# @traced(logger)
-# def find_matching_responses(self, response_struct=None, responses_dict=None, fetch_next=True, search_term='',
-#                             find_all=False):
-#     '''
-#     Under construction...build this to return a subset of response_dict url dictionaries
-#     '''
-#
-#     if responses_dict is None:
-#         responses_dict = self.responses_dict
-#
-#     json_dict = response_struct['json_dict']
-#     find_result = tree_helpers.get_jsonpath_values(search_term, response_struct['json_dict'])
-#
-#     return find_result
-#
-#
 @logged(logger)
 @traced(logger)
 def query_json_field_from_url(query_url=None, json_to_query=None):

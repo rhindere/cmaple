@@ -290,7 +290,7 @@ class FMC(RestBase):
             url = response_dict['url']
             migration_url = prepare_url_for_migration(url, response_dict, id_mappings)
             new_json = prep_migration_json(url, response_dict, object_type)
-            posted_response = self.post_json_response(migration_url, new_json)
+            posted_response = self.post_json_request(migration_url, new_json)
             status = ''
             new_item_id = ''
             if not posted_response['status_code'] == 201:
@@ -718,6 +718,20 @@ class FMC(RestBase):
         """
 
         return list(self._all_API_paths_list)
+
+    def prep_put_json(self, json_dict=None):
+
+        json_copy = {}
+        tree_helpers.deep_update(json_copy, json_dict)
+        pop_keys = ['metadata', 'links']
+        new_json = {}
+        for key, val in json_copy.items():
+            if key in pop_keys:
+                continue
+            else:
+                new_json[key] = val
+
+        return new_json
 
     def _get_json_dict(self, json_file_path=''):
 

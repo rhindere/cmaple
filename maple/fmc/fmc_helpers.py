@@ -144,13 +144,13 @@ def validate_FMC_domain(FMC_Domain,FMC_domain_dict):
         logger.error('A string value must be provided for the %s, provided value is of type %s...' % ('FMC Domain',type(FMC_Domain)))
         raise
     elif not FMC_Domain.startswith('Global/'):
-        logger.error('The provided value for the %s is not "Global".  \
-                                 If a sub domain is the target, it must be prefixed with "Global/".  \
-                                 The provided value = %s...' % ('FMC Domain',FMC_Domain))
+        logger.error('The provided value for the "FMC Domain" is not "Global".',
+                     'If a sub domain is the target, it must be prefixed with "Global/".',
+                     'The provided value = %s...' % FMC_Domain)
         raise
     elif FMC_Domain not in FMC_domain_dict:
-        logger.error('The provided value for the %s (%s) does not exist in the FMC.  \
-                                 Valid domains names as follows:\n%s' % ('FMC Domain',FMC_Domain,fmc_domain_string(FMC_domain_dict)))
+        logger.error('The provided value for the "FMC Domain" (%s) does not exist in the FMC.' % FMC_Domain,
+                     'Valid domains names as follows:\n%s' % fmc_domain_string(FMC_domain_dict))
         raise
         
 @logged(logger)
@@ -162,10 +162,3 @@ def get_domain_dict(headers):
     for domain_dict in domain_list:
         domains_dict[domain_dict['name']] = domain_dict['uuid']
     return domains_dict
-
-@logged(logger)
-@traced(logger)
-def build_request_template_from_model(model_struct):
-    
-    properties_struct = tree_helpers.get_jsonpath_results(model_struct)
-    

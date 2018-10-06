@@ -92,7 +92,43 @@ class RestBase(object):
         """Must override in parent class"""
         pass
 
-    def post_json_response(self, url, json_dict, responses_dict=None):
+    def put_json_request(self, url, json_dict, responses_dict=None):
+
+        """Generic wrapper for a REST API Put request.
+
+        Returns a Python dictionary object containing the response results for the Post.
+
+        By default stores all responses in self.responses_dict unless a dictionary is passed in using the
+        responses_dict parameter.
+
+        Parameters
+        ----------
+        url: string
+            The url of the path to POST.  Must be a fully valid FMC api "GET" path.  url can include the
+            host prefix or start from the resource path.  If the host prefix is missing, it will be added
+            automatically.
+        json_dict: dictionary, argument
+            The Python dictionary containing the request json
+        responses_dict: dictionary, keyword, default=None
+            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
+            if caller would like to keep the responses isolated.
+        """
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+
+        if self.path_root not in url:
+            url = self.path_root + url
+
+        json_string = json.dumps(json_dict)
+        response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+            self._request_wrapper(recursed=False, url=url, json_body=json_string,
+                                  responses_dict=responses_dict, headers=self.request_headers,
+                                  method='put', credentials_dict=self.credentials_dict, verify=self.verify,
+                                  success_status_code=200)
+        return response_dict
+
+    def post_json_request(self, url, json_dict, responses_dict=None):
 
         """Generic wrapper for a REST API Post request.
 
@@ -130,7 +166,7 @@ class RestBase(object):
 
     def get_json_request(self, url, responses_dict=None):
 
-        """Generic wrapper for a REST API Post request.
+        """Generic wrapper for a REST API GET request.
 
         Returns a Python dictionary object containing the response results for the Post.
 
@@ -386,11 +422,11 @@ class RestBase(object):
         """
         
         while True:
-            response_struct = self.GET_API_path(url, responses_dict=responses_dict)
+            response_struct = self.get_json_request(url, responses_dict=responses_dict)
             logger.debug(pformat(response_struct))
             response_dict.update({url: response_struct})
             next_link = tree_helpers.get_objectpath_values(self.next_link_query,
-                                                           response_struct['response_dict']['json_dict'])
+                                                           response_struct['json_dict'])
             if next_link:
                 next_url = next_link[0]
                 url = next_url
@@ -583,3 +619,87 @@ class RestBase(object):
 
         query_values = tree_helpers.get_objectpath_values('$..' + query_field, json_to_query)
         return query_values
+
+    def set_json_properties(self, json_dict=None, properties_dict=None):
+
+        """Sets properties in json_dict from properties_dict.
+
+        Returns - The modified json_dict.
+
+        Parameters
+        ----------
+        json_dict: dictionary, keyword, default=None
+            The json_dict to modify.
+        properties_dict: dictionary, keyword, default=None
+            The properties to modify {property:value}.
+        """
+
+        def recurse_property_matches(json_dict):
+            if type(json_dict) is dict or type(json_dict) is OrderedDict:
+                for key, val in json_dict.items():
+                    if key in properties_dict:
+                        json_dict[key] = properties_dict[key]
+                    if type(val) is dict or type(val) is OrderedDict:
+                        recurse_property_matches(val)
+                    elif type(val) is list:
+                        for val_member in val:
+                            recurse_property_matches(val_member)
+            elif type(json_dict) is list:
+                for json_member in json_dict:
+                    recurse_property_matches(json_member)
+
+        recurse_property_matches(json_dict)
+
+        return json_dict
+
+    def set_json_properties_by_objectpath(self, json_dict=None, properties_dict=None):
+
+        """Sets properties in json_dict from properties_dict.
+
+        Returns - The modified json_dict.
+
+        Parameters
+        ----------
+        json_dict: dictionary, keyword, default=None
+            The json_dict to modify.
+        properties_dict: dictionary, keyword, default=None
+            The properties to modify {property:value}.
+        """
+
+        def recurse_path(id_path_parts, json_dict):
+            path_part = id_path_parts.pop(0)
+            if type(json_dict) is list:
+                list_index = int(re.match(r'.+?([0-9])+.+', path_part).group(1))
+                return recurse_path(id_path_parts, json_dict[list_index])
+            elif not path_part == 'id':
+                json_dict = json_dict[path_part]
+                return recurse_path(id_path_parts, json_dict)
+            else:
+                if json_dict['id'] in id_mappings:
+                    new_id = id_mappings[json_dict['id']]
+                    json_dict['id'] = new_id
+                else:
+                    json_dict['id'] = 'unsupported'
+                if json_dict['id'] == 'unsupported':
+                    return False
+                else:
+                    return True
+
+        def recurse_property_matches(json_dict, type_list):
+            if type(json_dict) is dict or type(json_dict) is OrderedDict:
+                for key, val in json_dict.items():
+                    if type(val) is dict or type(val) is OrderedDict:
+                        if 'type' in val:
+                            type_list.append({'key': key, 'dict': val})
+                        elif 'refType' in val:
+                            type_list.append({'key': key, 'dict': val})
+                        recurse_property_matches(val, type_list)
+                    elif type(val) is list:
+                        for val_member in val:
+                            val_dict = {key: val_member}
+                            recurse_property_matches(val_dict, type_list)
+            elif type(json_dict) is list:
+                for json_member in json_dict:
+                    recurse_property_matches(json_member, type_list)
+
+        recurse_property_matches(json_dict, properties_dict)
