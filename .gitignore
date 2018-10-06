@@ -7,4 +7,4 @@ build
 **.log
 **.txt
 dist
-maple.egg.*
+maple.egg*
