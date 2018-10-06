@@ -188,7 +188,8 @@ def process_json_request(url,responses_dict,headers,method,credentials_dict,json
                          verify=False,success_status_code=200,include_filter_regex=None,
                          exclude_filter_regex=None,use_cache=False,
                          stop_on_error=False,API_path_keywords_list=[],get_item_limit=25):
-    
+
+    print('Processing url %s...' % url, file=sys.stderr)
     store_status = None
     logger.debug('Processing json request method %s for url %s...' % (method,url))
     exclude_filtered = False

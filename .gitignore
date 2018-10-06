@@ -3,3 +3,6 @@
 **/parking*
 **/under_construction
 **/__pycache__
+build
+dist
+maple.egg.*

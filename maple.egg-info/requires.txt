@@ -1,0 +1,7 @@
+Autologging
+jsonpath_ng
+requests
+xmltodict
+objectpath
+urllib3
+pytz
