@@ -40,7 +40,6 @@ AMP_leaf = maple_tree.add_leaf_instance('amp',name='Hackathon', AMP_host='api.am
                                         AMP_API_client_ID=AMP_API_client_ID, AMP_API_key=AMP_API_key,
                                         default_get_item_limit=200)
 
-#AMP_leaf.GET_API_path('v1/computers')
 AMP_leaf.walk_API_path_gets('v1/computers')
 pprint(AMP_leaf.responses_dict)
 
