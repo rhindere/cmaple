@@ -1,3 +1,5 @@
 **/venv
 .idea
 **/parking*
+**/under_construction
+**/__pycache__
