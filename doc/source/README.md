@@ -257,7 +257,7 @@ MAPLE supports the ThreatGrid API for read/write.
 
 At the time of writing, limited testing has been performed for write operations 
 
-    For a list of supported operations for the FMC leaf, run maple_cli.py 
+    For a list of supported operations for the ThreatGrid leaf, run maple_cli.py 
     with the '-h threatgrid' parameters.
 
 ##### ThreatGrid REST API - Instantiating an AMP leaf with Python
