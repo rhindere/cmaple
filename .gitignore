@@ -4,5 +4,7 @@
 **/under_construction
 **/__pycache__
 build
+**.log
+**.txt
 dist
 maple.egg.*
