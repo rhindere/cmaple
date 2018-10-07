@@ -7,16 +7,18 @@ Author: Ron Hinderer
 Author-email: rhindere@cisco.com
 License: UNKNOWN
 Description: 
-        # MAPLE Introduction
+        # CMAPLE Introduction
         
-        MAPLE - Multi-purpose API Programming Language Extension
+        CMAPLE - Cisco Multi-purpose API Programming Language Extension
+        
+            CMAPLE is currently in an ALPHA state and subject to frequent changes.
+            Please check often for updates.
         
         For detailed documentation see doc/build/html/index.html
         
         ## Introduction
         
-        
-        MAPLE has the following overarching goals:
+        CMAPLE has the following overarching goals:
         
         1. Provide a common interface to multiple input/output methods for working with data including API, html, text, syslog, snmp, etc.
         2. Enable these input/output methods to exchange information in real time or batch.
@@ -24,40 +26,40 @@ Description:
         4. Provide high level interfaces for non-programmers to access advanced input/output methods in a reusable fashion.
         5. Enable fast onboard of new input/output methods.
         
-        MAPLE currently supports the FMC, AMP and ThreatGrid APIs with many others in development.
+        CMAPLE currently supports the FMC, AMP and ThreatGrid APIs with many others in development.
         
-        MAPLE currently offers two interfaces to supported input/output methods:
+        CMAPLE currently offers two interfaces to supported input/output methods:
         
         1. Programmatic with Python
-        2. MAPLE CLI - a configuration file type syntax allowing non-programmers to use MAPLE functionality.
+        2. CMAPLE CLI - a configuration file type syntax allowing non-programmers to use CMAPLE functionality.
         
-        Examples of using MAPLE with each interface will be given below.
+        Examples of using CMAPLE with each interface will be given below.
         
             For additional python examples, see the sample code in the 'python_examples' 
             directory.
             
-            For additional maple_cli examples, see the sample files in the
-            'maple_cli_examples' directory.
+            For additional cmaple_cli examples, see the sample files in the
+            'cmaple_cli_examples' directory.
         
-        ## The MAPLE Object Model
+        ## The CMAPLE Object Model
         
         ---
         
-        ### The "tree" object - MAPLE's top level controller object
+        ### The "tree" object - CMAPLE's top level controller object
         
-        The top level object for MAPLE is the "tree".  The tree provides the methods to instantiate and manage "leaf" objects (the specific input/output method interfaces).  The tree also provides helper methods common to all leaf types.
+        The top level object for CMAPLE is the "tree".  The tree provides the methods to instantiate and manage "leaf" objects (the specific input/output method interfaces).  The tree also provides helper methods common to all leaf types.
         
-        In future releases of MAPLE, the tree object will also provide translation services and multi-threaded leaf instance management.
+        In future releases of CMAPLE, the tree object will also provide translation services and multi-threaded leaf instance management.
         
         Using Python a tree object is instantiated as follows:
         
-        ***from maple.tree import CMapleTree***
+        ***from cmaple.tree import CMapleTree***
         ***tree=CMapleTree(name=[tree_name],tree_dir=[file_path],logging_level=[logging_level])***
         
         #### Tree Parameters
         name: string, keyword, default=None - **Required**
         
-            ​The name of this MAPLE tree.  The name is required and will be used to create a 
+            ​The name of this CMAPLE tree.  The name is required and will be used to create a 
             working directory for the tree object.
         
         tree_dir: string, keyword, default=None - **Required**
@@ -70,20 +72,20 @@ Description:
         
             The desired logging level for the tree object (inherited by all leaf objects)
         
-        ### The "leaf" object - MAPLEs input/output interface
+        ### The "leaf" object - CMAPLEs input/output interface
         
         The "leaf" object defines the native interface to the respective supported input/output methods.  The leaf object is instantiated and managed by the tree object.
         
         Using Python, a leaf object is instantiated as follows:
         ```python
-        from maple.tree import CMapleTree
+        from cmaple.tree import CMapleTree
         # First get a tree object
-        maple_tree = CMapleTree(logging_level='INFO',
+        cmaple_tree = CMapleTree(logging_level='INFO', 
                                name='tree', 
-                               tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
+                               tree_dir=r'C:\Users\rhindere\Documents\cmaple_working_dir')
         # Now attach the leaf object...
         leaf = \
-        	maple_tree.add_leaf_instance('[leaf_type]', name='[leaf_name]', [leaf specific keyword args])
+        	cmaple_tree.add_leaf_instance('[leaf_type]', name='[leaf_name]', [leaf specific keyword args])
         ```
         #### Leaf Parameters
         leaf_type: string, keyword, default=None - **Required**
@@ -101,31 +103,32 @@ Description:
         	The leaf specific keywords required to instantiate and conduct leaf operations.  
         	See specific leaf type for required and optional keyword arguments.
         
-        **__For a list of supported operations for each leaf, run maple_cli.py with the '-h' parameter.**__
+        
+        **For a list of supported operations for each leaf, run cmaple_cli.py with the '-h' parameter.**
         
         ### Currently supported leaf types
         
         #### FMC REST API
         
-        MAPLE supports the FMC Rest API both for reading and writing.
+        CMAPLE supports the FMC Rest API both for reading and writing.
         
-        MAPLE bases most FMC operations on the current API model as defined in the file named 'api-docs-fmcwithll.json' and obtained from the target FMC.  This file currently resides in the directory '/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api'.  This file provides the API model to MAPLE:FMC which is used for many of the operations to derive urls, etc.  This file can be copied from the target FMC using scp and placed in a directory of the users choice.  The path to this file must be provided when the FMC leaf instance is instantiated.
+        CMAPLE bases most FMC operations on the current API model as defined in the file named 'api-docs-fmcwithll.json' and obtained from the target FMC.  This file currently resides in the directory '/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api'.  This file provides the API model to CMAPLE:FMC which is used for many of the operations to derive urls, etc.  This file can be copied from the target FMC using scp and placed in a directory of the users choice.  The path to this file must be provided when the FMC leaf instance is instantiated.
         
-            For a list of supported operations for the FMC leaf, run maple_cli.py 
+            For a list of supported operations for the FMC leaf, run cmaple_cli.py 
             with the '-h fmc' parameters.
         
         ##### FMC REST API - Instantiating an FMC leaf with Python
         
         ```python
-        from maple.tree import CMapleTree
+        from cmaple.tree import CMapleTree
         # First get a tree object
-        maple_tree = CMapleTree(logging_level='INFO',
+        cmaple_tree = CMapleTree(logging_level='INFO', 
                                name='tree', 
-                               tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
+                               tree_dir=r'C:\Users\rhindere\Documents\cmaple_working_dir')
         model_json_file= \
-            r'C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple\fmc\api-docs-fmcwithll.json'
+            r'C:\Users\rhindere\Documents\PycharmProjects\cmaple_project\cmaple\fmc\api-docs-fmcwithll.json'
         FMC_leaf = \
-        	maple_tree.add_leaf_instance('fmc', name='fmc_leaf_1',
+        	cmaple_tree.add_leaf_instance('fmc', name='fmc_leaf_1',
         	json_file_path=model_json_file, FMC_host='10.1.101.39',
         	FMC_username='rest_admin', FMC_password='C1sc0123', default_get_item_limit=200)
         ```
@@ -135,7 +138,7 @@ Description:
         
             ​The path to the json model file.  This file is typically named 'api-docs-fmcwithll.json' and obtained from the 
             target FMC.  Typically resides in the directory /var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api'.  This file 
-            provides the API model to MAPLE:FMC which is used for many of the operations to derive urls, etc.
+            provides the API model to CMAPLE:FMC which is used for many of the operations to derive urls, etc.
         
         FMC_host: string, keyword, default=None
         
@@ -191,23 +194,23 @@ Description:
         
         #### AMP REST API
         
-        MAPLE supports the AMP API for read/write.
+        CMAPLE supports the AMP API for read/write.
         
         At the time of writing, limited testing has been performed for write operations 
         
-            For a list of supported operations for the AMP leaf, run maple_cli.py 
+            For a list of supported operations for the AMP leaf, run cmaple_cli.py 
             with the '-h amp' parameters.
         
         ##### AMP REST API - Instantiating an AMP leaf with Python
         
         ```python
-        from maple.tree import CMapleTree
+        from cmaple.tree import CMapleTree
         # First get a tree object
-        maple_tree = CMapleTree(logging_level='INFO',
+        cmaple_tree = CMapleTree(logging_level='INFO', 
                                name='tree', 
-                               tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
+                               tree_dir=r'C:\Users\rhindere\Documents\cmaple_working_dir')
         # Now attach the AMP leaf...
-        AMP_leaf = maple_tree.add_leaf_instance('amp', name='amp_leaf_1',
+        AMP_leaf = cmaple_tree.add_leaf_instance('amp', name='amp_leaf_1',
                                                 AMP_host='api.amp.cisco.com',
                                                 AMP_API_client_ID='your_amp_client_id',
                                                 AMP_API_key='your_amp_api_key',
@@ -261,23 +264,23 @@ Description:
         
         #### ThreatGrid REST API
         
-        MAPLE supports the ThreatGrid API for read/write.
+        CMAPLE supports the ThreatGrid API for read/write.
         
         At the time of writing, limited testing has been performed for write operations 
         
-            For a list of supported operations for the ThreatGrid leaf, run maple_cli.py 
+            For a list of supported operations for the ThreatGrid leaf, run cmaple_cli.py 
             with the '-h threatgrid' parameters.
         
         ##### ThreatGrid REST API - Instantiating an AMP leaf with Python
         
         ```python
-        from maple.tree import CMapleTree
+        from cmaple.tree import CMapleTree
         # First get a tree object
-        maple_tree = CMapleTree(logging_level='INFO',
+        cmaple_tree = CMapleTree(logging_level='INFO', 
                                name='tree', 
-                               tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
+                               tree_dir=r'C:\Users\rhindere\Documents\cmaple_working_dir')
         # Now attach the ThreatGrid leaf...
-        TG_leaf = maple_tree.add_leaf_instance(leaf_type='tg', name='tg_leaf_1',
+        TG_leaf = cmaple_tree.add_leaf_instance(leaf_type='tg', name='tg_leaf_1',
                                                TG_host='panacea.threatgrid.com',
                                                TG_API_key='your_threatgrid_api_key',
                                                default_get_item_limit=200)
@@ -324,23 +327,23 @@ Description:
         
             If True, pickled persistent responses will be restored prior to all other operations.
         
-        ### MAPLE logging
+        ### CMAPLE logging
         
-        MAPLE logs to "maple.log" located in tree_dir/tree_name
+        CMAPLE logs to "cmaple.log" located in tree_dir/tree_name
         
-        # MAPLE CLI
+        # CMAPLE CLI
         
-        MAPLE CLI is a macro language interface for MAPLE.  It can be used to provide a simple macro language to peform MAPLE operations.
+        CMAPLE CLI is a macro language interface for CMAPLE.  It can be used to provide a simple macro language to peform CMAPLE operations.
         
-        MAPLE CLI operations are defined using a combination of 3 input types:
-        1. Parameters passed to maple_cli.py on the command line.
+        CMAPLE CLI operations are defined using a combination of 3 input types:
+        1. Parameters passed to cmaple_cli.py on the command line.
         2. Parameters stored in a parameters text file.
-        3. The operations config file which defines the actual MAPLE input/output operations.
+        3. The operations config file which defines the actual CMAPLE input/output operations.
         
-        MAPLE CLI parameters are primarily used for network connection and credential passing as well as some operational parameters such as file and directory paths.
+        CMAPLE CLI parameters are primarily used for network connection and credential passing as well as some operational parameters such as file and directory paths.
         
-        ## MAPLE Command Line Parameters
-        The following parameters can be passed to maple_cli.py either on the command line or in the parameters file:
+        ## CMAPLE Command Line Parameters
+        The following parameters can be passed to cmaple_cli.py either on the command line or in the parameters file:
         
         Long form '-rest_admin_user' or short form '-rau', default='rest_admin'
         
@@ -353,38 +356,38 @@ Description:
         Long form '-operations_config_file' or short form '-ocf'
         
             The full path to the operations configuration file
-        Long form '-maple_working_dir' or short form '-mwd'
+        Long form '-cmaple_working_dir' or short form '-mwd'
         
-            The full path to the working directory for maple
+            The full path to the working directory for cmaple
         
-        ### Passing parameters to MAPLE from a text file
+        ### Passing parameters to CMAPLE from a text file
         
-        maple_cli_parameters.txt
+        cmaple_cli_parameters.txt
         
-            File containing init parameters for maple_cli.  Edit this file to suit.  
+            File containing init parameters for cmaple_cli.  Edit this file to suit.  
             Username and password for FMC is in this file but you can remove them and pass instead on cli.  
-            Edit for your own system if you choose to hard code them here.  Run maple_cli.py or 
-            maple_cli.exe with -h to get a brief list of parameters and exposed operations.
-            Pass this file as an argument to maple_cli and precede it with an @ symbol (enclosing 
+            Edit for your own system if you choose to hard code them here.  Run cmaple_cli.py or 
+            cmaple_cli.exe with -h to get a brief list of parameters and exposed operations.
+            Pass this file as an argument to cmaple_cli and precede it with an @ symbol (enclosing 
             in quotes may be required one some OS types).  Example:
             
-                maple_cli.py @maple_cli_parameters.txt
+                cmaple_cli.py @cmaple_cli_parameters.txt
         
         You can also pass any of the arguments in this file directly on the command line or use a combination of cli, file parameters. 
         
-        ## The MAPLE operations configuration file
+        ## The CMAPLE operations configuration file
         
-        MAPLE CLI operations are defined in an "operations" configuration file.  This file is read by maple_cli to execute MAPLE operations.
+        CMAPLE CLI operations are defined in an "operations" configuration file.  This file is read by cmaple_cli to execute CMAPLE operations.
         
         Characteristics of the operations config file:
         
-        1. ​An INI config style file read by maple_cli.py to run API and utility functions. Example of this file below with inline comments:
+        1. ​An INI config style file read by cmaple_cli.py to run API and utility functions. Example of this file below with inline comments:
         2. Lines beginning with “RUN” are API or utility function calls.  RUN is always followed by an arbitrary unique label. RUN results are stored in a Python structure indexed by “RUN label”.
         3. Anything enclosed in {} is a substitution.  In the example below, {tree$logging_level} will be substituted with the value in section “tree” and item “logging_level”.  When this construct appears before a set of parentheses, the substitution will be a class instance or class method stored in the respective section/item.
-        4. Anything preceded with “@” symbol will be substituted for the parameter of the same name in maple_cli_parameters.txt.
+        4. Anything preceded with “@” symbol will be substituted for the parameter of the same name in cmaple_cli_parameters.txt.
         5. Comment out lines with a # symbol.
         
-        ## MAPLE CLI output options - current support
+        ## CMAPLE CLI output options - current support
         
         The results can be displayed in a few different formats for now as follows:
         1. output.tabbed_print
@@ -408,18 +411,18 @@ Description:
         The following configurations file
         
         ```
-        #This maple_cli example will migrate access and nat polcies between FMCs
+        #This cmaple_cli example will migrate access and nat polcies between FMCs
         #regardless of software version and platform.  All dependent objects will be
         #migrated to support the access and nat policy definitions.
         #
-        #RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
+        #RH – section to define and create the top level object for CMAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
         [tree]
-        #RH – sets the logging level for MAPLE.  Log file is maple.log in default directory
+        #RH – sets the logging level for CMAPLE.  Log file is cmaple.log in default directory
         logging_level=INFO
-        #RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an '@', it will be replaced with
+        #RH – Instantiates the top level CMAPLE object and stores the object reference to “RUN tree”. Since cmaple_working_dir is preceded by an '@', it will be replaced with
         #the value passed either on the command line or in the parameters file.
-        RUN tree=CMapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
-        #RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
+        RUN tree=CMapleTree(name=mig_tree_1,tree_dir=@cmaple_working_dir,logging_level={tree$logging_level})
+        #RH – section to define and create the FMC leaf object for the CMAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
         [leaf:fmc_src]
         host=10.1.101.40
         domain=Global
@@ -464,9 +467,9 @@ Description:
         RUN migrate = {leaf:fmc_1$RUN leaf}.or_migrate_config(source_config_path=mig_tree_1\\fmc_mig_2)
         ```
         
-        ## MAPLE CLI Logging
+        ## CMAPLE CLI Logging
         
-        MAPLE CLI logs to "maple_cli.log" in the directory where it is launched.
+        CMAPLE CLI logs to "cmaple_cli.log" in the directory where it is launched.
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: Cisco Sample Code License
