@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-maple_amp_test.py - Example script for MAPLE amp API operations.
+maple_amp_walk_computers.py - Example script for MAPLE amp API operations.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
 

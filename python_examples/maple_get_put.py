@@ -5,8 +5,8 @@ Created on May 20, 2018
 @author: rhindere@cisco.com
 
 maple_get_put.py - Example showing retrieving an access policy rule
-being retrieved and modified.  Replace operational parameters as
-required.
+being retrieved and modified (logBegin setting is toggled on each run).
+Replace operational parameters as required.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
 
