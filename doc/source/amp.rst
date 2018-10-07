@@ -1,7 +1,7 @@
 The AMP Leaf
 ============
 
-.. automodule:: maple.amp.amp
+.. automodule:: cmaple.amp.amp
 .. autoclass:: AMP
    :members: __init__
 

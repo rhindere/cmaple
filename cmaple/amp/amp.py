@@ -98,7 +98,7 @@ class AMP(RestBase):
         restore_responses: boolean, keyword, default=False
             If True, pickled persistent responses will be restored prior to all other operations.
         leaf_dir: string, keyword, default=None
-            Provided by MapleTree when this leaf type is instantiated.  Contains the directory where working files
+            Provided by CMapleTree when this leaf type is instantiated.  Contains the directory where working files
             for the leaf instance are stored.
         """
 

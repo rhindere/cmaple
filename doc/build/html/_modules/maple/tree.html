@@ -41,9 +41,9 @@
 
 <span class="sd">tree.py is the top level script for MAPLE</span>
 <span class="sd">(Multi-purpose API Programming Language Extension).  Defines the main</span>
-<span class="sd">class MapleTree which serves as the overarching control point for</span>
+<span class="sd">class CMapleTree which serves as the overarching control point for</span>
 <span class="sd">MAPLE leafs.  Leafs implement the specific functionality for a</span>
-<span class="sd">given products API.  MapleTree also provides leaf management functions.</span>
+<span class="sd">given products API.  CMapleTree also provides leaf management functions.</span>
 
 <span class="sd">Copyright (c) 2018 Cisco and/or its affiliates.</span>
 
@@ -84,15 +84,15 @@
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 
-<div class="viewcode-block" id="MapleTree"><a class="viewcode-back" href="../../tree.html#maple.tree.MapleTree">[docs]</a><span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<div class="viewcode-block" id="CMapleTree"><a class="viewcode-back" href="../../tree.html#maple.tree.CMapleTree">[docs]</a><span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
 <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">MapleTree</span><span class="p">():</span>
+<span class="k">class</span> <span class="nc">CMapleTree</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class defines the top level object for MAPLE; the &#39;tree&#39; object.</span>
 
 <span class="sd">    The tree object provides methods to instantiate and manage MAPLE &#39;leaf&#39; objects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="MapleTree.__init__"><a class="viewcode-back" href="../../tree.html#maple.tree.MapleTree.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">tree_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">logging_config_dict</span><span class="o">=</span><span class="p">{},</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span><span class="n">log_file_mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="CMapleTree.__init__"><a class="viewcode-back" href="../../tree.html#maple.tree.CMapleTree.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">tree_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">logging_config_dict</span><span class="o">=</span><span class="p">{},</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span><span class="n">log_file_mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;__init__ receives a kwargs dict to define parameters.  This allows __init__ to pass these parameters</span>
 <span class="sd">        to the superclass.</span>

@@ -6,9 +6,9 @@ Created on May 20, 2018
 
 tree.py is the top level script for MAPLE
 (Multi-purpose API Programming Language Extension).  Defines the main
-class MapleTree which serves as the overarching control point for
+class CMapleTree which serves as the overarching control point for
 MAPLE leafs.  Leafs implement the specific functionality for a
-given products API.  MapleTree also provides leaf management functions.
+given products API.  CMapleTree also provides leaf management functions.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
 
@@ -46,7 +46,7 @@ logger.setLevel(logging.INFO)
 
 @logged(logger)
 @traced(logger)
-class MapleTree():
+class CMapleTree():
     """This class defines the top level object for MAPLE; the 'tree' object.
 
     The tree object provides methods to instantiate and manage MAPLE 'leaf' objects.

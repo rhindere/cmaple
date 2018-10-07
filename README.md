@@ -43,8 +43,8 @@ In future releases of MAPLE, the tree object will also provide translation servi
 
 Using Python a tree object is instantiated as follows:
 
-***from maple.tree import MapleTree***
-***tree=MapleTree(name=[tree_name],tree_dir=[file_path],logging_level=[logging_level])***
+***from maple.tree import CMapleTree***
+***tree=CMapleTree(name=[tree_name],tree_dir=[file_path],logging_level=[logging_level])***
 
 #### Tree Parameters
 name: string, keyword, default=None - **Required**
@@ -68,9 +68,9 @@ The "leaf" object defines the native interface to the respective supported input
 
 Using Python, a leaf object is instantiated as follows:
 ```python
-from maple.tree import MapleTree
+from maple.tree import CMapleTree
 # First get a tree object
-maple_tree = MapleTree(logging_level='INFO', 
+maple_tree = CMapleTree(logging_level='INFO', 
                        name='tree', 
                        tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
 # Now attach the leaf object...
@@ -109,9 +109,9 @@ MAPLE bases most FMC operations on the current API model as defined in the file 
 ##### FMC REST API - Instantiating an FMC leaf with Python
 
 ```python
-from maple.tree import MapleTree
+from maple.tree import CMapleTree
 # First get a tree object
-maple_tree = MapleTree(logging_level='INFO', 
+maple_tree = CMapleTree(logging_level='INFO', 
                        name='tree', 
                        tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
 model_json_file= \
@@ -193,9 +193,9 @@ At the time of writing, limited testing has been performed for write operations
 ##### AMP REST API - Instantiating an AMP leaf with Python
 
 ```python
-from maple.tree import MapleTree
+from maple.tree import CMapleTree
 # First get a tree object
-maple_tree = MapleTree(logging_level='INFO', 
+maple_tree = CMapleTree(logging_level='INFO', 
                        name='tree', 
                        tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
 # Now attach the AMP leaf...
@@ -263,9 +263,9 @@ At the time of writing, limited testing has been performed for write operations
 ##### ThreatGrid REST API - Instantiating an AMP leaf with Python
 
 ```python
-from maple.tree import MapleTree
+from maple.tree import CMapleTree
 # First get a tree object
-maple_tree = MapleTree(logging_level='INFO', 
+maple_tree = CMapleTree(logging_level='INFO', 
                        name='tree', 
                        tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
 # Now attach the ThreatGrid leaf...
@@ -410,7 +410,7 @@ The following configurations file
 logging_level=INFO
 #RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an '@', it will be replaced with
 #the value passed either on the command line or in the parameters file.
-RUN tree=MapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
+RUN tree=CMapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
 #RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
 [leaf:fmc_src]
 host=10.1.101.40

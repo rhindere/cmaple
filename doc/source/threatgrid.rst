@@ -1,7 +1,7 @@
 The ThreatGrid Leaf
 ===================
 
-.. automodule:: maple.threatgrid.threatgrid
+.. automodule:: cmaple.threatgrid.threatgrid
 .. autoclass:: TG
    :members: __init__
 

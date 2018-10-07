@@ -2,6 +2,6 @@ The Tree Object
 ===============
 
 .. automodule:: maple.tree
-.. autoclass:: MapleTree
+.. autoclass:: CMapleTree
    :members: __init__
 

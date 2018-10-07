@@ -107,7 +107,7 @@ class FMC(RestBase):
         restore_responses: boolean, keyword, default=False
             If True, pickled persistent responses will be restored prior to all other operations.
         leaf_dir: string, keyword, default=None
-            Provided by MapleTree when this leaf type is instantiated.  Contains the directory where working files
+            Provided by CMapleTree when this leaf type is instantiated.  Contains the directory where working files
             for the leaf instance are stored.
         """
 
@@ -203,6 +203,8 @@ class FMC(RestBase):
 
         def prep_composite_json(json_dict):
 
+            print('in composite_json')
+            pprint(json_dict)
             def recurse_path(id_path_parts, json_dict):
                 path_part = id_path_parts.pop(0)
                 if type(json_dict) is list:
@@ -401,6 +403,8 @@ class FMC(RestBase):
 
         # TODO handle params (url not needed) and replace domain id and id before posting
         def process_child_urls(url, response_dict, parent_url):
+            print('processing child url %s' % url)
+            pprint(response_dict)
             if 'type' in response_dict['json_dict']:
                 if response_dict['json_dict']['type'] in exclude_types:
                     logger.warning('type %s matched exclude pattern.  Skipping...' % response_dict['json_dict']['type'])
@@ -659,6 +663,9 @@ class FMC(RestBase):
             if not child_url == '':
                 # Safeguard to prevent child url returning parent url - deployabledevice
                 if not child_url == re.sub('\?.+', '', response_dict['url']):
+                    # Add the root path in if missing...
+                    if self.path_root not in child_url:
+                        child_url = self.path_root + child_url
                     child_urls.append(child_url)
                 else:
                     logger.warning('Child url %s resolved to parent url' % child_url)

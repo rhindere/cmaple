@@ -704,3 +704,7 @@ class RestBase(object):
                     recurse_property_matches(json_member, type_list)
 
         recurse_property_matches(json_dict, properties_dict)
+
+    def get_leaf_dir(self):
+
+        return self.leaf_dir

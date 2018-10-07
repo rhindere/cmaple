@@ -4,14 +4,14 @@
 logging_level=INFO
 #RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an '@', it will be replaced with
 #the value passed either on the command line or in the parameters file.
-RUN tree=MapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
+RUN tree=CMapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
 #RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
 [leaf:fmc_mig_src]
 host=10.1.101.40
 domain=Global
 type=fmc
 name=fmc_mig_src
-model_json_file=C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple\fmc\api-docs-fmcwithll.json
+model_json_file=C:\Users\rhindere\Documents\PycharmProjects\maple_project\cmaple\fmc\api-docs-fmcwithll.json
 #RH – creates a substitution variable to hold the arguments for creating the leaf object.  Not necessary, only for readability
 leaf_args=leaf_type={leaf:fmc_mig_src$type},name={leaf:fmc_mig_src$name},json_file_path={leaf:fmc_mig_src$model_json_file},FMC_host={leaf:fmc_mig_src$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_mig_src$domain},restore_responses=True
 #RH – adds the leaf instance for the FMC to the tree
@@ -46,9 +46,12 @@ type=fmc
 name=fmc_mig_dst
 RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_mig_dst$leaf_args})
 RUN domain_id={leaf:fmc_mig_dst$RUN leaf}.get_domain_id(domain={leaf:fmc_mig_dst$domain})
-model_json_file=C:\Users\rhindere\Documents\PycharmProjects\maple_project\maple\fmc\api-docs-fmcwithll.json
+model_json_file=C:\Users\rhindere\Documents\PycharmProjects\maple_project\cmaple\fmc\api-docs-fmcwithll.json
 #RH – creates a substitution variable to hold the arguments for creating the leaf object.  Not necessary, only for readability
 leaf_args=leaf_type={leaf:fmc_mig_dst$type},name={leaf:fmc_mig_dst$name},json_file_path={leaf:fmc_mig_dst$model_json_file},FMC_host={leaf:fmc_mig_dst$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_mig_dst$domain},restore_responses=False
 #RH – adds the leaf instance for the FMC to the tree
 RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_mig_dst$leaf_args})
-RUN migrate = {leaf:fmc_mig_dst$RUN leaf}.or_migrate_config(source_config_path=mig_tree_1\\fmc_mig_2)
+#RH Get the source leaf directory so we can read the source response data
+RUN src_leaf_dir={leaf:fmc_mig_src$RUN leaf}.get_leaf_dir()
+#Run the migrate method
+RUN migrate = {leaf:fmc_mig_dst$RUN leaf}.or_migrate_config(source_config_path={leaf:fmc_mig_dst$RUN src_leaf_dir})

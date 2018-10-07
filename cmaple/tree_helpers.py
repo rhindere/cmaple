@@ -261,13 +261,16 @@ def process_json_request(url, responses_dict, headers, method, credentials_dict,
                 logger.debug('    Response text = %s' % (r.text))
             else:
                 # sys.exit()
-                logger.error('Request for url %s with method %s unsuccessful. Status code %s with response %s...' % (url,method, r.status_code, r.text))
+                logger.warning('Request for url %s with method %s unsuccessful. Status code %s with response %s...' % (url,method, r.status_code, r.text))
                 if stop_on_error:
+                    logger.error('Request for url %s with method %s unsuccessful. Status code %s with response %s...'
+                                 % (url, method, r.status_code, r.text))
                     logger.error('stop_on_error set to True, exiting...')
                     sys.exit()
         except Exception as err:
-            logger.error("Error in processing json request--> "+str(err))
+            logger.warning("Error in processing json request--> "+str(err))
             if stop_on_error:
+                logger.error("Error in processing json request--> " + str(err))
                 logger.error('stop_on_error set to True, exiting...')
                 sys.exit()
 

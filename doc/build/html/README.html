@@ -71,8 +71,8 @@
 <p>The top level object for MAPLE is the “tree”.  The tree provides the methods to instantiate and manage “leaf” objects (the specific input/output method interfaces).  The tree also provides helper methods common to all leaf types.</p>
 <p>In future releases of MAPLE, the tree object will also provide translation services and multi-threaded leaf instance management.</p>
 <p>Using Python a tree object is instantiated as follows:</p>
-<p><strong><em>from maple.tree import MapleTree</em></strong>
-<strong><em>tree=MapleTree(name=[tree_name],tree_dir=[file_path],logging_level=[logging_level])</em></strong></p>
+<p><strong><em>from maple.tree import CMapleTree</em></strong>
+<strong><em>tree=CMapleTree(name=[tree_name],tree_dir=[file_path],logging_level=[logging_level])</em></strong></p>
 <div class="section" id="tree-parameters">
 <span id="tree-parameters"></span><h4>Tree Parameters<a class="headerlink" href="#tree-parameters" title="Permalink to this headline">¶</a></h4>
 <p>name: string, keyword, default=None - <strong>Required</strong></p>
@@ -96,9 +96,9 @@ directory (e.g. tree_dir/name).
 <span id="the-leaf-object-maples-input-output-interface"></span><h3>The “leaf” object - MAPLEs input/output interface<a class="headerlink" href="#the-leaf-object-maples-input-output-interface" title="Permalink to this headline">¶</a></h3>
 <p>The “leaf” object defines the native interface to the respective supported input/output methods.  The leaf object is instantiated and managed by the tree object.</p>
 <p>Using Python, a leaf object is instantiated as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
 <span class="c1"># First get a tree object</span>
-<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">CMapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span>
                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
                        <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
 <span class="c1"># Now attach the leaf object...</span>
@@ -138,9 +138,9 @@ directory (e.g. tree_dir/name).
 </div>
 <div class="section" id="fmc-rest-api-instantiating-an-fmc-leaf-with-python">
 <span id="fmc-rest-api-instantiating-an-fmc-leaf-with-python"></span><h5>FMC REST API - Instantiating an FMC leaf with Python<a class="headerlink" href="#fmc-rest-api-instantiating-an-fmc-leaf-with-python" title="Permalink to this headline">¶</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
 <span class="c1"># First get a tree object</span>
-<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">CMapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span>
                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
                        <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
 <span class="n">model_json_file</span><span class="o">=</span> \
@@ -224,9 +224,9 @@ provides the API model to MAPLE:FMC which is used for many of the operations to 
 </div>
 <div class="section" id="amp-rest-api-instantiating-an-amp-leaf-with-python">
 <span id="amp-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>AMP REST API - Instantiating an AMP leaf with Python<a class="headerlink" href="#amp-rest-api-instantiating-an-amp-leaf-with-python" title="Permalink to this headline">¶</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
 <span class="c1"># First get a tree object</span>
-<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">CMapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span>
                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
                        <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
 <span class="c1"># Now attach the AMP leaf...</span>
@@ -296,9 +296,9 @@ provides the API model to MAPLE:FMC which is used for many of the operations to 
 </div>
 <div class="section" id="threatgrid-rest-api-instantiating-an-amp-leaf-with-python">
 <span id="threatgrid-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>ThreatGrid REST API - Instantiating an AMP leaf with Python<a class="headerlink" href="#threatgrid-rest-api-instantiating-an-amp-leaf-with-python" title="Permalink to this headline">¶</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">MapleTree</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">maple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
 <span class="c1"># First get a tree object</span>
-<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">MapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
+<span class="n">maple_tree</span> <span class="o">=</span> <span class="n">CMapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span>
                        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> 
                        <span class="n">tree_dir</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;C:\Users\rhindere\Documents\maple_working_dir&#39;</span><span class="p">)</span>
 <span class="c1"># Now attach the ThreatGrid leaf...</span>
@@ -448,7 +448,7 @@ provides the API model to MAPLE:FMC which is used for many of the operations to 
 logging_level=INFO
 #RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an &#39;@&#39;, it will be replaced with
 #the value passed either on the command line or in the parameters file.
-RUN tree=MapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
+RUN tree=CMapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
 #RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: &#39;leaf&#39; is an arbitrary label.
 [leaf:fmc_src]
 host=10.1.101.40

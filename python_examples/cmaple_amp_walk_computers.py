@@ -26,7 +26,7 @@ __version__ = "0.1"
 __copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
 __license__ = "Cisco DEVNET"
 
-from cmaple.tree import MapleTree
+from cmaple.tree import CMapleTree
 from pprint import pprint
 import re, sys
 import _pickle
@@ -34,8 +34,8 @@ import _pickle
 AMP_API_client_ID = 'your AMP API ID'
 AMP_API_key = 'your AMP API key'
 
-maple_tree = MapleTree(logging_level='INFO', name='amp_test',
-                       tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
+maple_tree = CMapleTree(logging_level='INFO', name='amp_test',
+                        tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
 AMP_leaf = maple_tree.add_leaf_instance('amp',name='Hackathon', AMP_host='api.amp.cisco.com',
                                         AMP_API_client_ID=AMP_API_client_ID, AMP_API_key=AMP_API_key,
                                         default_get_item_limit=200)
