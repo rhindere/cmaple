@@ -1,7 +1,7 @@
 The Tree Object
 ===============
 
-.. automodule:: maple.tree
+.. automodule:: cmaple.tree
 .. autoclass:: CMapleTree
    :members: __init__
 
