@@ -54,6 +54,9 @@ logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 @logged(logger)
 @traced(logger)
 def persist_response(leaf_dir, response_counter, response_dict):
+    """Pickles the response to the leaf working directory.
+
+    """
     url = response_dict['url']
     pickle_file_name = ('%06d' % response_counter) + '_' + re.sub('[^a-zA-Z0-9]','~',url) + '.response_pickle'
     with open(os.path.join(leaf_dir,pickle_file_name),'wb') as f:
@@ -63,6 +66,9 @@ def persist_response(leaf_dir, response_counter, response_dict):
 @logged(logger)
 @traced(logger)
 def restore_responses(leaf_dir, responses_dict):
+    """Restores pickled responses from the leaf working directory to the leaf's responses_dict.
+
+    """
     leaf_dir_files = os.listdir(leaf_dir)
     for leaf_dir_file in leaf_dir_files:
         if '.response_pickle' in leaf_dir_file:
@@ -74,6 +80,9 @@ def restore_responses(leaf_dir, responses_dict):
 @logged(logger)
 @traced(logger)
 def query_json_field_from_url(query_url=None, json_to_query=None):
+    """Returns a list of all objectpath matches based on query string 'json_to_query'.
+
+    """
     query_field = re.match(r'.+?~([^~]+)~', query_url).group(1)
     query_values = get_objectpath_values('$..' + query_field, json_to_query)
     return query_values
@@ -82,6 +91,9 @@ def query_json_field_from_url(query_url=None, json_to_query=None):
 @logged(logger)
 @traced(logger)
 def query_with_list(query_url=None, query_list=None):
+    """Iterates over query list substituting each element for the value enclosed in ~.
+
+    """
     query_field = re.match(r'.+?~([^~]+)~', query_url).group(1)
     values_seen = []
     for query_value in query_list:
@@ -93,19 +105,18 @@ def query_with_list(query_url=None, query_list=None):
 @logged(logger)
 @traced(logger)
 def query_json_field(query_field=None, json_to_query=None):
+    """Returns a list of all objectpath matches based on query string 'json_to_query'.
+
+    """
     query_values = get_objectpath_values('$..' + query_field, json_to_query)
     return query_values
 
 @logged(logger)
 @traced(logger)
-def query_json_chunk(query_str=None, json_to_query=None):
-    json_dict = get_objectpath_values(query_str, json_to_query)
-    pprint(json_dict)
-    return json_dict
-
-@logged(logger)
-@traced(logger)
 def deep_update_od(d, u):
+    """Deep copies OrderedDict u to dictionary d.
+
+    """
     for k, v in u.items():
         if isinstance(v, collections.Mapping):
             r = deep_update(d.get(k, collections.OrderedDict()), v)
@@ -117,6 +128,9 @@ def deep_update_od(d, u):
 @logged(logger)
 @traced(logger)
 def deep_update(d, u):
+    """Deep copies dictionary u to dictionary d.
+
+    """
     for k, v in u.items():
         if isinstance(v, collections.Mapping):
             r = deep_update(d.get(k, {}), v)
@@ -127,10 +141,12 @@ def deep_update(d, u):
 
 @logged(logger)
 @traced(logger)
-def store_json_response_by_url(r,url,good_status_code,responses_dict,
-                               include_filter_regex=None,exclude_filter_regex=None,
-                               include_filtered=False,exclude_filtered=False,cache_hit=False):
+def store_json_response_by_url(r, url, good_status_code, responses_dict,
+                               include_filter_regex=None, exclude_filter_regex=None,
+                               include_filtered=False, exclude_filtered=False, cache_hit=False):
+    """Stores the REST response to the leafs responses_dict.
 
+    """
     if not url in responses_dict:
         responses_dict[url] = {'url':None, 'headers':None,'error':None,'json_dict':None,'status_code':None,'null_response':False,'filtered':False,'cache_hit':False}
     
@@ -171,14 +187,18 @@ def store_json_response_by_url(r,url,good_status_code,responses_dict,
 @logged(logger)
 @traced(logger)
 def get_empty_ordered_dict():
+    """Returns an empty OrderedDict.  Mainly for use with maple_cli.
 
+    """
     return OrderedDict()
 
 
 @logged(logger)
 @traced(logger)
 def get_empty_dict():
+    """Returns an empty dictionary.  Mainly for use with maple_cli.
 
+    """
     return {}
 
 
@@ -188,6 +208,9 @@ def process_json_request(url, responses_dict, headers, method, credentials_dict,
                          verify=False, success_status_code=200, include_filter_regex=None,
                          exclude_filter_regex=None, use_cache=False,
                          stop_on_error=False, API_path_keywords_list=[], get_item_limit=25):
+    """Generic request wrapper for all REST methods.
+
+    """
 
     print('Processing url %s...' % url, file=sys.stderr)
     store_status = None
@@ -255,25 +278,36 @@ def process_json_request(url, responses_dict, headers, method, credentials_dict,
                 
     return responses_dict[url], store_status, include_filtered, exclude_filtered, cache_hit
 
-#@traced(logger) #trace logging disabled due to jsonpath spewing...need to put this in a class
+
+# @traced(logger) #trace logging disabled due to jsonpath spewing...need to put this in a class
 @logged(logger)
 def get_jsonpath_values(json_query,json_struct):
-    
+    """Queries json_struct with json_query using jsonpath.
+
+    """
+
     jsonpath_query = parse(json_query)
     return [match.value for match in jsonpath_query.find(json_struct)]
 
 
-#@traced(logger) #trace logging disabled due to jsonpath spewing...need to put this in a class
+# @traced(logger) #trace logging disabled due to jsonpath spewing...need to put this in a class
 @logged(logger)
 def get_objectpath_values(json_query, json_struct):
+    """Queries json_struct with json_query using objectpath.
+
+    """
 
     return list(objectpath.Tree(json_struct).execute(json_query))
 
 
-#@traced(logger) #trace logging disabled due to jsonpath spewing...need to put this in a class
+# @traced(logger) #trace logging disabled due to jsonpath spewing...need to put this in a class
 @logged(logger)
 def get_jsonpath_full_paths_and_values(json_query,json_struct):
-    
+    """Queries json_struct with json_query using jsonpath.
+
+    Returns a list of tuples with the jsonpath path and the respective values.
+    """
+
     jsonpath_query = parse(json_query)
     tuple_list = [(str(match.full_path),match.value) for match in jsonpath_query.find(json_struct)]
     return tuple_list

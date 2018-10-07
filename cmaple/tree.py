@@ -35,7 +35,7 @@ import sys
 import os
 import re
 
-# Create and configure a logger for maple...
+# Create and configure a logger for cmaple...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.ERROR)
@@ -47,8 +47,7 @@ logger.setLevel(logging.INFO)
 @logged(logger)
 @traced(logger)
 class MapleTree():
-    """
-    This class defines the top level object for MAPLE; the 'tree' object.
+    """This class defines the top level object for MAPLE; the 'tree' object.
 
     The tree object provides methods to instantiate and manage MAPLE 'leaf' objects.
     """
@@ -86,7 +85,7 @@ class MapleTree():
                 try:
                     os.mkdir(tree_dir)
                 except Exception as err:
-                    logger.error("Error creating maple working directory, error message--> " + str(err))
+                    logger.error("Error creating cmaple working directory, error message--> " + str(err))
                     sys.exit(str(err))
 
         # Create the tree directory named 'tree_name'
@@ -101,10 +100,10 @@ class MapleTree():
         if logging_config_dict:
             logger.config.dictConfig(logging_config_dict)
         logger.setLevel(logging.getLevelName(logging_level))
-        file_handler = logging.FileHandler(os.path.join(maple_tree_dir,'maple.log'), mode=log_file_mode)
+        file_handler = logging.FileHandler(os.path.join(maple_tree_dir,'cmaple.log'), mode=log_file_mode)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
-        logger.info('Starting new maple session...')
+        logger.info('Starting new cmaple session...')
         
         self.name = name
         self.leaf_modules ={}
@@ -136,20 +135,20 @@ class MapleTree():
                 sys.exit(str(err))
 
         if leaf == 'fmc':
-            import maple.fmc.fmc
-            self.leaf_modules[leaf] = maple.fmc.fmc
+            import cmaple.fmc.fmc
+            self.leaf_modules[leaf] = cmaple.fmc.fmc
 
         if leaf == 'amp':
-            import maple.amp.amp
-            self.leaf_modules[leaf] = maple.amp.amp
+            import cmaple.amp.amp
+            self.leaf_modules[leaf] = cmaple.amp.amp
 
         if leaf == 'tg':
-            import maple.threatgrid.threatgrid
-            self.leaf_modules[leaf] = maple.threatgrid.threatgrid
+            import cmaple.threatgrid.threatgrid
+            self.leaf_modules[leaf] = cmaple.threatgrid.threatgrid
 
         if leaf == 'html_leaf':
-            import maple.under_construction.html_leaf.HTML_leaf
-            self.leaf_modules[leaf] = maple.under_construction.html_leaf.HTML_leaf
+            import cmaple.under_construction.html_leaf.HTML_leaf
+            self.leaf_modules[leaf] = cmaple.under_construction.html_leaf.HTML_leaf
 
         if leaf not in self.leaf_instances:
             self.leaf_instances[leaf] = []

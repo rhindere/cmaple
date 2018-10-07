@@ -4,16 +4,16 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-maple_cli.py is a high level interface to the functionality provided by
-MAPLE (Multi-purpose API Programming Language Extension).  maple_cli.py
+cmaple_cli.py is a high level interface to the functionality provided by
+MAPLE (Multi-purpose API Programming Language Extension).  cmaple_cli.py
 enables the following use cases:
 
     - Allows non programmers to use the advanced API capabilities of
-    MAPLE without writing code.  Users of maple_cli.py define API
+    MAPLE without writing code.  Users of cmaple_cli.py define API
     operations in an operations config file using a simple macro syntax
-    - maple_cli.py operations config files can be easily shared and
+    - cmaple_cli.py operations config files can be easily shared and
     reused.
-    - maple_cli.py can be compiled to a binary for use on systems
+    - cmaple_cli.py can be compiled to a binary for use on systems
     independent of a local Python installation.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
@@ -35,9 +35,9 @@ import argparse
 import sys
 import os
 import re
-from maple.tree import MapleTree
-from maple.input_validations import *
-import maple.output_transforms as output
+from cmaple.tree import MapleTree
+from cmaple.input_validations import *
+import cmaple.output_transforms as output
 from pprint import pprint
 import logging
 from autologging import logged, traced
@@ -52,7 +52,7 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(funcName)s:%
 console_handler.setFormatter(formatter)
 logger.setLevel(logging.INFO)
 logger.addHandler(console_handler)
-file_handler = logging.FileHandler('maple_cli.log', mode='w')
+file_handler = logging.FileHandler('cmaple_cli.log', mode='w')
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 logger.info('Starting new maple_cli session...')
@@ -93,41 +93,41 @@ class MyParser(argparse.ArgumentParser):
         self.show_tg_leaf_help()
 
     def show_fmc_leaf_help(self):
-        import maple.fmc.fmc
+        import cmaple.fmc.fmc
         print('FMC Leaf operations supported in this release...')
         print('================================================')
         self.show_rest_base_help()
-        for name, cls in maple.fmc.fmc.FMC.__dict__.items():
+        for name, cls in cmaple.fmc.fmc.FMC.__dict__.items():
             if not name.startswith('_'):
                 print(name)
                 print('\t',end='')
                 print(cls.__doc__)
 
     def show_amp_leaf_help(self):
-        import maple.amp.amp
+        import cmaple.amp.amp
         print('AMP Leaf operations supported in this release...')
         print('================================================')
         self.show_rest_base_help()
-        for name, cls in maple.amp.amp.AMP.__dict__.items():
+        for name, cls in cmaple.amp.amp.AMP.__dict__.items():
             if not name.startswith('_'):
                 print(name)
                 print('\t',end='')
                 print(cls.__doc__)
 
     def show_tg_leaf_help(self):
-        import maple.threatgrid.threatgrid
+        import cmaple.threatgrid.threatgrid
         print('AMP Leaf operations supported in this release...')
         print('================================================')
         self.show_rest_base_help()
-        for name, cls in maple.threatgrid.threatgrid.TG.__dict__.items():
+        for name, cls in cmaple.threatgrid.threatgrid.TG.__dict__.items():
             if not name.startswith('_'):
                 print(name)
                 print('\t',end='')
                 print(cls.__doc__)
 
     def show_rest_base_help(self):
-        import maple.rest_base
-        for name, cls in maple.rest_base.RestBase.__dict__.items():
+        import cmaple.rest_base
+        for name, cls in cmaple.rest_base.RestBase.__dict__.items():
             if not name.startswith('_') and not name.startswith('or'):
                 print(name)
                 print('\t',end='')
@@ -150,11 +150,11 @@ arg_parser.add_argument('-rest_admin_password', '-rap', default='C1sc0123',
 
 arg_parser.add_argument('-operations_config_file', '-ocf', type=validate_file_exists, required=True,
                         metavar='The full path to the operations configuration file',
-                        help='the full path to the operations configuration file used to execute maple scripts')
+                        help='the full path to the operations configuration file used to execute cmaple scripts')
 
 arg_parser.add_argument('-maple_working_dir', '-mwd', type=validate_dir_exists, required=True,
-                        metavar='The full path to the working directory for maple',
-                        help=('the full path to the working directory for maple used to store logs and other '
+                        metavar='The full path to the working directory for cmaple',
+                        help=('the full path to the working directory for cmaple used to store logs and other '
                               'operational files')
                         )
 

@@ -4,17 +4,17 @@ with open("doc\source\README.md", encoding="utf-8", mode="r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="maple",
+    name="cmaple",
     version="0.1",
     author="Ron Hinderer",
     author_email="rhindere@cisco.com",
     description="MAPLE - Multipurpose API Programming Language Extension",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=['maple',
-              'maple.fmc',
-              'maple.amp',
-              'maple.threatgrid',
+    packages=['cmaple',
+              'cmaple.fmc',
+              'cmaple.amp',
+              'cmaple.threatgrid',
               ],
     install_requires=['Autologging',
                       'jsonpath_ng',

@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-maple_get_put.py - Example showing retrieving an access policy rule
+cmaple_get_put.py - Example showing retrieving an access policy rule
 being retrieved and modified (logBegin setting is toggled on each run).
 Replace operational parameters as required.
 
@@ -28,7 +28,7 @@ __version__ = "0.1"
 __copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
 __license__ = "Cisco DEVNET"
 
-from maple.tree import MapleTree
+from cmaple.tree import MapleTree
 from pprint import pprint
 
 maple_tree = MapleTree(logging_level='INFO', name='amp_test', tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')

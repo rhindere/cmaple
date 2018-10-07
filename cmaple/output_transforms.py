@@ -1,12 +1,34 @@
-'''
-Created on May 22, 2018
+#!/usr/bin/env python
+"""
+Created on May 20, 2018
 
-@author: ronhi
-'''
+@author: rhindere@cisco.com
+
+output_transforms.py implements various helper functions for output.
+
+Copyright (c) 2018 Cisco and/or its affiliates.
+
+This software is licensed to you under the terms of the Cisco Sample
+Code License, Version 1.0 (the "License"). You may obtain a copy of the
+License at
+
+               https://developer.cisco.com/docs/licenses
+
+All use of the material herein must be in accordance with the terms of
+the License. All rights not expressly granted by the License are
+reserved. Unless required by applicable law or agreed to separately in
+writing, software distributed under the License is distributed on an "AS
+IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+or implied."""
+
+__author__ = "Ron Hinderer (rhindere@cisco.com)"
+__version__ = "0.1"
+__copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
+__license__ = "Cisco DEVNET"
 
 import re,sys,io,csv
 from pprint import pprint
-from maple.tree_helpers import get_jsonpath_values
+from cmaple.tree_helpers import get_jsonpath_values
 from collections import OrderedDict
 import json
 import _pickle
@@ -20,23 +42,42 @@ logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 @logged(logger)
 @traced(logger)
 def pretty_print(_object=None, file=sys.stdout):
+    """Pretty Prints the '_object' to 'file'.
+
+
+    """
+
     pprint(_object, file)
+
 
 @logged(logger)
 @traced(logger)
 def tabbed_print(_object=None):
+    """Alias for pretty_print.
+
+    """
+
     pprint(_object)
+
 
 @logged(logger)
 @traced(logger)
 def create_pickle(struct=None,file=''):
-    pickle_file = open(file,'wb')
-    _pickle.dump(struct,pickle_file)
+    """Pickles 'struct' to 'file'.
+
+    """
+
+    pickle_file = open(file, 'wb')
+    _pickle.dump(struct, pickle_file)
     pickle_file.close()
+
 
 @logged(logger)
 @traced(logger)
 def create_outline(_dict=None,tab_string='',file=sys.stdout,smart_labels=True,responses_only=False):
+    """Creates an outline of '_dict' to 'file'.
+
+    """
 
     def get_list_item_label(_dict):
         if 'name' in _dict:
@@ -56,12 +97,12 @@ def create_outline(_dict=None,tab_string='',file=sys.stdout,smart_labels=True,re
             if type(val) is str:
                 if re.match(r'^[a-zA-Z]+$',val):
                     if re.match(r'^[A-Z]+$',val) or \
-                        re.match(r'^[A-Z][a-z]+[A-Z][a-z]+$',val) or \
-                        re.match(r'^[a-z]+[A-Z][a-z]+$',val):
+                            re.match(r'^[A-Z][a-z]+[A-Z][a-z]+$',val) or \
+                            re.match(r'^[a-z]+[A-Z][a-z]+$',val):
                         return key, val
         return None
         
-    def process_val(val,tab_string):
+    def process_val(val, tab_string):
         if type(val) is dict:
             process_dict(val,tab_string)
         elif type(val) is list:
@@ -71,7 +112,7 @@ def create_outline(_dict=None,tab_string='',file=sys.stdout,smart_labels=True,re
                 val = 'Certificate Encoding Omitted...'
             print(tab_string+str(val),file=file)
 
-    def process_list(_list,tab_string):
+    def process_list(_list, tab_string):
         print(tab_string+'list',file=file)
         tab_string += '\t'
         list_counter = 0
@@ -106,9 +147,14 @@ def create_outline(_dict=None,tab_string='',file=sys.stdout,smart_labels=True,re
     outline_str = ''
     process_val(_dict,tab_string)
 
+
 @logged(logger)
 @traced(logger)
 def create_response_flatline(responses_dict,field_filter_regex='',file=None):
+    """Creates a flatline dictionary for 'responses_dict'.
+
+    """
+
     flatlines={}
     for response_url, response_dict in responses_dict.items():
         if response_dict['json_dict'] is None:

@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-maple_amp_walk_computers.py - Example script for MAPLE amp API operations.
+cmaple_amp_walk_computers.py - Example script for MAPLE amp API operations.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
 
@@ -26,7 +26,7 @@ __version__ = "0.1"
 __copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
 __license__ = "Cisco DEVNET"
 
-from maple.tree import MapleTree
+from cmaple.tree import MapleTree
 from pprint import pprint
 import re, sys
 import _pickle

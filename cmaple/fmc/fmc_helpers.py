@@ -28,8 +28,8 @@ __license__ = "Cisco DEVNET"
 
 import json
 import importlib
-import maple.tree_helpers as tree_helpers
-#global_helpers = importlib.import_module('.tree_helpers', 'maple')
+import cmaple.tree_helpers as tree_helpers
+#global_helpers = importlib.import_module('.tree_helpers', 'cmaple')
 import logging
 from collections import OrderedDict
 from autologging import logged, traced
@@ -39,7 +39,7 @@ import time
 import sys
 import re
 
-# Create a logger for maple.fmc.fmc_helpers...
+# Create a logger for cmaple.fmc.fmc_helpers...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 
 

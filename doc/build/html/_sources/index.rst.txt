@@ -10,5 +10,5 @@ Welcome to maple's documentation!
    :maxdepth: 4
    :caption: Contents:
    
-   README
+   README.md
    modules

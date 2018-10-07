@@ -27,14 +27,14 @@ __version__ = "0.1"
 __copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
 __license__ = "Cisco DEVNET"
 
-from maple.rest_base import RestBase
+from cmaple.rest_base import RestBase
 import sys
 import os
 import re
-import maple.tree_helpers as tree_helpers
-import maple.fmc.fmc_helpers as fmc_helpers
-import maple.input_validations as input_validations
-import maple.output_transforms as output_transforms
+import cmaple.tree_helpers as tree_helpers
+import cmaple.fmc.fmc_helpers as fmc_helpers
+import cmaple.input_validations as input_validations
+import cmaple.output_transforms as output_transforms
 import json
 import urllib3
 from pprint import pprint, pformat
@@ -63,7 +63,7 @@ class FMC(RestBase):
 
     Overrides methods in RestBase where necessary.
 
-    Method names not beginning with "_" are made available to maple_cli.py for use in operations config files.
+    Method names not beginning with "_" are made available to cmaple_cli.py for use in operations config files.
 
     """
     def __init__(self, **kwargs):

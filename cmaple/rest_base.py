@@ -28,9 +28,9 @@ __license__ = "Cisco DEVNET"
 import sys
 import os
 import re
-import maple.tree_helpers as tree_helpers
-import maple.input_validations as input_validations
-import maple.output_transforms as output_transforms
+import cmaple.tree_helpers as tree_helpers
+import cmaple.input_validations as input_validations
+import cmaple.output_transforms as output_transforms
 import json
 import urllib3
 import shelve
@@ -42,10 +42,11 @@ from autologging import TRACE
 import time
 from objectpath import *
 
-# Create a logger tree.fmc...
+# Create a logger...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 # Define global variables
 _DEFAULT_GET_ITEM_LIMIT = 400
+
 
 @logged(logger)
 @traced(logger)
@@ -57,7 +58,7 @@ class RestBase(object):
     Classes sub classing this class will need to override specific methods and properties as called out in the
     method docstrings and inline comments.
 
-    Method names not beginning with "_" are made available to maple_cli.py for use in operations config files.
+    Method names not beginning with "_" are made available to cmaple_cli.py for use in operations config files.
 
     """
 
