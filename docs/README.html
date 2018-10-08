@@ -442,7 +442,9 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 <div class="section" id="example-operations-config-file">
 <span id="example-operations-config-file"></span><h2>Example operations config file:</h2>
 <p>The following configurations file</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#This cmaple_cli example migrates select policies from on FMC to another
+#independent of software and platform versions/models.
+#RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
 [tree]
 #RH – sets the logging level for MAPLE.  Log file is maple.log in default directory
 logging_level=INFO
