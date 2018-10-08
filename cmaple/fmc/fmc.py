@@ -403,8 +403,7 @@ class FMC(RestBase):
 
         # TODO handle params (url not needed) and replace domain id and id before posting
         def process_child_urls(url, response_dict, parent_url):
-            print('processing child url %s' % url)
-            pprint(response_dict)
+            print('processing child url %s for migration' % url, file=sys.stderr)
             if 'type' in response_dict['json_dict']:
                 if response_dict['json_dict']['type'] in exclude_types:
                     logger.warning('type %s matched exclude pattern.  Skipping...' % response_dict['json_dict']['type'])
