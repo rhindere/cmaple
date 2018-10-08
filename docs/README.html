@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="MAPLE Modules" href="modules.html" />
-    <link rel="prev" title="Welcome to maple’s documentation!" href="index.html" />
+    <link rel="prev" title="Welcome to CMAPLE’s documentation!" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -35,7 +35,7 @@
           <div class="body" role="main">
             
   <div class="section" id="cmaple-introduction">
-<span id="cmaple-introduction"></span><h1>CMAPLE Introduction<a class="headerlink" href="#cmaple-introduction" title="Permalink to this headline">¶</a></h1>
+<span id="cmaple-introduction"></span><h1>CMAPLE Introduction</h1>
 <p>CMAPLE - Cisco Multi-purpose API Programming Language Extension</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CMAPLE</span> <span class="ow">is</span> <span class="n">currently</span> <span class="ow">in</span> <span class="n">an</span> <span class="n">ALPHA</span> <span class="n">state</span> <span class="ow">and</span> <span class="n">subject</span> <span class="n">to</span> <span class="n">frequent</span> <span class="n">changes</span><span class="o">.</span>
 <span class="n">Please</span> <span class="n">check</span> <span class="n">often</span> <span class="k">for</span> <span class="n">updates</span><span class="o">.</span>
@@ -43,7 +43,7 @@
 </div>
 <p>For detailed documentation see doc/build/html/index.html</p>
 <div class="section" id="introduction">
-<span id="introduction"></span><h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<span id="introduction"></span><h2>Introduction</h2>
 <p>CMAPLE has the following overarching goals:</p>
 <ol class="simple">
 <li>Provide a common interface to multiple input/output methods for working with data including API, html, text, syslog, snmp, etc.</li>
@@ -68,17 +68,17 @@
 </div>
 </div>
 <div class="section" id="the-cmaple-object-model">
-<span id="the-cmaple-object-model"></span><h2>The CMAPLE Object Model<a class="headerlink" href="#the-cmaple-object-model" title="Permalink to this headline">¶</a></h2>
+<span id="the-cmaple-object-model"></span><h2>The CMAPLE Object Model</h2>
 <hr class="docutils" />
 <div class="section" id="the-tree-object-cmaple-s-top-level-controller-object">
-<span id="the-tree-object-cmaple-s-top-level-controller-object"></span><h3>The “tree” object - CMAPLE’s top level controller object<a class="headerlink" href="#the-tree-object-cmaple-s-top-level-controller-object" title="Permalink to this headline">¶</a></h3>
+<span id="the-tree-object-cmaple-s-top-level-controller-object"></span><h3>The “tree” object - CMAPLE’s top level controller object</h3>
 <p>The top level object for CMAPLE is the “tree”.  The tree provides the methods to instantiate and manage “leaf” objects (the specific input/output method interfaces).  The tree also provides helper methods common to all leaf types.</p>
 <p>In future releases of CMAPLE, the tree object will also provide translation services and multi-threaded leaf instance management.</p>
 <p>Using Python a tree object is instantiated as follows:</p>
 <p><strong><em>from cmaple.tree import CMapleTree</em></strong>
 <strong><em>tree=CMapleTree(name=[tree_name],tree_dir=[file_path],logging_level=[logging_level])</em></strong></p>
 <div class="section" id="tree-parameters">
-<span id="tree-parameters"></span><h4>Tree Parameters<a class="headerlink" href="#tree-parameters" title="Permalink to this headline">¶</a></h4>
+<span id="tree-parameters"></span><h4>Tree Parameters</h4>
 <p>name: string, keyword, default=None - <strong>Required</strong></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>​The name of this CMAPLE tree.  The name is required and will be used to create a 
 working directory for the tree object.
@@ -97,7 +97,7 @@ directory (e.g. tree_dir/name).
 </div>
 </div>
 <div class="section" id="the-leaf-object-cmaples-input-output-interface">
-<span id="the-leaf-object-cmaples-input-output-interface"></span><h3>The “leaf” object - CMAPLEs input/output interface<a class="headerlink" href="#the-leaf-object-cmaples-input-output-interface" title="Permalink to this headline">¶</a></h3>
+<span id="the-leaf-object-cmaples-input-output-interface"></span><h3>The “leaf” object - CMAPLEs input/output interface</h3>
 <p>The “leaf” object defines the native interface to the respective supported input/output methods.  The leaf object is instantiated and managed by the tree object.</p>
 <p>Using Python, a leaf object is instantiated as follows:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cmaple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
@@ -111,7 +111,7 @@ directory (e.g. tree_dir/name).
 </pre></div>
 </div>
 <div class="section" id="leaf-parameters">
-<span id="leaf-parameters"></span><h4>Leaf Parameters<a class="headerlink" href="#leaf-parameters" title="Permalink to this headline">¶</a></h4>
+<span id="leaf-parameters"></span><h4>Leaf Parameters</h4>
 <p>leaf_type: string, keyword, default=None - <strong>Required</strong></p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">text</span> <span class="n">label</span> <span class="k">for</span> <span class="n">the</span> <span class="n">leaf</span> <span class="nb">type</span><span class="o">.</span> <span class="n">Currently</span> <span class="n">one</span> <span class="n">of</span><span class="p">;</span> <span class="n">fmc</span><span class="p">,</span> <span class="n">amp</span><span class="p">,</span> <span class="n">tg</span> <span class="p">(</span><span class="n">ThreatGrid</span><span class="p">)</span><span class="o">.</span>
 </pre></div>
@@ -131,9 +131,9 @@ directory (e.g. tree_dir/name).
 </div>
 </div>
 <div class="section" id="currently-supported-leaf-types">
-<span id="currently-supported-leaf-types"></span><h3>Currently supported leaf types<a class="headerlink" href="#currently-supported-leaf-types" title="Permalink to this headline">¶</a></h3>
+<span id="currently-supported-leaf-types"></span><h3>Currently supported leaf types</h3>
 <div class="section" id="fmc-rest-api">
-<span id="fmc-rest-api"></span><h4>FMC REST API<a class="headerlink" href="#fmc-rest-api" title="Permalink to this headline">¶</a></h4>
+<span id="fmc-rest-api"></span><h4>FMC REST API</h4>
 <p>CMAPLE supports the FMC Rest API both for reading and writing.</p>
 <p>CMAPLE bases most FMC operations on the current API model as defined in the file named ‘api-docs-fmcwithll.json’ and obtained from the target FMC.  This file currently resides in the directory ‘/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api’.  This file provides the API model to CMAPLE:FMC which is used for many of the operations to derive urls, etc.  This file can be copied from the target FMC using scp and placed in a directory of the users choice.  The path to this file must be provided when the FMC leaf instance is instantiated.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">For</span> <span class="n">a</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">supported</span> <span class="n">operations</span> <span class="k">for</span> <span class="n">the</span> <span class="n">FMC</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">run</span> <span class="n">cmaple_cli</span><span class="o">.</span><span class="n">py</span> 
@@ -141,7 +141,7 @@ directory (e.g. tree_dir/name).
 </pre></div>
 </div>
 <div class="section" id="fmc-rest-api-instantiating-an-fmc-leaf-with-python">
-<span id="fmc-rest-api-instantiating-an-fmc-leaf-with-python"></span><h5>FMC REST API - Instantiating an FMC leaf with Python<a class="headerlink" href="#fmc-rest-api-instantiating-an-fmc-leaf-with-python" title="Permalink to this headline">¶</a></h5>
+<span id="fmc-rest-api-instantiating-an-fmc-leaf-with-python"></span><h5>FMC REST API - Instantiating an FMC leaf with Python</h5>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cmaple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
 <span class="c1"># First get a tree object</span>
 <span class="n">cmaple_tree</span> <span class="o">=</span> <span class="n">CMapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
@@ -157,7 +157,7 @@ directory (e.g. tree_dir/name).
 </div>
 </div>
 <div class="section" id="fmc-leaf-keyword-parameters-used-in-fmc-leaf-instantiation-call">
-<span id="fmc-leaf-keyword-parameters-used-in-fmc-leaf-instantiation-call"></span><h5>FMC Leaf Keyword Parameters (used in FMC leaf instantiation call)<a class="headerlink" href="#fmc-leaf-keyword-parameters-used-in-fmc-leaf-instantiation-call" title="Permalink to this headline">¶</a></h5>
+<span id="fmc-leaf-keyword-parameters-used-in-fmc-leaf-instantiation-call"></span><h5>FMC Leaf Keyword Parameters (used in FMC leaf instantiation call)</h5>
 <p>json_file_path: string, keyword, default=None</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>​The path to the json model file.  This file is typically named &#39;api-docs-fmcwithll.json&#39; and obtained from the 
 target FMC.  Typically resides in the directory /var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api&#39;.  This file 
@@ -219,7 +219,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </div>
 </div>
 <div class="section" id="amp-rest-api">
-<span id="amp-rest-api"></span><h4>AMP REST API<a class="headerlink" href="#amp-rest-api" title="Permalink to this headline">¶</a></h4>
+<span id="amp-rest-api"></span><h4>AMP REST API</h4>
 <p>CMAPLE supports the AMP API for read/write.</p>
 <p>At the time of writing, limited testing has been performed for write operations</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">For</span> <span class="n">a</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">supported</span> <span class="n">operations</span> <span class="k">for</span> <span class="n">the</span> <span class="n">AMP</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">run</span> <span class="n">cmaple_cli</span><span class="o">.</span><span class="n">py</span> 
@@ -227,7 +227,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </pre></div>
 </div>
 <div class="section" id="amp-rest-api-instantiating-an-amp-leaf-with-python">
-<span id="amp-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>AMP REST API - Instantiating an AMP leaf with Python<a class="headerlink" href="#amp-rest-api-instantiating-an-amp-leaf-with-python" title="Permalink to this headline">¶</a></h5>
+<span id="amp-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>AMP REST API - Instantiating an AMP leaf with Python</h5>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cmaple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
 <span class="c1"># First get a tree object</span>
 <span class="n">cmaple_tree</span> <span class="o">=</span> <span class="n">CMapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
@@ -243,7 +243,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </div>
 </div>
 <div class="section" id="parameters">
-<span id="parameters"></span><h5>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h5>
+<span id="parameters"></span><h5>Parameters</h5>
 <p>AMP_host: string, keyword, default=None</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">ip</span> <span class="n">address</span> <span class="ow">or</span> <span class="n">fqdn</span> <span class="n">of</span> <span class="n">ThreatGrid</span>
 </pre></div>
@@ -291,7 +291,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </div>
 </div>
 <div class="section" id="threatgrid-rest-api">
-<span id="threatgrid-rest-api"></span><h4>ThreatGrid REST API<a class="headerlink" href="#threatgrid-rest-api" title="Permalink to this headline">¶</a></h4>
+<span id="threatgrid-rest-api"></span><h4>ThreatGrid REST API</h4>
 <p>CMAPLE supports the ThreatGrid API for read/write.</p>
 <p>At the time of writing, limited testing has been performed for write operations</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">For</span> <span class="n">a</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">supported</span> <span class="n">operations</span> <span class="k">for</span> <span class="n">the</span> <span class="n">ThreatGrid</span> <span class="n">leaf</span><span class="p">,</span> <span class="n">run</span> <span class="n">cmaple_cli</span><span class="o">.</span><span class="n">py</span> 
@@ -299,7 +299,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </pre></div>
 </div>
 <div class="section" id="threatgrid-rest-api-instantiating-an-amp-leaf-with-python">
-<span id="threatgrid-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>ThreatGrid REST API - Instantiating an AMP leaf with Python<a class="headerlink" href="#threatgrid-rest-api-instantiating-an-amp-leaf-with-python" title="Permalink to this headline">¶</a></h5>
+<span id="threatgrid-rest-api-instantiating-an-amp-leaf-with-python"></span><h5>ThreatGrid REST API - Instantiating an AMP leaf with Python</h5>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cmaple.tree</span> <span class="kn">import</span> <span class="n">CMapleTree</span>
 <span class="c1"># First get a tree object</span>
 <span class="n">cmaple_tree</span> <span class="o">=</span> <span class="n">CMapleTree</span><span class="p">(</span><span class="n">logging_level</span><span class="o">=</span><span class="s1">&#39;INFO&#39;</span><span class="p">,</span> 
@@ -314,7 +314,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </div>
 </div>
 <div class="section" id="parameters">
-<span id="id1"></span><h5>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h5>
+<span id="id1"></span><h5>Parameters</h5>
 <p>TG_host: string, keyword, default=None</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">ip</span> <span class="n">address</span> <span class="ow">or</span> <span class="n">fqdn</span> <span class="n">of</span> <span class="n">ThreatGrid</span>
 </pre></div>
@@ -359,13 +359,13 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </div>
 </div>
 <div class="section" id="cmaple-logging">
-<span id="cmaple-logging"></span><h3>CMAPLE logging<a class="headerlink" href="#cmaple-logging" title="Permalink to this headline">¶</a></h3>
+<span id="cmaple-logging"></span><h3>CMAPLE logging</h3>
 <p>CMAPLE logs to “cmaple.log” located in tree_dir/tree_name</p>
 </div>
 </div>
 </div>
 <div class="section" id="cmaple-cli">
-<span id="cmaple-cli"></span><h1>CMAPLE CLI<a class="headerlink" href="#cmaple-cli" title="Permalink to this headline">¶</a></h1>
+<span id="cmaple-cli"></span><h1>CMAPLE CLI</h1>
 <p>CMAPLE CLI is a macro language interface for CMAPLE.  It can be used to provide a simple macro language to peform CMAPLE operations.</p>
 <p>CMAPLE CLI operations are defined using a combination of 3 input types:</p>
 <ol class="simple">
@@ -375,7 +375,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </ol>
 <p>CMAPLE CLI parameters are primarily used for network connection and credential passing as well as some operational parameters such as file and directory paths.</p>
 <div class="section" id="cmaple-command-line-parameters">
-<span id="cmaple-command-line-parameters"></span><h2>CMAPLE Command Line Parameters<a class="headerlink" href="#cmaple-command-line-parameters" title="Permalink to this headline">¶</a></h2>
+<span id="cmaple-command-line-parameters"></span><h2>CMAPLE Command Line Parameters</h2>
 <p>The following parameters can be passed to cmaple_cli.py either on the command line or in the parameters file:</p>
 <p>Long form ‘-rest_admin_user’ or short form ‘-rau’, default=’rest_admin’</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">REST</span> <span class="n">admin</span> <span class="n">user</span> <span class="n">name</span> <span class="n">configured</span> <span class="ow">in</span> <span class="n">FMC</span>
@@ -394,7 +394,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </pre></div>
 </div>
 <div class="section" id="passing-parameters-to-cmaple-from-a-text-file">
-<span id="passing-parameters-to-cmaple-from-a-text-file"></span><h3>Passing parameters to CMAPLE from a text file<a class="headerlink" href="#passing-parameters-to-cmaple-from-a-text-file" title="Permalink to this headline">¶</a></h3>
+<span id="passing-parameters-to-cmaple-from-a-text-file"></span><h3>Passing parameters to CMAPLE from a text file</h3>
 <p>cmaple_cli_parameters.txt</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">File</span> <span class="n">containing</span> <span class="n">init</span> <span class="n">parameters</span> <span class="k">for</span> <span class="n">cmaple_cli</span><span class="o">.</span>  <span class="n">Edit</span> <span class="n">this</span> <span class="n">file</span> <span class="n">to</span> <span class="n">suit</span><span class="o">.</span>  
 <span class="n">Username</span> <span class="ow">and</span> <span class="n">password</span> <span class="k">for</span> <span class="n">FMC</span> <span class="ow">is</span> <span class="ow">in</span> <span class="n">this</span> <span class="n">file</span> <span class="n">but</span> <span class="n">you</span> <span class="n">can</span> <span class="n">remove</span> <span class="n">them</span> <span class="ow">and</span> <span class="k">pass</span> <span class="n">instead</span> <span class="n">on</span> <span class="n">cli</span><span class="o">.</span>  
@@ -410,7 +410,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </div>
 </div>
 <div class="section" id="the-cmaple-operations-configuration-file">
-<span id="the-cmaple-operations-configuration-file"></span><h2>The CMAPLE operations configuration file<a class="headerlink" href="#the-cmaple-operations-configuration-file" title="Permalink to this headline">¶</a></h2>
+<span id="the-cmaple-operations-configuration-file"></span><h2>The CMAPLE operations configuration file</h2>
 <p>CMAPLE CLI operations are defined in an “operations” configuration file.  This file is read by cmaple_cli to execute CMAPLE operations.</p>
 <p>Characteristics of the operations config file:</p>
 <ol class="simple">
@@ -422,7 +422,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </ol>
 </div>
 <div class="section" id="cmaple-cli-output-options-current-support">
-<span id="cmaple-cli-output-options-current-support"></span><h2>CMAPLE CLI output options - current support<a class="headerlink" href="#cmaple-cli-output-options-current-support" title="Permalink to this headline">¶</a></h2>
+<span id="cmaple-cli-output-options-current-support"></span><h2>CMAPLE CLI output options - current support</h2>
 <p>The results can be displayed in a few different formats for now as follows:</p>
 <ol>
 <li><p class="first">output.tabbed_print</p>
@@ -440,7 +440,7 @@ provides the API model to CMAPLE:FMC which is used for many of the operations to
 </ol>
 </div>
 <div class="section" id="example-operations-config-file">
-<span id="example-operations-config-file"></span><h2>Example operations config file:<a class="headerlink" href="#example-operations-config-file" title="Permalink to this headline">¶</a></h2>
+<span id="example-operations-config-file"></span><h2>Example operations config file:</h2>
 <p>The following configurations file</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#This cmaple_cli example will migrate access and nat polcies between FMCs
 #regardless of software version and platform.  All dependent objects will be
@@ -500,7 +500,7 @@ RUN migrate = {leaf:fmc_1$RUN leaf}.or_migrate_config(source_config_path=mig_tre
 </div>
 </div>
 <div class="section" id="cmaple-cli-logging">
-<span id="cmaple-cli-logging"></span><h2>CMAPLE CLI Logging<a class="headerlink" href="#cmaple-cli-logging" title="Permalink to this headline">¶</a></h2>
+<span id="cmaple-cli-logging"></span><h2>CMAPLE CLI Logging</h2>
 <p>CMAPLE CLI logs to “cmaple_cli.log” in the directory where it is launched.</p>
 </div>
 </div>
@@ -564,7 +564,7 @@ RUN migrate = {leaf:fmc_1$RUN leaf}.or_migrate_config(source_config_path=mig_tre
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="index.html" title="previous chapter">Welcome to maple’s documentation!</a></li>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to CMAPLE’s documentation!</a></li>
       <li>Next: <a href="modules.html" title="next chapter">MAPLE Modules</a></li>
   </ul></li>
 </ul>
