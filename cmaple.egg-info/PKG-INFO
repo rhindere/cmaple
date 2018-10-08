@@ -1,8 +1,8 @@
 Metadata-Version: 2.1
 Name: cmaple
 Version: 0.1
-Summary: MAPLE - Multipurpose API Programming Language Extension
-Home-page: UNKNOWN
+Summary: CMAPLE - Cisco Multipurpose API Programming Language Extension
+Home-page: https://github.com/rhindere/cmaple
 Author: Ron Hinderer
 Author-email: rhindere@cisco.com
 License: UNKNOWN

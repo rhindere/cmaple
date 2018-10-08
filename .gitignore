@@ -6,5 +6,6 @@
 build
 **.log
 **.txt
+!LICENSE.txt
 dist
 maple.egg*
