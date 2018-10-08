@@ -168,7 +168,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_API_path_keywords_list</span> <span class="o">=</span> <span class="p">[]</span></div>
         <span class="c1"># Build the reference dictionaries...</span>
 
-    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<div class="viewcode-block" id="AMP._request_wrapper"><a class="viewcode-back" href="../../../amp.html#cmaple.amp.amp.AMP._request_wrapper">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_request_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -200,9 +200,9 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">process_json_request</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">process_json_request</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<div class="viewcode-block" id="AMP._get_child_urls"><a class="viewcode-back" href="../../../amp.html#cmaple.amp.amp.AMP._get_child_urls">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_get_child_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">response_dict</span><span class="p">,</span> <span class="n">parent_url</span><span class="p">):</span>
 
@@ -225,7 +225,7 @@
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">child_link</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">val</span> <span class="o">==</span> <span class="n">parent_url</span><span class="p">:</span>
                     <span class="n">child_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">child_urls</span></div>
+        <span class="k">return</span> <span class="n">child_urls</span></div></div>
 </pre></div>
 
           </div>
