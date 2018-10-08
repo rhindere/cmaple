@@ -6,7 +6,8 @@ CMAPLE - Cisco Multi-purpose API Programming Language Extension
     CMAPLE is currently in an ALPHA state and subject to frequent changes.
     Please check often for updates.
 
-For detailed documentation see docs/index.html
+For detailed documentation see the pages link at [https://rhindere.github.io/cmaple/](https://rhindere.github.io/cmaple/)
+
 
 ## Introduction
 
