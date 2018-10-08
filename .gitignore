@@ -8,4 +8,3 @@ build
 **.txt
 !LICENSE.txt
 dist
-maple.egg*
