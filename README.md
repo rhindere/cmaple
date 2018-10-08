@@ -404,7 +404,7 @@ The results can be displayed in a few different formats for now as follows:
 The following configurations file
 
 ```
-#This cmaple_cli example migrates select policies from on FMC to another
+#This cmaple_cli example migrates select policies from one FMC to another
 #independent of software and platform versions/models.
 #RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
 [tree]
