@@ -1,0 +1,809 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>cmaple.rest_base &#8212; MAPLE 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for cmaple.rest_base</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on May 20, 2018</span>
+
+<span class="sd">@author: rhindere@cisco.com</span>
+
+<span class="sd">rest_base.py implements generic REST functionality.  The class RestBase</span>
+<span class="sd">is designed to be sub classed only.</span>
+
+<span class="sd">Copyright (c) 2018 Cisco and/or its affiliates.</span>
+
+<span class="sd">This software is licensed to you under the terms of the Cisco Sample</span>
+<span class="sd">Code License, Version 1.0 (the &quot;License&quot;). You may obtain a copy of the</span>
+<span class="sd">License at</span>
+<span class="sd">               https://developer.cisco.com/docs/licenses</span>
+<span class="sd">All use of the material herein must be in accordance with the terms of</span>
+<span class="sd">the License. All rights not expressly granted by the License are</span>
+<span class="sd">reserved. Unless required by applicable law or agreed to separately in</span>
+<span class="sd">writing, software distributed under the License is distributed on an &quot;AS</span>
+<span class="sd">IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express</span>
+<span class="sd">or implied.&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Ron Hinderer (rhindere@cisco.com)&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.1&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s2">&quot;Copyright (c) 2018 Cisco and/or its affiliates.&quot;</span>
+<span class="n">__license__</span> <span class="o">=</span> <span class="s2">&quot;Cisco DEVNET&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">as</span> <span class="nn">tree_helpers</span>
+<span class="kn">import</span> <span class="nn">cmaple.input_validations</span> <span class="k">as</span> <span class="nn">input_validations</span>
+<span class="kn">import</span> <span class="nn">cmaple.output_transforms</span> <span class="k">as</span> <span class="nn">output_transforms</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">urllib3</span>
+<span class="kn">import</span> <span class="nn">shelve</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">pprint</span> <span class="k">import</span> <span class="n">pprint</span><span class="p">,</span> <span class="n">pformat</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">autologging</span> <span class="k">import</span> <span class="n">logged</span><span class="p">,</span> <span class="n">traced</span>
+<span class="kn">from</span> <span class="nn">autologging</span> <span class="k">import</span> <span class="n">TRACE</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">objectpath</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="c1"># Create a logger...</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\.[^.]+$&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="vm">__name__</span><span class="p">))</span>
+<span class="c1"># Define global variables</span>
+<span class="n">_DEFAULT_GET_ITEM_LIMIT</span> <span class="o">=</span> <span class="mi">400</span>
+
+
+<span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">RestBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class defines generic REST API functionality.</span>
+
+<span class="sd">    Classes sub classing this class will need to override specific methods and properties as called out in the</span>
+<span class="sd">    method docstrings and inline comments.</span>
+
+<span class="sd">    Method names not beginning with &quot;_&quot; are made available to cmaple_cli.py for use in operations config files.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;__init__ RestBase inherits arguments from the parent class.  All argument validation is</span>
+<span class="sd">        performed by the parent class.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Need to supply this in the parent class...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># Need to supply this in the parent class...</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">:</span> <span class="c1"># Disables insecure warning for self signed certs...</span>
+            <span class="n">urllib3</span><span class="o">.</span><span class="n">disable_warnings</span><span class="p">(</span><span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InsecureRequestWarning</span><span class="p">)</span>
+        <span class="n">_DEFAULT_GET_ITEM_LIMIT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_get_item_limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">_request_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_get_child_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_prepare_url_for_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">or_migrate_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">put_json_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Generic wrapper for a REST API Put request.</span>
+
+<span class="sd">        Returns a Python dictionary object containing the response results for the Post.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url: string</span>
+<span class="sd">            The url of the path to POST.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
+<span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
+<span class="sd">            automatically.</span>
+<span class="sd">        json_dict: dictionary, argument</span>
+<span class="sd">            The Python dictionary containing the request json</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
+
+        <span class="n">json_string</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span>
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">json_string</span><span class="p">,</span>
+                                  <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
+                                  <span class="n">method</span><span class="o">=</span><span class="s1">&#39;put&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
+                                  <span class="n">success_status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response_dict</span>
+
+    <span class="k">def</span> <span class="nf">post_json_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Generic wrapper for a REST API Post request.</span>
+
+<span class="sd">        Returns a Python dictionary object containing the response results for the Post.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url: string</span>
+<span class="sd">            The url of the path to POST.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
+<span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
+<span class="sd">            automatically.</span>
+<span class="sd">        json_dict: dictionary, argument</span>
+<span class="sd">            The Python dictionary containing the request json</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
+
+        <span class="n">json_string</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span>
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">json_string</span><span class="p">,</span>
+                                  <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
+                                  <span class="n">method</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
+                                  <span class="n">success_status_code</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response_dict</span>
+
+    <span class="k">def</span> <span class="nf">get_json_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Generic wrapper for a REST API GET request.</span>
+
+<span class="sd">        Returns a Python dictionary object containing the response results for the Post.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url: string</span>
+<span class="sd">            The url of the path to GET.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
+<span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
+<span class="sd">            automatically.</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
+
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
+                                  <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
+                                  <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
+                                  <span class="n">success_status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">response_dict</span>
+
+    <span class="k">def</span> <span class="nf">get_all_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">end_path_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filtered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_hit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Performs a get to retrieve the &quot;Items&quot; listing for the url.</span>
+
+<span class="sd">        Returns a Python dictionary object containing the response results.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url : string</span>
+<span class="sd">            The url for which to retrieve the items list.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include</span>
+<span class="sd">            the host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
+<span class="sd">            automatically.</span>
+<span class="sd">        use_cache: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, any path that has already been requested will not generate a new request</span>
+<span class="sd">        include_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to include in walk.</span>
+<span class="sd">        exclude_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to exclude from walk.</span>
+<span class="sd">        stop_on_error: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, walk will halt when a non positive status code response is received.</span>
+<span class="sd">        get_item_limit: integer, keyword, default=25</span>
+<span class="sd">            Specifies the number of items to return for each GET request.</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;get_all_items: recursing with url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">))</span>
+            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
+                                      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
+                                      <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span>
+                                      <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span> <span class="n">success_status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                                      <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
+                                      <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
+                                      <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
+                                      <span class="n">API_path_keywords_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_API_path_keywords_list</span><span class="p">,</span>
+                                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
+            <span class="n">next_link</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">next_link</span><span class="p">:</span>
+                <span class="n">next_url</span> <span class="o">=</span> <span class="n">next_link</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;next_link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_url</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">next_url</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">return</span> <span class="n">responses_dict</span>
+
+    <span class="k">def</span> <span class="nf">_recurse_API_child_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">end_path_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filtered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_hit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent_url</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Handles recursion of a given url path.  Normally not called directly but from a wrapper method.</span>
+<span class="sd">        Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically</span>
+<span class="sd">        handles pagination and discovery of child urls.</span>
+
+<span class="sd">        Returns a Python dictionary object containing the response results for all url path GETs.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url : string</span>
+<span class="sd">            The starting url of the path to recurse.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
+<span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
+<span class="sd">            automatically.</span>
+<span class="sd">        use_cache: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, any path that has already been requested will not generate a new request</span>
+<span class="sd">        include_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to include in walk.</span>
+<span class="sd">        exclude_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to exclude from walk.</span>
+<span class="sd">        stop_on_error: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, walk will halt when a non positive status code response is received.</span>
+<span class="sd">        get_item_limit: integer, keyword, default=25</span>
+<span class="sd">            Specifies the number of items to return for each GET request.</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        parent_url: string, keyword, default=&#39;&#39;</span>
+<span class="sd">            Specifies the url of the parent of this child url.  Used to prevent recursion loops where the API model</span>
+<span class="sd">            contains a circular object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Recursing url =&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;recurse_API_child_gets: recursing with url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">))</span>
+            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
+                                      <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
+                                      <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span>
+                                      <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span> <span class="n">success_status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                                      <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
+                                      <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
+                                      <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
+                                      <span class="n">API_path_keywords_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_API_path_keywords_list</span><span class="p">,</span>
+                                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
+            <span class="n">next_link</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+
+            <span class="n">child_urls</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># Insert the parent url so we don&#39;t add it as a child of a child....securityzones...physical interfaces</span>
+            <span class="k">if</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">]:</span>
+                <span class="n">child_urls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_child_urls</span><span class="p">(</span><span class="n">response_dict</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+            <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;child_urls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_urls</span>
+
+            <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">child_url</span> <span class="ow">in</span> <span class="n">child_urls</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">child_url</span><span class="p">:</span>
+                    <span class="c1"># Check to make sure we aren&#39;t in a circular reference situation...</span>
+                    <span class="k">if</span> <span class="n">child_url</span> <span class="o">==</span> <span class="n">parent_url</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Circular reference detected for url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
+                        <span class="k">continue</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Recursing into recurse_API_child_gets with child url = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">child_url</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_recurse_API_child_gets</span><span class="p">(</span><span class="n">child_url</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
+                                                 <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
+                                                 <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
+                                                 <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
+                                                 <span class="n">parent_url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">next_link</span><span class="p">:</span>
+                <span class="n">next_url</span> <span class="o">=</span> <span class="n">next_link</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;next_link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_url</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">next_url</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">def</span> <span class="nf">walk_API_path_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="p">,</span><span class="n">end_path_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">,</span>
+                           <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Begins at given API url path and recursively GET walks path and child paths until complete.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns a Python dictionary object containing the response results for all url path GETs.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url : string</span>
+<span class="sd">            The starting url of the path to walk.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
+<span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
+<span class="sd">            automatically.</span>
+<span class="sd">        use_cache: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, any path that has already been requested will not generate a new request</span>
+<span class="sd">        include_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to include in walk.</span>
+<span class="sd">        exclude_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to exclude from walk.</span>
+<span class="sd">        stop_on_error: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, walk will halt when a non positive status code response is received.</span>
+<span class="sd">        get_item_limit: integer, keyword, default=25</span>
+<span class="sd">            Specifies the number of items to return for each GET request.</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;walk_API_path_gets calling recurse_API_child_gets with url </span><span class="si">%s</span><span class="s1">...&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_recurse_API_child_gets</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
+                                    <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
+                                    <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span><span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
+                                    <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+    
+        <span class="k">return</span> <span class="n">responses_dict</span>
+
+    <span class="k">def</span> <span class="nf">_collect_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Utility method called by wrappers to request all pages for a given url.  Normally not called directly.</span>
+
+<span class="sd">        Returns a Python dictionary object containing the response results.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url: string</span>
+<span class="sd">            The url of the path to GET.  Must be a fully valid FMC api &quot;GET&quot; path.</span>
+<span class="sd">        response_dict: dictionary</span>
+<span class="sd">            A dictionary reference updated by this method to include all responses.</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">response_struct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_json_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_struct</span><span class="p">))</span>
+            <span class="n">response_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">url</span><span class="p">:</span> <span class="n">response_struct</span><span class="p">})</span>
+            <span class="n">next_link</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_objectpath_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span><span class="p">,</span>
+                                                           <span class="n">response_struct</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">next_link</span><span class="p">:</span>
+                <span class="n">next_url</span> <span class="o">=</span> <span class="n">next_link</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">next_url</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">response_dict</span>
+
+    <span class="k">def</span> <span class="nf">post_csv_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and</span>
+<span class="sd">        posts each record individually to the target.</span>
+
+<span class="sd">        Returns - No return value.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url: string, keyword, default=None</span>
+<span class="sd">            The target url to post records.</span>
+<span class="sd">        file_path: string, keyword, default=None</span>
+<span class="sd">            The full path to the file containing the csv records.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">csv_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">csv_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">csv_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">:</span>
+                <span class="n">csv_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+        <span class="n">flatlined_list</span> <span class="o">=</span> <span class="n">output_transforms</span><span class="o">.</span><span class="n">csv_to_flatlined</span><span class="p">(</span><span class="n">csv_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">flatlined</span> <span class="ow">in</span> <span class="n">flatlined_list</span><span class="p">:</span>
+            <span class="n">expanded</span> <span class="o">=</span> <span class="n">output_transforms</span><span class="o">.</span><span class="n">expand_flattened_json</span><span class="p">(</span><span class="n">flatlined</span><span class="p">)</span>
+            <span class="n">expanded_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">expanded</span><span class="p">)</span>
+            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">expanded_json</span><span class="p">,</span>
+                                      <span class="n">responses_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
+                                      <span class="n">method</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
+                                      <span class="n">success_status_code</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">write_csv_template_from_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response_json</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Flatlines response_json and writes to a csv record.</span>
+
+<span class="sd">        Returns - The csv records.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        response_json: list, keyword, default=None</span>
+<span class="sd">            The list of responses to write to csv.</span>
+<span class="sd">        file: file_handle, keyword, default=sys.stdout</span>
+<span class="sd">            The file_handle target for the csv records.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">flatlined</span> <span class="o">=</span> <span class="n">output_transforms</span><span class="o">.</span><span class="n">flatten_json</span><span class="p">(</span><span class="n">response_json</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">flatlined_csv</span> <span class="o">=</span> <span class="n">output_transforms</span><span class="o">.</span><span class="n">create_csv_from_flatline</span><span class="p">(</span><span class="n">flatlined</span><span class="p">,</span> <span class="n">field_filter_regex</span><span class="o">=</span><span class="s1">&#39;metadata&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">flatlined_csv</span>
+
+    <span class="k">def</span> <span class="nf">GET_responses_by_jsonpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jsonpath</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Returns responses matching a jsonpath query.</span>
+
+<span class="sd">        Returns - The matching responses.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        jsonpath: string</span>
+<span class="sd">            The jsonpath query to match responses.</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            The response dictionary to query.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">Tree</span><span class="p">(</span><span class="n">responses_dict</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">jsonpath</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">def</span> <span class="nf">GET_API_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                     <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Wrapper for a REST GET request.</span>
+
+<span class="sd">        Returns a Python dictionary object containing the response results for the GET.</span>
+
+<span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
+<span class="sd">        responses_dict parameter.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        url : string</span>
+<span class="sd">            The starting url of the path to walk.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
+<span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
+<span class="sd">            automatically.</span>
+<span class="sd">        use_cache: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, any path that has already been requested will not generate a new request</span>
+<span class="sd">        include_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to include in walk.</span>
+<span class="sd">        exclude_filter_regex: string, keyword, default=None</span>
+<span class="sd">            A regex string defining which urls to exclude from walk.</span>
+<span class="sd">        stop_on_error: boolean, keyword, default=False</span>
+<span class="sd">            If set to True, walk will halt when a non positive status code response is received.</span>
+<span class="sd">        get_item_limit: integer, keyword, default=25</span>
+<span class="sd">            Specifies the number of items to return for each GET request.</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
+
+        <span class="n">response_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;response_dict&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;include_filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;exclude_filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;cache_hit&#39;</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;GET_API_path: getting url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">))</span>
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
+                                  <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
+                                  <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span>
+                                  <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span> <span class="n">success_status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                                  <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
+                                  <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
+                                  <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
+                                  <span class="n">API_path_keywords_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_API_path_keywords_list</span><span class="p">,</span>
+                                  <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">responses_dict</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">responses_dict</span>
+
+    <span class="k">def</span> <span class="nf">query_json_field_from_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_to_query</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Returns a list of json fields matching an objectpath query.</span>
+
+<span class="sd">        Returns - A list of the matching fields.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        query_url: string, keyword, default=None</span>
+<span class="sd">            The url for which to query fields.</span>
+<span class="sd">        json_to_query: dictionary, keyword, default=None</span>
+<span class="sd">            The json dictionary to query.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">query_field</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.+?~([^~]+)~&#39;</span><span class="p">,</span> <span class="n">query_url</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">query_values</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_objectpath_values</span><span class="p">(</span><span class="s1">&#39;$..&#39;</span> <span class="o">+</span> <span class="n">query_field</span><span class="p">,</span> <span class="n">json_to_query</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">query_values</span>
+
+    <span class="k">def</span> <span class="nf">query_with_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">query_list</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Iterates over and substitutes the values in query_list in query_url</span>
+
+<span class="sd">        Returns - All responses obtained.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        query_url: string, keyword, default=None</span>
+<span class="sd">            The url for which to query fields.</span>
+<span class="sd">        query_list: list, keyword, default=None</span>
+<span class="sd">            The list of values to iterate over and substitute in query_url.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">query_field</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.+?~([^~]+)~&#39;</span><span class="p">,</span> <span class="n">query_url</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">values_seen</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">query_field</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">query_value</span> <span class="ow">in</span> <span class="n">query_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">query_value</span> <span class="ow">in</span> <span class="n">values_seen</span><span class="p">:</span>
+                <span class="n">values_seen</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">query_value</span><span class="p">)</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">query_url</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;~&#39;</span> <span class="o">+</span> <span class="n">query_field</span> <span class="o">+</span> <span class="s1">&#39;~&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">query_value</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GET_API_path</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+
+    <span class="k">def</span> <span class="nf">query_json_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_to_query</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Returns a list of objects matching the query_field query.</span>
+
+<span class="sd">        Returns - A list of the matching objects</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        query_field: string, keyword, default=None</span>
+<span class="sd">            The field for which to query fields.</span>
+<span class="sd">        json_to_query: dictionary, keyword, default=None</span>
+<span class="sd">            The json dictionary to query.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">query_values</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_objectpath_values</span><span class="p">(</span><span class="s1">&#39;$..&#39;</span> <span class="o">+</span> <span class="n">query_field</span><span class="p">,</span> <span class="n">json_to_query</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">query_values</span>
+
+    <span class="k">def</span> <span class="nf">set_json_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">properties_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Sets properties in json_dict from properties_dict.</span>
+
+<span class="sd">        Returns - The modified json_dict.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        json_dict: dictionary, keyword, default=None</span>
+<span class="sd">            The json_dict to modify.</span>
+<span class="sd">        properties_dict: dictionary, keyword, default=None</span>
+<span class="sd">            The properties to modify {property:value}.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">recurse_property_matches</span><span class="p">(</span><span class="n">json_dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">properties_dict</span><span class="p">:</span>
+                        <span class="n">json_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">properties_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                        <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">val_member</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                            <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">val_member</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">json_member</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="p">:</span>
+                    <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">json_member</span><span class="p">)</span>
+
+        <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">json_dict</span>
+
+    <span class="k">def</span> <span class="nf">_set_json_properties_by_objectpath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">properties_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Sets properties in json_dict from properties_dict.</span>
+
+<span class="sd">        Returns - The modified json_dict.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        json_dict: dictionary, keyword, default=None</span>
+<span class="sd">            The json_dict to modify.</span>
+<span class="sd">        properties_dict: dictionary, keyword, default=None</span>
+<span class="sd">            The properties to modify {property:value}.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">recurse_path</span><span class="p">(</span><span class="n">id_path_parts</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">):</span>
+            <span class="n">path_part</span> <span class="o">=</span> <span class="n">id_path_parts</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="n">list_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.+?([0-9])+.+&#39;</span><span class="p">,</span> <span class="n">path_part</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">recurse_path</span><span class="p">(</span><span class="n">id_path_parts</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">[</span><span class="n">list_index</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">path_part</span> <span class="o">==</span> <span class="s1">&#39;id&#39;</span><span class="p">:</span>
+                <span class="n">json_dict</span> <span class="o">=</span> <span class="n">json_dict</span><span class="p">[</span><span class="n">path_part</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">recurse_path</span><span class="p">(</span><span class="n">id_path_parts</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">id_mappings</span><span class="p">:</span>
+                    <span class="n">new_id</span> <span class="o">=</span> <span class="n">id_mappings</span><span class="p">[</span><span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]]</span>
+                    <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_id</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;unsupported&#39;</span>
+                <span class="k">if</span> <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;unsupported&#39;</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">def</span> <span class="nf">recurse_property_matches</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">type_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                            <span class="n">type_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;dict&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
+                        <span class="k">elif</span> <span class="s1">&#39;refType&#39;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                            <span class="n">type_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;dict&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
+                        <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">val_member</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
+                            <span class="n">val_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val_member</span><span class="p">}</span>
+                            <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">val_dict</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">json_member</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="p">:</span>
+                    <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">json_member</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
+
+        <span class="n">recurse_property_matches</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">properties_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_leaf_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">MAPLE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html">CMAPLE Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../README.html#cmaple-cli">CMAPLE CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">MAPLE Modules</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;Cisco.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

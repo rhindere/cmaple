@@ -194,7 +194,7 @@
 
     <span class="c1">#Methods inherited from leaf_base to override in this class</span>
     <span class="c1">##############################################################################################################</span>
-    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<div class="viewcode-block" id="FMC.or_migrate_config"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.or_migrate_config">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">or_migrate_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source_config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
@@ -488,9 +488,9 @@
         <span class="n">name_to_id_mappings</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">tree_helpers</span><span class="o">.</span><span class="n">restore_responses</span><span class="p">(</span><span class="n">source_config_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_responses_dict</span><span class="p">)</span>
         <span class="n">source_responses_urls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_responses_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-        <span class="n">recurse_migrate_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_responses_dict</span><span class="p">)</span>
+        <span class="n">recurse_migrate_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_responses_dict</span><span class="p">)</span></div>
 
-    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<div class="viewcode-block" id="FMC._request_wrapper"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._request_wrapper">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_request_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
@@ -534,9 +534,9 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">process_json_request</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">process_json_request</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<div class="viewcode-block" id="FMC._handle_anomalous_types"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._handle_anomalous_types">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_handle_anomalous_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_dict</span><span class="p">):</span>
 
@@ -589,9 +589,9 @@
                                                  <span class="s1">&#39;physicalinterfaces/&#39;</span><span class="p">,</span> <span class="n">interface_id</span><span class="p">)</span>
         <span class="c1"># Restore persist response state</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span> <span class="o">=</span> <span class="n">persist_responses</span>
-        <span class="k">return</span> <span class="n">child_url</span>
+        <span class="k">return</span> <span class="n">child_url</span></div>
 
-    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+<div class="viewcode-block" id="FMC._get_child_urls"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._get_child_urls">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_get_child_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">response_dict</span><span class="p">,</span> <span class="n">parent_url</span><span class="p">):</span>
 
@@ -706,11 +706,11 @@
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Child url </span><span class="si">%s</span><span class="s1"> resolved to parent url&#39;</span> <span class="o">%</span> <span class="n">child_url</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;no url found for child dict </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">type_dict</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">child_urls</span>
+        <span class="k">return</span> <span class="n">child_urls</span></div>
 
     <span class="c1">#Begin class specific methods</span>
     <span class="c1">################################################################################################################</span>
-    <span class="k">def</span> <span class="nf">walk_API_resource_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="FMC.walk_API_resource_gets"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.walk_API_resource_gets">[docs]</a>    <span class="k">def</span> <span class="nf">walk_API_resource_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Recursively walks the API resource paths.</span>
@@ -749,7 +749,7 @@
                                              <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
                                              <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span></div>
 
     <span class="k">def</span> <span class="nf">get_all_API_paths_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
@@ -775,7 +775,7 @@
 
         <span class="k">return</span> <span class="n">new_json</span>
 
-    <span class="k">def</span> <span class="nf">_get_json_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_file_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._get_json_dict"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._get_json_dict">[docs]</a>    <span class="k">def</span> <span class="nf">_get_json_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json_file_path</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Reads the current json FMC API model into a Python dictionary and build all required reference</span>
 <span class="sd">        dictionaries.</span>
@@ -855,18 +855,18 @@
             <span class="n">reference_dicts</span><span class="p">[</span><span class="s1">&#39;last_model_mod_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_model_mod_date</span>
 
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">reference_dicts_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">_pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">reference_dicts</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="n">_pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">reference_dicts</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_all_models_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC.get_all_models_dict"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.get_all_models_dict">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_models_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the model dictionary created from the model input file.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns a Python dictionary created from the json model input file.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_models_dict</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_models_dict</span></div>
     
-    <span class="k">def</span> <span class="nf">get_domain_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;Global&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC.get_domain_id"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.get_domain_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_domain_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="s1">&#39;Global&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the id of the given domain.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns the id of the domain name given in the arugment.  This is the id to use in API calls </span>
@@ -878,9 +878,9 @@
 <span class="sd">            The domain name for which to retrieve the id.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
                 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span><span class="p">[</span><span class="n">domain</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span><span class="p">[</span><span class="n">domain</span><span class="p">]</span></div>
             
-    <span class="k">def</span> <span class="nf">get_all_API_paths_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC.get_all_API_paths_list"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.get_all_API_paths_list">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_API_paths_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a list of all valid API paths for the FMC host.</span>
 <span class="sd">        </span>
 <span class="sd">        Returns a list of all the valid API paths for this FMC host.  Contains the domain id for the FMC but container and object</span>
@@ -888,9 +888,9 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_API_paths_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_all_API_paths_list</span><span class="p">)</span></div>
     
-    <span class="k">def</span> <span class="nf">post_csv_template_bulk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC.post_csv_template_bulk"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.post_csv_template_bulk">[docs]</a>    <span class="k">def</span> <span class="nf">post_csv_template_bulk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">file_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and</span>
 <span class="sd">        posts all records with a bulk post.  Target API must support bulk post for the given url.</span>
@@ -912,9 +912,9 @@
                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
                                   <span class="n">success_status_code</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">smart_get_url_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC.smart_get_url_list"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.smart_get_url_list">[docs]</a>    <span class="k">def</span> <span class="nf">smart_get_url_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Used to intelligently retrieve and substitute object ids from provided names.</span>
 
@@ -978,9 +978,9 @@
                         <span class="k">continue</span>
                     <span class="n">urls_processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prev_url</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_collect_responses</span><span class="p">(</span><span class="n">prev_url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">response_dict</span>
+        <span class="k">return</span> <span class="n">response_dict</span></div>
 
-    <span class="k">def</span> <span class="nf">smart_get_object_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC.smart_get_object_id"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.smart_get_object_id">[docs]</a>    <span class="k">def</span> <span class="nf">smart_get_object_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Used to intelligently retrieve an id based on item name.</span>
 
@@ -1037,27 +1037,27 @@
                         <span class="k">continue</span>
                     <span class="n">urls_processed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prev_url</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_collect_responses</span><span class="p">(</span><span class="n">prev_url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># No id found</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># No id found</span></div>
 
-    <span class="k">def</span> <span class="nf">_build_request_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._build_request_templates"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._build_request_templates">[docs]</a>    <span class="k">def</span> <span class="nf">_build_request_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
         <span class="n">request_templates_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_all_models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">request_templates_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">fmc_helpers</span><span class="o">.</span><span class="n">build_request_template_from_model</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="n">request_templates_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">fmc_helpers</span><span class="o">.</span><span class="n">build_request_template_from_model</span><span class="p">(</span><span class="n">val</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_build_flattened_model_dict_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_name</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._build_flattened_model_dict_by_name"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._build_flattened_model_dict_by_name">[docs]</a>    <span class="k">def</span> <span class="nf">_build_flattened_model_dict_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">flatlined</span> <span class="o">=</span> <span class="n">output_transforms</span><span class="o">.</span><span class="n">flatten_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_models_dict</span><span class="p">[</span><span class="n">model_name</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="n">flatlined</span>
+        <span class="k">return</span> <span class="n">flatlined</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_token_and_domains</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._get_token_and_domains"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._get_token_and_domains">[docs]</a>    <span class="k">def</span> <span class="nf">_get_token_and_domains</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1079,58 +1079,58 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span> <span class="o">=</span> <span class="n">fmc_helpers</span><span class="o">.</span><span class="n">get_domain_dict</span><span class="p">(</span><span class="n">auth_headers</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">[</span><span class="s1">&#39;X-auth-access-token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auth_token</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_auth_headers</span><span class="p">[</span><span class="s1">&#39;X-auth-access-token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auth_token</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_auth_headers</span><span class="p">[</span><span class="s1">&#39;X-auth-refresh-token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_token</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_auth_headers</span><span class="p">[</span><span class="s1">&#39;X-auth-refresh-token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_token</span></div>
 
     <span class="c1">#Begin TODO, rework and under construction</span>
     <span class="c1">################################################################################################################</span>
-    <span class="k">def</span> <span class="nf">_convert_model_to_request_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._convert_model_to_request_template"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._convert_model_to_request_template">[docs]</a>    <span class="k">def</span> <span class="nf">_convert_model_to_request_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
 
-    <span class="k">def</span> <span class="nf">_get_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._get_model"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._get_model">[docs]</a>    <span class="k">def</span> <span class="nf">_get_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
         
-    <span class="k">def</span> <span class="nf">_get_request_template_by_model_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_ID</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._get_request_template_by_model_ID"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._get_request_template_by_model_ID">[docs]</a>    <span class="k">def</span> <span class="nf">_get_request_template_by_model_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
     
-    <span class="k">def</span> <span class="nf">_get_request_template_by_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_ID</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._get_request_template_by_path"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._get_request_template_by_path">[docs]</a>    <span class="k">def</span> <span class="nf">_get_request_template_by_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
     
-    <span class="k">def</span> <span class="nf">_transform_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">responses_dict</span><span class="p">,</span><span class="n">field_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._transform_responses"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._transform_responses">[docs]</a>    <span class="k">def</span> <span class="nf">_transform_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">responses_dict</span><span class="p">,</span><span class="n">field_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
         
-    <span class="k">def</span> <span class="nf">_get_API_path_request_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._get_API_path_request_template"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._get_API_path_request_template">[docs]</a>    <span class="k">def</span> <span class="nf">_get_API_path_request_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         
-        <span class="k">pass</span>
+        <span class="k">pass</span></div>
     
-    <span class="k">def</span> <span class="nf">_refresh_API_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FMC._refresh_API_gets"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._refresh_API_gets">[docs]</a>    <span class="k">def</span> <span class="nf">_refresh_API_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Under construction...</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Walk the existing responses and refreshes the data (accounts for oob changes, etc.)</span>
 
-        <span class="k">pass</span></div>
+        <span class="k">pass</span></div></div>
 </pre></div>
 
           </div>
