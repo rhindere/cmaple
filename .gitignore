@@ -8,3 +8,4 @@ build
 **.txt
 !LICENSE.txt
 dist
+doc
