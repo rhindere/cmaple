@@ -404,60 +404,63 @@ The results can be displayed in a few different formats for now as follows:
 The following configurations file
 
 ```
-#This cmaple_cli example will migrate access and nat polcies between FMCs
-#regardless of software version and platform.  All dependent objects will be
-#migrated to support the access and nat policy definitions.
-#
-#RH – section to define and create the top level object for CMAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
+#RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
 [tree]
-#RH – sets the logging level for CMAPLE.  Log file is cmaple.log in default directory
+#RH – sets the logging level for MAPLE.  Log file is maple.log in default directory
 logging_level=INFO
-#RH – Instantiates the top level CMAPLE object and stores the object reference to “RUN tree”. Since cmaple_working_dir is preceded by an '@', it will be replaced with
+#RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an '@', it will be replaced with
 #the value passed either on the command line or in the parameters file.
-RUN tree=CMapleTree(name=mig_tree_1,tree_dir=@cmaple_working_dir,logging_level={tree$logging_level})
-#RH – section to define and create the FMC leaf object for the CMAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
-[leaf:fmc_src]
+RUN tree=CMapleTree(name=mig_tree_1,tree_dir=@maple_working_dir,logging_level={tree$logging_level})
+#RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
+[leaf:fmc_mig_src]
 host=10.1.101.40
 domain=Global
 type=fmc
-name=fmc_mig_2
+name=fmc_mig_src
+model_json_file=C:\Users\rhindere\Documents\PycharmProjects\maple_project\cmaple\fmc\api-docs-fmcwithll.json
 #RH – creates a substitution variable to hold the arguments for creating the leaf object.  Not necessary, only for readability
-leaf_args=leaf_type={leaf:fmc_src$type},name={leaf:fmc_src$name},json_file_path=@model_json_file,FMC_host={leaf:fmc_src$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_src$domain},restore_responses=False
+leaf_args=leaf_type={leaf:fmc_mig_src$type},name={leaf:fmc_mig_src$name},json_file_path={leaf:fmc_mig_src$model_json_file},FMC_host={leaf:fmc_mig_src$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_mig_src$domain},restore_responses=True
 #RH – adds the leaf instance for the FMC to the tree
-RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_src$leaf_args})
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_mig_src$leaf_args})
 #RH – gets the domain id for the given domain
-RUN domain_id={leaf:fmc_src$RUN leaf}.get_domain_id(domain={leaf:fmc_srcdomain})
-[get]
+RUN domain_id={leaf:fmc_mig_src$RUN leaf}.get_domain_id(domain={leaf:fmc_mig_src$domain})
+[get_source_policies]
 # If security zones are to be migrated, the device records and physical interfaces need to be obtained due to json model anomalies in fmc
-RUN dr = {leaf:fmc_srcRUN leaf}.get_all_items(url=devices/devicerecords)
+RUN dr = {leaf:fmc_mig_src$RUN leaf}.get_all_items(url=devices/devicerecords)
 # Get a list of all the device
-RUN did = {leaf:fmc_srcRUN leaf}.query_json_field(query_field=items.id,json_to_query={get$RUN dr})
+RUN did = {leaf:fmc_mig_src$RUN leaf}.query_json_field(query_field=items.id,json_to_query={get_source_policies$RUN dr})
 #Get all device records
 #Run multiple get iterating over values in the device id list substituting each value in the list for ~id~
 drs = devices/devicerecords/~id~
-RUN drq = {leaf:fmc_srcRUN leaf}.query_with_list(query_url={get$drs},query_list={get$RUN did})
-RUN pp_drq=output.pretty_print(_object={get$RUN drq})
+RUN drq = {leaf:fmc_mig_src$RUN leaf}.query_with_list(query_url={get_source_policies$drs},query_list={get_source_policies$RUN did})
+RUN pp_drq=output.pretty_print(_object={get_source_policies$RUN drq})
 #Get all physical interfaces for each device
 #Run multiple get iterating over values in the device id list substituting each value in the list for ~id~
 piu = devices/devicerecords/~id~/physicalinterfaces
-RUN piq = {leaf:fmc_srcRUN leaf}.query_with_list(query_url={get$piu},query_list={get$RUN did})
-RUN pp_piq=output.pretty_print(_object={get$RUN piq})
+RUN piq = {leaf:fmc_mig_src$RUN leaf}.query_with_list(query_url={get_source_policies$piu},query_list={get_source_policies$RUN did})
+RUN pp_piq=output.pretty_print(_object={get_source_policies$RUN piq})
 #Get the nat policies
-RUN nat={leaf:fmc_srcRUN leaf}.walk_API_path_gets(url=policy/ftdnatpolicies)
-RUN pp_nat=output.pretty_print(_object={get$RUN nat})
+RUN nat={leaf:fmc_mig_src$RUN leaf}.walk_API_path_gets(url=policy/ftdnatpolicies)
+RUN pp_nat=output.pretty_print(_object={get_source_policies$RUN nat})
 #Get the access policies
-RUN ap={leaf:fmc_srcRUN leaf}.walk_API_path_gets(url=policy/accesspolicies)
-RUN pp_ap=output.pretty_print(_object={get$RUN ap})
-[leaf:fmc_1]
+RUN ap={leaf:fmc_mig_src$RUN leaf}.walk_API_path_gets(url=policy/accesspolicies)
+RUN pp_ap=output.pretty_print(_object={get_source_policies$RUN ap})
+[leaf:fmc_mig_dst]
 host=10.1.101.39
 domain=Global
 type=fmc
-name=fmc_mig_1
-leaf_args=leaf_type={leaf:fmc_1$type},name={leaf:fmc_1$name},json_file_path=@model_json_file,FMC_host={leaf:fmc_1$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_1$domain},restore_responses=False
-RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_1$leaf_args})
-RUN domain_id={leaf:fmc_1$RUN leaf}.get_domain_id(domain={leaf:fmc_1$domain})
-[leaf]
-RUN migrate = {leaf:fmc_1$RUN leaf}.or_migrate_config(source_config_path=mig_tree_1\\fmc_mig_2)
+name=fmc_mig_dst
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_mig_dst$leaf_args})
+RUN domain_id={leaf:fmc_mig_dst$RUN leaf}.get_domain_id(domain={leaf:fmc_mig_dst$domain})
+model_json_file=C:\Users\rhindere\Documents\PycharmProjects\maple_project\cmaple\fmc\api-docs-fmcwithll.json
+#RH – creates a substitution variable to hold the arguments for creating the leaf object.  Not necessary, only for readability
+leaf_args=leaf_type={leaf:fmc_mig_dst$type},name={leaf:fmc_mig_dst$name},json_file_path={leaf:fmc_mig_dst$model_json_file},FMC_host={leaf:fmc_mig_dst$host},FMC_username=@rest_admin_user,FMC_password=@rest_admin_password,FMC_domain={leaf:fmc_mig_dst$domain},restore_responses=False
+#RH – adds the leaf instance for the FMC to the tree
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf:fmc_mig_dst$leaf_args})
+#RH Get the source leaf directory so we can read the source response data
+RUN src_leaf_dir={leaf:fmc_mig_src$RUN leaf}.get_leaf_dir()
+#Run the migrate method
+RUN migrate = {leaf:fmc_mig_dst$RUN leaf}.or_migrate_config(source_config_path={leaf:fmc_mig_dst$RUN src_leaf_dir})
 ```
 
 ## CMAPLE CLI Logging
