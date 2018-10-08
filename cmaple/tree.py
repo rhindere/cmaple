@@ -56,7 +56,7 @@ class CMapleTree():
         """__init__ receives a kwargs dict to define parameters.  This allows __init__ to pass these parameters
         to the superclass.
 
-        Returns an FMC leaf object.
+        Returns a tree object.
 
         Parameters
         ----------
@@ -114,6 +114,18 @@ class CMapleTree():
         self.maple_tree_dir = maple_tree_dir
 
     def add_leaf_instance(self,leaf_type=None,**kwargs):
+
+        """Initializes a leaf instance.
+
+        Returns a leaf object.
+
+        Parameters
+        ----------
+        leaf_type: string, keyword, default=None
+            The leaf type to initialize.
+        kwargs: dictionary
+            kwargs dictionary containing keyword: value pairs pass to the leaf's __init__ method
+        """
 
         kwargs['maple_parent'] = self
 

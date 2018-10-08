@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cmaple.tree &#8212; MAPLE 0.1 documentation</title>
+    <title>cmaple.tree &#8212; CMAPLE 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -91,7 +91,7 @@
         <span class="sd">&quot;&quot;&quot;__init__ receives a kwargs dict to define parameters.  This allows __init__ to pass these parameters</span>
 <span class="sd">        to the superclass.</span>
 
-<span class="sd">        Returns an FMC leaf object.</span>
+<span class="sd">        Returns a tree object.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -148,7 +148,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">log_file_mode</span> <span class="o">=</span> <span class="n">log_file_mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maple_tree_dir</span> <span class="o">=</span> <span class="n">maple_tree_dir</span></div>
 
-    <span class="k">def</span> <span class="nf">add_leaf_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">leaf_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="CMapleTree.add_leaf_instance"><a class="viewcode-back" href="../../tree.html#cmaple.tree.CMapleTree.add_leaf_instance">[docs]</a>    <span class="k">def</span> <span class="nf">add_leaf_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">leaf_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Initializes a leaf instance.</span>
+
+<span class="sd">        Returns a leaf object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        leaf_type: string, keyword, default=None</span>
+<span class="sd">            The leaf type to initialize.</span>
+<span class="sd">        kwargs: dictionary</span>
+<span class="sd">            kwargs dictionary containing keyword: value pairs pass to the leaf&#39;s __init__ method</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;maple_parent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
 
@@ -190,7 +202,7 @@
         <span class="n">leaf_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">],</span><span class="n">leaf</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leaf_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">leaf_dir</span><span class="o">=</span><span class="n">leaf_dir</span><span class="p">))</span>
         
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div></div>
 </pre></div>
 
           </div>
@@ -199,7 +211,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="../../index.html">MAPLE</a></h1>
+<h1 class="logo"><a href="../../index.html">CMAPLE</a></h1>
 
 
 
@@ -213,7 +225,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html">CMAPLE Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../README.html#cmaple-cli">CMAPLE CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">MAPLE Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">CMAPLE Modules</a></li>
 </ul>
 
 <div class="relations">
