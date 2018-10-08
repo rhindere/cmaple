@@ -27,8 +27,8 @@ setuptools.setup(
                       ],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: Cisco Sample Code License",
-        # "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
+        # "License :: Cisco Sample Code License",
+        "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
         "Operating System :: OS Independent",
     ],
     include_package_data=True,
