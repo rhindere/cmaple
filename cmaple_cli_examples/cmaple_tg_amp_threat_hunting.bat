@@ -1,0 +1,1 @@
+python cmaple_cli.py @cmaple_cli_examples\cmaple_cli_parameters.parameters -ocf cmaple_cli_examples\maple_ex1_operations_config.operations >cmaple_output.txt

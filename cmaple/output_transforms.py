@@ -38,16 +38,27 @@ from autologging import TRACE
 
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 
+@logged(logger)
+@traced(logger)
+def print_string(_string=None, num_times=1, file=sys.stdout):
+    """Prints the '_string' to 'file'.
+
+
+    """
+
+    _string = _string * int(num_times)
+    print(_string, file=file)
+
 
 @logged(logger)
 @traced(logger)
-def pretty_print(_object=None, file=sys.stdout):
+def pretty_print(_object=None, width=132, file=sys.stdout):
     """Pretty Prints the '_object' to 'file'.
 
 
     """
 
-    pprint(_object, file)
+    pprint(_object, compact=False, width=width)
 
 
 @logged(logger)
@@ -139,11 +150,8 @@ def create_outline(_dict=None,tab_string='',file=sys.stdout,smart_labels=True,re
             print(tab_string+key,file=file)
             process_val(val,tab_string+'\t')
 
-    print(_dict)
-    print('...in create outline...')
     if responses_only:
         _dict = get_jsonpath_values('$..json_dict',_dict)
-        print(_dict)
     outline_str = ''
     process_val(_dict,tab_string)
 

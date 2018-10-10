@@ -308,8 +308,6 @@ class RestBase(object):
         if self.path_root not in url:
             url = self.path_root + url
 
-        print('Recursing url =', url, file=sys.stderr)
-
         while True:
             logger.debug('recurse_API_child_gets: recursing with url %s' % (url))
             response_dict, status, include_filtered, exclude_filtered, cache_hit = \

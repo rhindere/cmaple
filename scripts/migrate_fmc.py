@@ -31,15 +31,43 @@ from cmaple.tree import CMapleTree
 import cmaple.output_transforms as output
 from pprint import pprint
 
+##############################################################################################################
+# Modify the values in this section for your environment
+##############################################################################################################
+maple_tree_name = 'fmc_migrate_tree'
+# Path to a directory where the working directories and files will be created
+maple_tree_dir = r'C:\Users\rhindere\Documents\maple_working_dir'
+# Path to the 'api-docs-fmcwithll.json' file
+# CMAPLE bases most FMC operations on the current API model as defined in the file
+# named ‘api-docs-fmcwithll.json’ and obtained from the target FMC. This file currently
+# resides in the directory ‘/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api’.
+# This file provides the API model to CMAPLE:FMC which is used for many of the operations
+# to derive urls, etc. This file can be copied from the target FMC using scp and placed
+# in a directory of the users choice.
+model_json_file = r'C:\Users\rhindere\Documents\PycharmProjects\maple_project\cmaple\fmc\api-docs-fmcwithll.json'
+# The host information for the source FMC (from which policies will be retrieved)
+FMC_src_host = '10.1.101.40'
+FMC_src_port = 443
+FMC_src_leaf_name = 'src_fmc'
+FMC_src_username = 'rest_admin'
+FMC_src_password = 'C1sc0123'
+# The host information for the destination FMC (where policies will be created)
+FMC_dst_host = '10.1.101.39'
+FMC_dst_port = 443
+FMC_dst_leaf_name = 'dst_fmc'
+FMC_dst_username = 'rest_admin'
+FMC_dst_password = 'C1sc0123'
+##############################################################################################################
+
 # Create a cmaple tree instance...
-maple_tree = CMapleTree(logging_level='INFO', name='amp_test',
-                        tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')
+maple_tree = CMapleTree(logging_level='INFO', name=maple_tree_name,
+                        tree_dir=maple_tree_dir)
 
 # Attach a cmaple fmc leaf instance for the source fmc to the tree...
-model_json_file=r'C:\Users\rhindere\Documents\PycharmProjects\maple_project\cmaple\fmc\api-docs-fmcwithll.json'
 
-FMC_src_leaf = maple_tree.add_leaf_instance('fmc', name='src_fmc', json_file_path=model_json_file,
-                                            FMC_host='10.1.101.40', FMC_username='rest_admin', FMC_password='C1sc0123',
+FMC_src_leaf = maple_tree.add_leaf_instance('fmc', name=FMC_src_leaf_name, json_file_path=model_json_file,
+                                            FMC_host=FMC_src_host, FMC_username=FMC_src_username, 
+                                            FMC_password=FMC_src_password,
                                             default_get_item_limit=200)
 
 # Get all device records
@@ -64,9 +92,11 @@ pp_nat = output.pretty_print(_object=nat)
 ap = FMC_src_leaf.walk_API_path_gets(url='policy/accesspolicies')
 pp_ap = output.pretty_print(_object=ap)
 # All finished with the source fmc, add a leaf to the tree for the destination fmc
-FMC_dst_leaf = maple_tree.add_leaf_instance('fmc', name='dst_fmc', json_file_path=model_json_file,
-                                            FMC_host='10.1.101.39', FMC_username='rest_admin', FMC_password='C1sc0123',
+FMC_dst_leaf = maple_tree.add_leaf_instance('fmc', name=FMC_dst_leaf_name, json_file_path=model_json_file,
+                                            FMC_host=FMC_dst_host, FMC_username=FMC_dst_username, 
+                                            FMC_password=FMC_dst_password,
                                             default_get_item_limit=200)
+
 # Get the source leaf directory so we can read the source response data
 src_leaf_dir = FMC_src_leaf.get_leaf_dir()
 # Run the migrate method

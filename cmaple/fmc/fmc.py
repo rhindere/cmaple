@@ -135,7 +135,7 @@ class FMC(RestBase):
         #Add class specific attributes
         self.domain_ID_dict = {}
         self._url_host = 'https://' + self.FMC_host
-        if self.FMC_port:
+        if self.FMC_port and not int(self.FMC_port) == int(443):
             self._url_host += ':' + self.FMC_port
         self._auth_url = self._url_host + _API_AUTH_PATH.replace('{API_version}',self.API_version)
         self.request_headers = {'Content-Type': 'application/json'}
