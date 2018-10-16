@@ -27,8 +27,6 @@ __version__ = "0.1"
 __copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
 __license__ = "Cisco DEVNET"
 
-import sys
-sys.path.insert(0, r'C:\Users\rhindere\Documents\PycharmProjects\maple_project')
 from cmaple.tree import CMapleTree
 import cmaple.output_transforms as output
 from pprint import pprint
@@ -46,7 +44,7 @@ maple_tree_dir = r'C:\Users\rhindere\Documents\maple_working_dir'
 # This file provides the API model to CMAPLE:FMC which is used for many of the operations
 # to derive urls, etc. This file can be copied from the target FMC using scp and placed
 # in a directory of the users choice.
-model_json_file = r'C:\Users\rhindere\Documents\PycharmProjects\maple_project\cmaple\fmc\api-docs-fmcwithll.json'
+model_json_file = r'api-docs-fmcwithll.json'
 # The host information for the source FMC (from which policies will be retrieved)
 FMC_src_host = '10.1.101.40'
 FMC_src_port = 443

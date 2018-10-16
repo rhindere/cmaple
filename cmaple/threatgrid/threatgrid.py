@@ -304,7 +304,7 @@ class TG(RestBase):
 
     @logged(logger)
     @traced(logger)
-    def free_form(self, base_paths=None, id_list=None, element_paths=None, params=None, responses_dict=None):
+    def free_form(self, base_paths=None, scope_params=None, responses_dict=None):
 
         """Gets threatgrid samples.
 
@@ -321,16 +321,13 @@ class TG(RestBase):
             if caller would like to keep the responses isolated.
         """
 
-        sample_path = 'api/v2/samples/search'
-
-        url = self._prepare_url(url=sample_path, params=params)
-
         if responses_dict is None:
             responses_dict = self.responses_dict
         else:
             responses_dict = responses_dict
 
-        for key, val in sample_search_paths.items():
+        for url, params in base_paths.items():
+            url = self._prepare_url(url=sample_path, scope_params=params)
             url = '{}&{}={}'.format(url, key, str(val))
             print(url)
             self.GET_API_path(url=url, responses_dict=responses_dict)
