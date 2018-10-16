@@ -67,7 +67,6 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">as</span> <span class="nn">tree_helpers</span>
 <span class="kn">import</span> <span class="nn">cmaple.threatgrid.threatgrid_helpers</span> <span class="k">as</span> <span class="nn">threatgrid_helpers</span>
-<span class="c1">#from cmaple.threatgrid.threatgrid_api_resources import threatgrid_path_model</span>
 <span class="kn">import</span> <span class="nn">cmaple.input_validations</span> <span class="k">as</span> <span class="nn">input_validations</span>
 <span class="kn">import</span> <span class="nn">cmaple.output_transforms</span> <span class="k">as</span> <span class="nn">output_transforms</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -81,7 +80,6 @@
 <span class="kn">from</span> <span class="nn">objectpath</span> <span class="k">import</span> <span class="o">*</span>
 
 <span class="c1">#Define global variables...</span>
-<span class="n">_API_AUTH_PATH</span> <span class="o">=</span> <span class="s1">&#39;/api/fmc_platform/</span><span class="si">{API_version}</span><span class="s1">/auth/generatetoken&#39;</span>
 <span class="n">_DEFAULT_GET_ITEM_LIMIT</span> <span class="o">=</span> <span class="mi">25</span>
 
 <span class="c1"># Create a logger tree.fmc...</span>
@@ -109,8 +107,8 @@
 
 <span class="sd">        Returns a ThreatGrid leaf object.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        TG_host: string, keyword, default=None</span>
 <span class="sd">            The ip address or fqdn of ThreatGrid</span>
 <span class="sd">        TG_API_key: string, keyword, default=None</span>
@@ -174,11 +172,11 @@
         <span class="sd">&quot;&quot;&quot;Wraps all requests for a TG leaf in order to handle TG specifics.</span>
 <span class="sd">        This should only be called by internal methods.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        recursed: boolean, keyword, default=False</span>
 <span class="sd">            Signals if this is the top level call.</span>
-<span class="sd">        **kwargs: dictionary</span>
+<span class="sd">        \*\*kwargs: dictionary</span>
 <span class="sd">            Used to pass through arguments to wrapped methods.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -197,9 +195,325 @@
                         <span class="s1">&#39;TG reports requests per minute exceeding 120.  Sleeping for self._backoff_timer seconds...&#39;</span><span class="p">)</span>
                     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backoff_timer</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span>
+                    <span class="c1"># Derive next_url</span>
+                    <span class="n">next_url</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="k">if</span> <span class="s1">&#39;data&#39;</span> <span class="ow">in</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">]</span> \
+                            <span class="ow">and</span> <span class="s1">&#39;current_item_count&#39;</span> <span class="ow">in</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">]:</span>
+                        <span class="n">current_item_count</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;current_item_count&#39;</span><span class="p">]</span>
+                        <span class="n">index</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;index&#39;</span><span class="p">]</span>
+                        <span class="n">items_per_page</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="s1">&#39;items_per_page&#39;</span><span class="p">]</span>
+                        <span class="n">this_url</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">current_item_count</span> <span class="o">&lt;</span> <span class="n">items_per_page</span><span class="p">:</span>
+                            <span class="n">next_url</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">offset</span> <span class="o">=</span> <span class="n">items_per_page</span> <span class="o">+</span> <span class="n">index</span>
+                            <span class="k">if</span> <span class="s1">&#39;offset=&#39;</span> <span class="ow">in</span> <span class="n">this_url</span><span class="p">:</span>
+                                <span class="n">next_url</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;offset=[^&amp;]+&#39;</span><span class="p">,</span> <span class="s1">&#39;offset=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">),</span> <span class="n">this_url</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">next_url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&amp;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">this_url</span><span class="p">,</span> <span class="s1">&#39;offset=&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">offset</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;next_url=&#39;</span><span class="p">,</span><span class="n">next_url</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">process_json_request</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">process_json_request</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TG.get_datetime_obj"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.get_datetime_obj">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_datetime_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="mi">2018</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hour</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tz_str</span><span class="o">=</span><span class="s1">&#39;Etc/GMT-0&#39;</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets a Python datetime object representing the given parameters.</span>
+
+<span class="sd">        Returns: Python datetime object</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        year: integer, keyword, default=2018</span>
+<span class="sd">            The datetime year</span>
+<span class="sd">        month: integer, keyword, default=1</span>
+<span class="sd">            The datetime month</span>
+<span class="sd">        day: integer, keyword, default=1</span>
+<span class="sd">            The datetime day</span>
+<span class="sd">        hour: integer, keyword, default=0</span>
+<span class="sd">            The datetime hour</span>
+<span class="sd">        minute: integer, keyword, default=0</span>
+<span class="sd">            The datetime minute</span>
+<span class="sd">        second: integer, keyword, default=0</span>
+<span class="sd">            The datetime second</span>
+<span class="sd">        tz_str: string, keyword, default=Etc/GMT-0</span>
+<span class="sd">            The datetime time zone</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_datetime</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_datetime</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="n">day</span><span class="p">,</span> <span class="n">hour</span><span class="o">=</span><span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="n">minute</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="n">second</span><span class="p">,</span>
+                                              <span class="n">tz_str</span><span class="o">=</span><span class="n">tz_str</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_datetime</span></div>
+
+
+<div class="viewcode-block" id="TG.get_datetime_str"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.get_datetime_str">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_datetime_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="mi">2018</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hour</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">tz_str</span><span class="o">=</span><span class="s1">&#39;Etc/GMT-0&#39;</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets a datetime string for the given parameters.</span>
+
+<span class="sd">        Returns: A datetime string formatted with strftime</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        year: integer, keyword, default=2018</span>
+<span class="sd">            The datetime year</span>
+<span class="sd">        month: integer, keyword, default=1</span>
+<span class="sd">            The datetime month</span>
+<span class="sd">        day: integer, keyword, default=1</span>
+<span class="sd">            The datetime day</span>
+<span class="sd">        hour: integer, keyword, default=0</span>
+<span class="sd">            The datetime hour</span>
+<span class="sd">        minute: integer, keyword, default=0</span>
+<span class="sd">            The datetime minute</span>
+<span class="sd">        second: integer, keyword, default=0</span>
+<span class="sd">            The datetime second</span>
+<span class="sd">        tz_str: string, keyword, default=Etc/GMT-0</span>
+<span class="sd">            The datetime time zone</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_datetime</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_datetime</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="n">day</span><span class="p">,</span> <span class="n">hour</span><span class="o">=</span><span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="n">minute</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="n">second</span><span class="p">,</span>
+                                              <span class="n">tz_str</span><span class="o">=</span><span class="n">tz_str</span><span class="p">)</span>
+        <span class="n">_strftime</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_strftime</span><span class="p">(</span><span class="n">_datetime</span><span class="o">=</span><span class="n">_datetime</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_strftime</span></div>
+
+
+<div class="viewcode-block" id="TG.get_datetime_now_str"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.get_datetime_now_str">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_datetime_now_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets a datetime string for the current time formatted with strftime.</span>
+
+<span class="sd">        Returns: A datetime string for the current time formatted with strftime</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_strftime</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_strftime</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">_strftime</span></div>
+
+
+<div class="viewcode-block" id="TG.get_datetime_delta_str"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.get_datetime_delta_str">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_datetime_delta_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_strftime</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">microseconds</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">milliseconds</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">minutes</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                               <span class="n">hours</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">weeks</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets a datetime string for the delta with _strftime time formatted with strftime.</span>
+
+<span class="sd">        Returns: A datetime string for the current time formatted with strftime</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        _strftime: string, keyword, default=None</span>
+<span class="sd">            The base time formatted with strftime</span>
+<span class="sd">        days: integer, keyword, default=0</span>
+<span class="sd">            The +- number of days</span>
+<span class="sd">        seconds: integer, keyword, default=0</span>
+<span class="sd">            The +- number of seconds</span>
+<span class="sd">        microseconds: integer, keyword, default=0</span>
+<span class="sd">            The +- number of microseconds</span>
+<span class="sd">        milliseconds: integer, keyword, default=0</span>
+<span class="sd">            The +- number of milliseconds</span>
+<span class="sd">        minutes: integer, keyword, default=0</span>
+<span class="sd">            The +- number of minutes</span>
+<span class="sd">        hours: integer, keyword, default=0</span>
+<span class="sd">            The +- number of hours</span>
+<span class="sd">        weeks: integer, keyword, default=0</span>
+<span class="sd">            The +- number of weeks</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">_strftime</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_strftime_delta</span><span class="p">(</span><span class="n">_strftime</span><span class="o">=</span><span class="n">_strftime</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="n">days</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="n">seconds</span><span class="p">,</span>
+                                                    <span class="n">microseconds</span><span class="o">=</span><span class="n">microseconds</span><span class="p">,</span> <span class="n">milliseconds</span><span class="o">=</span><span class="n">milliseconds</span><span class="p">,</span>
+                                                    <span class="n">minutes</span><span class="o">=</span><span class="n">minutes</span><span class="p">,</span> <span class="n">hours</span><span class="o">=</span><span class="n">hours</span><span class="p">,</span>
+                                                    <span class="n">weeks</span><span class="o">=</span><span class="n">weeks</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_strftime</span></div>
+
+<div class="viewcode-block" id="TG.free_form"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.free_form">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">free_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">id_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">element_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets threatgrid samples.</span>
+
+<span class="sd">        Returns: a responses dictionary</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        sample_search_paths: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search parameters (e.g. checksum=&lt;sha256&gt;).</span>
+<span class="sd">        params: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search scope parameters (e.g. before=&lt;strftime&gt;).</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sample_path</span> <span class="o">=</span> <span class="s1">&#39;api/v2/samples/search&#39;</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">sample_path</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="n">responses_dict</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">sample_search_paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&amp;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GET_API_path</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">responses_dict</span></div>
+
+
+<div class="viewcode-block" id="TG.search_samples"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.search_samples">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">search_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_search_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets threatgrid samples.</span>
+
+<span class="sd">        Returns: a responses dictionary</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        sample_search_paths: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search parameters (e.g. checksum=&lt;sha256&gt;).</span>
+<span class="sd">        params: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search scope parameters (e.g. before=&lt;strftime&gt;).</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sample_path</span> <span class="o">=</span> <span class="s1">&#39;api/v2/samples/search&#39;</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">sample_path</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="n">responses_dict</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">sample_search_paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&amp;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">GET_API_path</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">responses_dict</span></div>
+
+
+<div class="viewcode-block" id="TG.get_samples"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.get_samples">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets threatgrid samples.</span>
+
+<span class="sd">        Returns: a responses dictionary</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        params: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search scope parameters (e.g. before=&lt;strftime&gt;).</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sample_path</span> <span class="o">=</span> <span class="s1">&#39;api/v2/samples&#39;</span>
+
+        <span class="n">sample_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">sample_path</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="n">responses_dict</span>
+
+        <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">sample_path</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">responses</span></div>
+
+
+<div class="viewcode-block" id="TG.walk_samples"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.walk_samples">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">walk_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_id_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Walks threatgrid samples by id.</span>
+
+<span class="sd">        Returns: a responses dictionary</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        sample_id_paths: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the paths to retrieve for each id.</span>
+<span class="sd">        params: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search scope parameters (e.g. before=&lt;strftime&gt;).</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">sample_path</span> <span class="o">=</span> <span class="s1">&#39;api/v2/samples&#39;</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">sample_path</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="n">ids</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="s1">&#39;$..data.items[*].id&#39;</span><span class="p">,</span> <span class="n">responses</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="n">responses_dict</span>
+
+        <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">sample_path</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sample_id_path</span> <span class="ow">in</span> <span class="n">sample_id_paths</span><span class="p">:</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">sample_id_path</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">GET_API_path</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">responses_dict</span></div>
+
+
+<div class="viewcode-block" id="TG._prepare_url"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG._prepare_url">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_prepare_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Prepares the url by replacing parameter placeholders with values.</span>
+<span class="sd">        This should only be called by internal methods.</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        url: string, keyword, default=None</span>
+<span class="sd">            The url to prepare.</span>
+<span class="sd">        params: dictionary, keyword, default=None</span>
+<span class="sd">            The parameters dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.+?\?[^/]+$&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;?&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;&amp;&#39;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;api_key=&#39;</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;api_key=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">TG_API_key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;api_key=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">TG_API_key</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;api_key=[^&amp;]+&#39;</span><span class="p">,</span> <span class="s1">&#39;api_key=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">TG_API_key</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;&amp;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">url</span></div></div>
 </pre></div>
 
           </div>

@@ -32,7 +32,6 @@ import sys
 import re
 import cmaple.tree_helpers as tree_helpers
 import cmaple.threatgrid.threatgrid_helpers as threatgrid_helpers
-#from cmaple.threatgrid.threatgrid_api_resources import threatgrid_path_model
 import cmaple.input_validations as input_validations
 import cmaple.output_transforms as output_transforms
 import json
@@ -46,7 +45,6 @@ import base64
 from objectpath import *
 
 #Define global variables...
-_API_AUTH_PATH = '/api/fmc_platform/{API_version}/auth/generatetoken'
 _DEFAULT_GET_ITEM_LIMIT = 25
 
 # Create a logger tree.fmc...
@@ -74,8 +72,8 @@ class TG(RestBase):
 
         Returns a ThreatGrid leaf object.
 
-        Parameters
-        ----------
+        *Parameters*
+
         TG_host: string, keyword, default=None
             The ip address or fqdn of ThreatGrid
         TG_API_key: string, keyword, default=None
@@ -139,11 +137,11 @@ class TG(RestBase):
         """Wraps all requests for a TG leaf in order to handle TG specifics.
         This should only be called by internal methods.
 
-        Parameters
-        ----------
+        *Parameters*
+
         recursed: boolean, keyword, default=False
             Signals if this is the top level call.
-        **kwargs: dictionary
+        \*\*kwargs: dictionary
             Used to pass through arguments to wrapped methods.
         """
 
@@ -162,6 +160,322 @@ class TG(RestBase):
                         'TG reports requests per minute exceeding 120.  Sleeping for self._backoff_timer seconds...')
                     time.sleep(self.backoff_timer)
                 else:
-                    return response_dict, status, include_filtered, exclude_filtered, cache_hit
+                    # Derive next_url
+                    next_url = None
+
+                    if 'data' in response_dict['json_dict'] \
+                            and 'current_item_count' in response_dict['json_dict']['data']:
+                        current_item_count = response_dict['json_dict']['data']['current_item_count']
+                        index = response_dict['json_dict']['data']['index']
+                        items_per_page = response_dict['json_dict']['data']['items_per_page']
+                        this_url = response_dict['url']
+                        if current_item_count < items_per_page:
+                            next_url = None
+                        else:
+                            offset = items_per_page + index
+                            if 'offset=' in this_url:
+                                next_url = re.sub(r'offset=[^&]+', 'offset=' + str(offset), this_url)
+                            else:
+                                next_url = '{}&{}{}'.format(this_url, 'offset=', str(offset))
+                        print('next_url=',next_url)
+                    return response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url
         else:
             return tree_helpers.process_json_request(**kwargs)
+
+
+    @logged(logger)
+    @traced(logger)
+    def get_datetime_obj(self, year=2018, month=1, day=1, hour=0, minute=0, second=0, tz_str='Etc/GMT-0'):
+
+        """Gets a Python datetime object representing the given parameters.
+
+        Returns: Python datetime object
+
+        *Parameters*
+
+        year: integer, keyword, default=2018
+            The datetime year
+        month: integer, keyword, default=1
+            The datetime month
+        day: integer, keyword, default=1
+            The datetime day
+        hour: integer, keyword, default=0
+            The datetime hour
+        minute: integer, keyword, default=0
+            The datetime minute
+        second: integer, keyword, default=0
+            The datetime second
+        tz_str: string, keyword, default=Etc/GMT-0
+            The datetime time zone
+        """
+
+        _datetime = tree_helpers.get_datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second,
+                                              tz_str=tz_str)
+
+        return _datetime
+
+
+    @logged(logger)
+    @traced(logger)
+    def get_datetime_str(self, year=2018, month=1, day=1, hour=0, minute=0, second=0, tz_str='Etc/GMT-0'):
+
+        """Gets a datetime string for the given parameters.
+
+        Returns: A datetime string formatted with strftime
+
+        *Parameters*
+
+        year: integer, keyword, default=2018
+            The datetime year
+        month: integer, keyword, default=1
+            The datetime month
+        day: integer, keyword, default=1
+            The datetime day
+        hour: integer, keyword, default=0
+            The datetime hour
+        minute: integer, keyword, default=0
+            The datetime minute
+        second: integer, keyword, default=0
+            The datetime second
+        tz_str: string, keyword, default=Etc/GMT-0
+            The datetime time zone
+        """
+
+        _datetime = tree_helpers.get_datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second,
+                                              tz_str=tz_str)
+        _strftime = tree_helpers.get_strftime(_datetime=_datetime)
+
+        return _strftime
+
+
+    @logged(logger)
+    @traced(logger)
+    def get_datetime_now_str(self):
+
+        """Gets a datetime string for the current time formatted with strftime.
+
+        Returns: A datetime string for the current time formatted with strftime
+
+        *Parameters*
+
+        None
+        """
+
+        _strftime = tree_helpers.get_strftime()
+
+        return _strftime
+
+
+    @logged(logger)
+    @traced(logger)
+    def get_datetime_delta_str(self, _strftime=None, days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0,
+                               hours=0, weeks=0):
+
+        """Gets a datetime string for the delta with _strftime time formatted with strftime.
+
+        Returns: A datetime string for the current time formatted with strftime
+
+        *Parameters*
+
+        _strftime: string, keyword, default=None
+            The base time formatted with strftime
+        days: integer, keyword, default=0
+            The +- number of days
+        seconds: integer, keyword, default=0
+            The +- number of seconds
+        microseconds: integer, keyword, default=0
+            The +- number of microseconds
+        milliseconds: integer, keyword, default=0
+            The +- number of milliseconds
+        minutes: integer, keyword, default=0
+            The +- number of minutes
+        hours: integer, keyword, default=0
+            The +- number of hours
+        weeks: integer, keyword, default=0
+            The +- number of weeks
+        """
+
+        _strftime = tree_helpers.get_strftime_delta(_strftime=_strftime, days=days, seconds=seconds,
+                                                    microseconds=microseconds, milliseconds=milliseconds,
+                                                    minutes=minutes, hours=hours,
+                                                    weeks=weeks)
+
+        return _strftime
+
+    @logged(logger)
+    @traced(logger)
+    def free_form(self, base_paths=None, id_list=None, element_paths=None, params=None, responses_dict=None):
+
+        """Gets threatgrid samples.
+
+        Returns: a responses dictionary
+
+        *Parameters*
+
+        sample_search_paths: dictionary, keyword, default=None
+            Defines the search parameters (e.g. checksum=<sha256>).
+        params: dictionary, keyword, default=None
+            Defines the search scope parameters (e.g. before=<strftime>).
+        responses_dict: dictionary, keyword, default=None
+            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
+            if caller would like to keep the responses isolated.
+        """
+
+        sample_path = 'api/v2/samples/search'
+
+        url = self._prepare_url(url=sample_path, params=params)
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+        else:
+            responses_dict = responses_dict
+
+        for key, val in sample_search_paths.items():
+            url = '{}&{}={}'.format(url, key, str(val))
+            print(url)
+            self.GET_API_path(url=url, responses_dict=responses_dict)
+
+        return responses_dict
+
+
+    @logged(logger)
+    @traced(logger)
+    def search_samples(self, sample_search_paths=None, params=None, responses_dict=None):
+
+        """Gets threatgrid samples.
+
+        Returns: a responses dictionary
+
+        *Parameters*
+
+        sample_search_paths: dictionary, keyword, default=None
+            Defines the search parameters (e.g. checksum=<sha256>).
+        params: dictionary, keyword, default=None
+            Defines the search scope parameters (e.g. before=<strftime>).
+        responses_dict: dictionary, keyword, default=None
+            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
+            if caller would like to keep the responses isolated.
+        """
+
+        sample_path = 'api/v2/samples/search'
+
+        url = self._prepare_url(url=sample_path, params=params)
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+        else:
+            responses_dict = responses_dict
+
+        for key, val in sample_search_paths.items():
+            url = '{}&{}={}'.format(url, key, str(val))
+            print(url)
+            self.GET_API_path(url=url, responses_dict=responses_dict)
+
+        return responses_dict
+
+
+    @logged(logger)
+    @traced(logger)
+    def get_samples(self, params=None, responses_dict=None):
+
+        """Gets threatgrid samples.
+
+        Returns: a responses dictionary
+
+        *Parameters*
+
+        params: dictionary, keyword, default=None
+            Defines the search scope parameters (e.g. before=<strftime>).
+        responses_dict: dictionary, keyword, default=None
+            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
+            if caller would like to keep the responses isolated.
+        """
+
+        sample_path = 'api/v2/samples'
+
+        sample_path = self._prepare_url(url=sample_path, params=params)
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+        else:
+            responses_dict = responses_dict
+
+        responses = self.get_all_items(url=sample_path, responses_dict=responses_dict)
+
+        return responses
+
+
+    @logged(logger)
+    @traced(logger)
+    def walk_samples(self, sample_id_paths=None, params=None, responses_dict=None):
+
+        """Walks threatgrid samples by id.
+
+        Returns: a responses dictionary
+
+        *Parameters*
+
+        sample_id_paths: dictionary, keyword, default=None
+            Defines the paths to retrieve for each id.
+        params: dictionary, keyword, default=None
+            Defines the search scope parameters (e.g. before=<strftime>).
+        responses_dict: dictionary, keyword, default=None
+            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
+            if caller would like to keep the responses isolated.
+        """
+
+        sample_path = 'api/v2/samples'
+
+        url = self._prepare_url(url=sample_path, params=params)
+
+        responses = self.get_all_items(url=url)
+
+        ids = tree_helpers.get_jsonpath_values('$..data.items[*].id', responses)
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+        else:
+            responses_dict = responses_dict
+
+        for id in ids:
+            url = sample_path + '/' + str(id)
+            for sample_id_path in sample_id_paths:
+                url = url + '/' + sample_id_path
+                url = self._prepare_url(url)
+                print(url)
+                self.GET_API_path(url=url, responses_dict=responses_dict)
+
+        return responses_dict
+
+
+    @logged(logger)
+    @traced(logger)
+    def _prepare_url(self, url=None, params=None):
+
+        """Prepares the url by replacing parameter placeholders with values.
+        This should only be called by internal methods.
+
+        *Parameters*
+
+        url: string, keyword, default=None
+            The url to prepare.
+        params: dictionary, keyword, default=None
+            The parameters dictionary.
+        """
+
+        if not re.match(r'.+?\?[^/]+$', url):
+            url = url + '?'
+        else:
+            url = url + '&'
+
+        if not 'api_key=' in url:
+            url = url + ('api_key=%s' % self.TG_API_key)
+        else:
+            if not 'api_key=%s' % self.TG_API_key in url:
+                url = re.sub(r'api_key=[^&]+', 'api_key=%s' % self.TG_API_key, url)
+
+        if params is not None:
+            for key, val in params.items():
+                url = url + '&{}={}'.format(key, str(val))
+
+        return url

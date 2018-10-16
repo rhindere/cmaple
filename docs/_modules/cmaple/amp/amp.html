@@ -108,8 +108,8 @@
 
 <span class="sd">        Returns an AMP leaf object.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        AMP_host: string, keyword, default=None</span>
 <span class="sd">            The ip address or fqdn of ThreatGrid</span>
 <span class="sd">        AMP_API_client_ID: string, keyword, default=None</span>
@@ -175,11 +175,11 @@
         <span class="sd">&quot;&quot;&quot;Wraps all requests for an AMP leaf in order to handle AMP specifics.</span>
 <span class="sd">        This should only be called by internal methods.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        recursed: boolean, keyword, default=False</span>
 <span class="sd">            Signals if this is the top level call.</span>
-<span class="sd">        **kwargs: dictionary</span>
+<span class="sd">        \*\*kwargs: dictionary</span>
 <span class="sd">            Used to pass through arguments to wrapped methods.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -198,7 +198,17 @@
                         <span class="s1">&#39;AMP reports requests per minute exceeding 120.  Sleeping for self._backoff_timer seconds...&#39;</span><span class="p">)</span>
                     <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">backoff_timer</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span>
+                    <span class="n">next_link</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+
+                    <span class="n">next_url</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="k">if</span> <span class="n">next_link</span><span class="p">:</span>
+                        <span class="n">next_url</span> <span class="o">=</span> <span class="n">next_link</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;next_link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_url</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">next_url</span> <span class="o">=</span> <span class="kc">None</span>
+
+                    <span class="k">return</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">process_json_request</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -211,8 +221,8 @@
 
 <span class="sd">        Returns: child_url for this anomalous type</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        response_dict: dictionary</span>
 <span class="sd">            The response for which to find child urls.</span>
 <span class="sd">        parent_url: string</span>
@@ -221,11 +231,16 @@
 
         <span class="n">child_links</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_objectpath_values</span><span class="p">(</span><span class="s1">&#39;$..links&#39;</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
         <span class="n">child_urls</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">child_types</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">child_link</span> <span class="ow">in</span> <span class="n">child_links</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">child_link</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">val</span> <span class="o">==</span> <span class="n">parent_url</span><span class="p">:</span>
                     <span class="n">child_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">child_urls</span></div></div>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">child_types</span><span class="p">:</span>
+                        <span class="n">child_types</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;urls&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;type_dicts&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+                    <span class="n">child_types</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;urls&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                    <span class="n">child_types</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;type_dicts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">child_urls</span><span class="p">,</span> <span class="n">child_types</span></div></div>
 </pre></div>
 
           </div>

@@ -73,8 +73,8 @@ class AMP(RestBase):
 
         Returns an AMP leaf object.
 
-        Parameters
-        ----------
+        *Parameters*
+
         AMP_host: string, keyword, default=None
             The ip address or fqdn of ThreatGrid
         AMP_API_client_ID: string, keyword, default=None
@@ -140,11 +140,11 @@ class AMP(RestBase):
         """Wraps all requests for an AMP leaf in order to handle AMP specifics.
         This should only be called by internal methods.
 
-        Parameters
-        ----------
+        *Parameters*
+
         recursed: boolean, keyword, default=False
             Signals if this is the top level call.
-        **kwargs: dictionary
+        \*\*kwargs: dictionary
             Used to pass through arguments to wrapped methods.
         """
 
@@ -163,7 +163,17 @@ class AMP(RestBase):
                         'AMP reports requests per minute exceeding 120.  Sleeping for self._backoff_timer seconds...')
                     time.sleep(self.backoff_timer)
                 else:
-                    return response_dict, status, include_filtered, exclude_filtered, cache_hit
+                    next_link = tree_helpers.get_jsonpath_values(self.next_link_query, response_dict)
+
+                    next_url = None
+
+                    if next_link:
+                        next_url = next_link[0][0]
+                        response_dict['next_link'] = next_url
+                    else:
+                        next_url = None
+
+                    return response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url
         else:
             return tree_helpers.process_json_request(**kwargs)
 
@@ -176,8 +186,8 @@ class AMP(RestBase):
 
         Returns: child_url for this anomalous type
 
-        Parameters
-        ----------
+        *Parameters*
+
         response_dict: dictionary
             The response for which to find child urls.
         parent_url: string
@@ -186,8 +196,13 @@ class AMP(RestBase):
 
         child_links = tree_helpers.get_objectpath_values('$..links', response_dict)
         child_urls = []
+        child_types = {}
         for child_link in child_links:
             for key, val in child_link.items():
                 if not val == parent_url:
                     child_urls.append(val)
-        return child_urls
+                    if key not in child_types:
+                        child_types[key] = {'urls': [], 'type_dicts': []}
+                    child_types[key]['urls'].append(val)
+                    child_types[key]['type_dicts'].append({key: val})
+        return child_urls, child_types

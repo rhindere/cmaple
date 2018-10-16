@@ -58,8 +58,8 @@ class CMapleTree():
 
         Returns a tree object.
 
-        Parameters
-        ----------
+        *Parameters*
+
         name: string, keyword, default=None
             The name of this MAPLE tree.  The name is required and will be used to create a working directory
             for the tree object.
@@ -119,8 +119,8 @@ class CMapleTree():
 
         Returns a leaf object.
 
-        Parameters
-        ----------
+        *Parameters*
+
         leaf_type: string, keyword, default=None
             The leaf type to initialize.
         kwargs: dictionary
@@ -164,7 +164,7 @@ class CMapleTree():
 
         if leaf not in self.leaf_instances:
             self.leaf_instances[leaf] = []
-        leaf_class = getattr(self.leaf_modules[leaf],leaf.upper())
+        leaf_class = getattr(self.leaf_modules[leaf], leaf.upper())
         self.leaf_instances[leaf].append(leaf_class(**kwargs, leaf_dir=leaf_dir))
         
         return self.leaf_instances[leaf][-1]

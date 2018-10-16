@@ -27,7 +27,7 @@ __copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
 __license__ = "Cisco DEVNET"
 
 import re,sys,io,csv
-from pprint import pprint
+from pprint import pprint, PrettyPrinter
 from cmaple.tree_helpers import get_jsonpath_values
 from collections import OrderedDict
 import json
@@ -37,6 +37,15 @@ from autologging import logged, traced
 from autologging import TRACE
 
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
+
+# @logged(logger)
+# @traced(logger)
+# class MyPrettyPrinter(PrettyPrinter):
+#     def format(self, object, context, maxlevels, level):
+#         if isinstance(object, unicode):
+#             return (object.encode('utf8'), True, False)
+#         return pprint.PrettyPrinter.format(self, object, context, maxlevels, level)
+
 
 @logged(logger)
 @traced(logger)

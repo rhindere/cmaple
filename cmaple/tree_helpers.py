@@ -45,10 +45,52 @@ from jsonpath_ng.ext import parse
 import xmltodict
 import objectpath
 import shelve
+from time import gmtime,strftime
+from datetime import datetime, timedelta
+import calendar
+import pytz
 import _pickle
+from dateutil import parser as date_parser
 
 # Create a logger for this module...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
+
+
+@logged(logger)
+@traced(logger)
+def get_strftime(_datetime=datetime.utcnow(), strf_str=r'%Y-%m-%dT%H:%M:%SZ'):
+
+    return _datetime.strftime(strf_str)
+
+
+@logged(logger)
+@traced(logger)
+def get_strftime_delta(_strftime=get_strftime(), days=0, seconds=0, microseconds=0,
+                       milliseconds=0, minutes=0, hours=0, weeks=0, strf_str=r'%Y-%m-%dT%H:%M:%SZ'):
+
+    _datetime = datetime.strptime(_strftime, strf_str)
+    return (_datetime + timedelta(days=days, seconds=seconds, microseconds=microseconds, milliseconds=milliseconds,
+                                  minutes=minutes, hours=hours, weeks=weeks)).strftime(strf_str)
+
+
+@logged(logger)
+@traced(logger)
+def get_utc_timestamp(year=2018, month=1, day=1, hour=0, minute=0, second=0, tz_str='Etc/GMT-0'):
+
+    mytz = pytz.timezone(tz_str)
+    dt = datetime(year, month, day, hour, minute, second)
+    dt = mytz.normalize(mytz.localize(dt, is_dst=True))
+    return calendar.timegm(dt.utctimetuple())
+
+
+@logged(logger)
+@traced(logger)
+def get_datetime(year=2018, month=1, day=1, hour=0, minute=0, second=0, tz_str='Etc/GMT-0'):
+
+    mytz = pytz.timezone(tz_str)
+    dt = datetime(year, month, day, hour, minute, second)
+    dt = mytz.normalize(mytz.localize(dt, is_dst=True))
+    return dt
 
 
 @logged(logger)

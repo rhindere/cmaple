@@ -49,6 +49,7 @@
 <dd><p>__init__ receives a kwargs dict to define parameters.  This allows __init__ to pass these parameters
 to the superclass.</p>
 <p>Returns an FMC leaf object.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>json_file_path: string, keyword, default=None</dt>
 <dd>The path to the json model file.  This file is typically named ‘api-docs-fmcwithll.json’ and obtained
@@ -91,6 +92,7 @@ for the leaf instance are stored.</dd>
 <dt id="cmaple.fmc.fmc.FMC.or_migrate_config">
 <code class="descname">or_migrate_config</code><span class="sig-paren">(</span><em>source_config_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC.or_migrate_config"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Migrates objects stored in source_config_path to this FMC instance.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>source_config_path: string, keyword, default=None</dt>
 <dd>The path to the working directory of the source FMC leaf.</dd>
@@ -102,10 +104,11 @@ for the leaf instance are stored.</dd>
 <code class="descname">_request_wrapper</code><span class="sig-paren">(</span><em>recursed=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC._request_wrapper"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Wraps all requests for an FMC leaf in order to handle FMC specifics such at re-auth and rate limit.
 This should only be called by internal methods.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>recursed: boolean, keyword, default=False</dt>
 <dd>Signals if this is the top level call.</dd>
-<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: dictionary</dt>
+<dt>**kwargs: dictionary</dt>
 <dd>Used to pass through arguments to wrapped methods.</dd>
 </dl>
 </dd></dl>
@@ -116,6 +119,7 @@ This should only be called by internal methods.</p>
 <dd><p>This method handles API model anomalies in order to find child_urls for these object types.
 This should only be called by internal methods.</p>
 <p>Returns: child_url for this anomalous type</p>
+<p><em>Parameters</em></p>
 <p>type_dict: The anomalous type dictionary from the json request.</p>
 </dd></dl>
 
@@ -125,6 +129,7 @@ This should only be called by internal methods.</p>
 <dd><p>This method retrieves the url for all child objects of this response.
 This should only be called by internal methods.</p>
 <p>Returns: child_url for this anomalous type</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>response_dict: dictionary</dt>
 <dd>The response for which to find child urls.</dd>
@@ -140,6 +145,7 @@ This should only be called by internal methods.</p>
 <p>Returns a Python dictionary object containing the response results for all url path GETs.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>use_cache: boolean, keyword, default=False</dt>
 <dd>If set to True, any path that has already been requested will not generate a new request</dd>
@@ -167,6 +173,7 @@ dictionaries.</p>
 has changed since the last run.  It it is the same it will restore the json model dictionary and all derived
 reference dictionaries from pickled files.</p>
 <p>Pickles all newly created Python dictionaries if required.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>json_file_path: string, keyword, default=None</dt>
 <dd>The path to the json model file.  This file is typically named ‘api-docs-fmcwithll.json’ and obtained
@@ -189,6 +196,7 @@ This file provides the API model to MAPLE:FMC which is used for many of the oper
 <dd><p>Returns the id of the given domain.</p>
 <p>Returns the id of the domain name given in the arugment.  This is the id to use in API calls 
 for the respective domain.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>domain <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
 <dd>The domain name for which to retrieve the id.</dd>
@@ -209,6 +217,7 @@ will be required as indicated by placeholders {containerUUID} and {objectId}.</p
 <dd><p>Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and
 posts all records with a bulk post.  Target API must support bulk post for the given url.</p>
 <p>Returns - No return value.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string, keyword, default=None</dt>
 <dd>The target url to post records.</dd>
@@ -224,6 +233,7 @@ posts all records with a bulk post.  Target API must support bulk post for the g
 <p>Returns a Python dictionary object containing the response results.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string</dt>
 <dd>The url of the path to intelligently GET.
@@ -241,6 +251,7 @@ if caller would like to keep the responses isolated.</dd>
 <p>Returns a Python dictionary object containing the response results.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string</dt>
 <dd>The url of the path to intelligently GET.
@@ -309,9 +320,11 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.GET_API_path">
 <code class="descname">GET_API_path</code><span class="sig-paren">(</span><em>url</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>use_cache=False</em>, <em>responses_dict=None</em>, <em>get_item_limit=400</em><span class="sig-paren">)</span></dt>
 <dd><p>Wrapper for a REST GET request.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for the GET.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
 <dd>The starting url of the path to walk.  Must be a fully valid FMC api “GET” path.  url can include the
@@ -337,7 +350,9 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.GET_responses_by_jsonpath">
 <code class="descname">GET_responses_by_jsonpath</code><span class="sig-paren">(</span><em>jsonpath</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Returns responses matching a jsonpath query.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - The matching responses.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>jsonpath: string</dt>
 <dd>The jsonpath query to match responses.</dd>
@@ -350,9 +365,11 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC._collect_responses">
 <code class="descname">_collect_responses</code><span class="sig-paren">(</span><em>url</em>, <em>response_dict</em>, <em>responses_dict</em><span class="sig-paren">)</span></dt>
 <dd><p>Utility method called by wrappers to request all pages for a given url.  Normally not called directly.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string</dt>
 <dd>The url of the path to GET.  Must be a fully valid FMC api “GET” path.</dd>
@@ -368,6 +385,7 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC._prepare_url_for_migration">
 <code class="descname">_prepare_url_for_migration</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>Must override in parent class</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 </dd></dl>
 
 <dl class="method">
@@ -376,9 +394,11 @@ if caller would like to keep the responses isolated.</dd>
 <dd><p>Handles recursion of a given url path.  Normally not called directly but from a wrapper method.
 Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically
 handles pagination and discovery of child urls.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for all url path GETs.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
 <dd>The starting url of the path to recurse.  Must be a fully valid FMC api “GET” path.  url can include the
@@ -413,7 +433,9 @@ contains a circular object.</dd>
 <dt id="cmaple.fmc.fmc.FMC._set_json_properties_by_objectpath">
 <code class="descname">_set_json_properties_by_objectpath</code><span class="sig-paren">(</span><em>json_dict=None</em>, <em>properties_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Sets properties in json_dict from properties_dict.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - The modified json_dict.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>json_dict: dictionary, keyword, default=None</dt>
 <dd>The json_dict to modify.</dd>
@@ -426,9 +448,11 @@ contains a circular object.</dd>
 <dt id="cmaple.fmc.fmc.FMC.get_all_items">
 <code class="descname">get_all_items</code><span class="sig-paren">(</span><em>url</em>, <em>use_cache=True</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>filtered=False</em>, <em>cache_hit=False</em>, <em>get_item_limit=400</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Performs a get to retrieve the “Items” listing for the url.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
 <dd>The url for which to retrieve the items list.  Must be a fully valid FMC api “GET” path.  url can include
@@ -454,9 +478,11 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.get_json_request">
 <code class="descname">get_json_request</code><span class="sig-paren">(</span><em>url</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Generic wrapper for a REST API GET request.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for the Post.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string</dt>
 <dd>The url of the path to GET.  Must be a fully valid FMC api “GET” path.  url can include the
@@ -473,7 +499,9 @@ if caller would like to keep the responses isolated.</dd>
 <code class="descname">post_csv_template</code><span class="sig-paren">(</span><em>url=None</em>, <em>file_path=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and
 posts each record individually to the target.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - No return value.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string, keyword, default=None</dt>
 <dd>The target url to post records.</dd>
@@ -486,9 +514,11 @@ posts each record individually to the target.</p>
 <dt id="cmaple.fmc.fmc.FMC.post_json_request">
 <code class="descname">post_json_request</code><span class="sig-paren">(</span><em>url</em>, <em>json_dict</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Generic wrapper for a REST API Post request.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for the Post.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string</dt>
 <dd>The url of the path to POST.  Must be a fully valid FMC api “GET” path.  url can include the
@@ -506,9 +536,11 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.put_json_request">
 <code class="descname">put_json_request</code><span class="sig-paren">(</span><em>url</em>, <em>json_dict</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Generic wrapper for a REST API Put request.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for the Post.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url: string</dt>
 <dd>The url of the path to POST.  Must be a fully valid FMC api “GET” path.  url can include the
@@ -526,7 +558,9 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.query_json_field">
 <code class="descname">query_json_field</code><span class="sig-paren">(</span><em>query_field=None</em>, <em>json_to_query=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Returns a list of objects matching the query_field query.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - A list of the matching objects</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>query_field: string, keyword, default=None</dt>
 <dd>The field for which to query fields.</dd>
@@ -539,7 +573,9 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.query_json_field_from_url">
 <code class="descname">query_json_field_from_url</code><span class="sig-paren">(</span><em>query_url=None</em>, <em>json_to_query=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Returns a list of json fields matching an objectpath query.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - A list of the matching fields.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>query_url: string, keyword, default=None</dt>
 <dd>The url for which to query fields.</dd>
@@ -552,7 +588,9 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.query_with_list">
 <code class="descname">query_with_list</code><span class="sig-paren">(</span><em>query_url=None</em>, <em>query_list=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Iterates over and substitutes the values in query_list in query_url</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - All responses obtained.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>query_url: string, keyword, default=None</dt>
 <dd>The url for which to query fields.</dd>
@@ -565,7 +603,9 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.set_json_properties">
 <code class="descname">set_json_properties</code><span class="sig-paren">(</span><em>json_dict=None</em>, <em>properties_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Sets properties in json_dict from properties_dict.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - The modified json_dict.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>json_dict: dictionary, keyword, default=None</dt>
 <dd>The json_dict to modify.</dd>
@@ -578,9 +618,11 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.walk_API_path_gets">
 <code class="descname">walk_API_path_gets</code><span class="sig-paren">(</span><em>url</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>use_cache=True</em>, <em>stop_on_error=False</em>, <em>get_item_limit=400</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Begins at given API url path and recursively GET walks path and child paths until complete.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for all url path GETs.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
 responses_dict parameter.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>url <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
 <dd>The starting url of the path to walk.  Must be a fully valid FMC api “GET” path.  url can include the
@@ -606,7 +648,9 @@ if caller would like to keep the responses isolated.</dd>
 <dt id="cmaple.fmc.fmc.FMC.write_csv_template_from_response">
 <code class="descname">write_csv_template_from_response</code><span class="sig-paren">(</span><em>response_json=None</em>, <em>file=&lt;colorama.ansitowin32.StreamWrapper object&gt;</em><span class="sig-paren">)</span></dt>
 <dd><p>Flatlines response_json and writes to a csv record.</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns - The csv records.</p>
+<p><em>Parameters</em></p>
 <dl class="docutils">
 <dt>response_json: list, keyword, default=None</dt>
 <dd>The list of responses to write to csv.</dd>

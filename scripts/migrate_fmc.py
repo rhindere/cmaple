@@ -27,6 +27,8 @@ __version__ = "0.1"
 __copyright__ = "Copyright (c) 2018 Cisco and/or its affiliates."
 __license__ = "Cisco DEVNET"
 
+import sys
+sys.path.insert(0, r'C:\Users\rhindere\Documents\PycharmProjects\maple_project')
 from cmaple.tree import CMapleTree
 import cmaple.output_transforms as output
 from pprint import pprint

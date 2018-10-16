@@ -78,32 +78,54 @@ class RestBase(object):
         self.responses_dict = {}
 
     def _request_wrapper(self):
-        """Must override in parent class"""
+        """Must override in parent class
+
+        *****Inherited from RestBase...*****
+
+        """
+
         pass
 
     def _get_child_urls(self):
-        """Must override in parent class"""
+        """Must override in parent class
+
+        *****Inherited from RestBase...*****
+
+        """
+
         pass
 
     def _prepare_url_for_migration(self):
-        """Must override in parent class"""
+        """Must override in parent class
+
+        *****Inherited from RestBase...*****
+
+        """
+
         pass
 
     def or_migrate_config(self):
-        """Must override in parent class"""
+        """Must override in parent class
+
+        *****Inherited from RestBase...*****
+
+        """
+
         pass
 
     def put_json_request(self, url, json_dict, responses_dict=None):
 
         """Generic wrapper for a REST API Put request.
 
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results for the Post.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string
             The url of the path to POST.  Must be a fully valid FMC api "GET" path.  url can include the
             host prefix or start from the resource path.  If the host prefix is missing, it will be added
@@ -122,7 +144,7 @@ class RestBase(object):
             url = self.path_root + url
 
         json_string = json.dumps(json_dict)
-        response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+        response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url = \
             self._request_wrapper(recursed=False, url=url, json_body=json_string,
                                   responses_dict=responses_dict, headers=self.request_headers,
                                   method='put', credentials_dict=self.credentials_dict, verify=self.verify,
@@ -133,13 +155,15 @@ class RestBase(object):
 
         """Generic wrapper for a REST API Post request.
 
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results for the Post.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string
             The url of the path to POST.  Must be a fully valid FMC api "GET" path.  url can include the
             host prefix or start from the resource path.  If the host prefix is missing, it will be added
@@ -158,7 +182,7 @@ class RestBase(object):
             url = self.path_root + url
 
         json_string = json.dumps(json_dict)
-        response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+        response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url = \
             self._request_wrapper(recursed=False, url=url, json_body=json_string,
                                   responses_dict=responses_dict, headers=self.request_headers,
                                   method='post', credentials_dict=self.credentials_dict, verify=self.verify,
@@ -169,13 +193,15 @@ class RestBase(object):
 
         """Generic wrapper for a REST API GET request.
 
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results for the Post.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string
             The url of the path to GET.  Must be a fully valid FMC api "GET" path.  url can include the
             host prefix or start from the resource path.  If the host prefix is missing, it will be added
@@ -191,7 +217,7 @@ class RestBase(object):
         if self.path_root not in url:
             url = self.path_root + url
 
-        response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+        response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url = \
             self._request_wrapper(recursed=False, url=url,
                                   responses_dict=responses_dict, headers=self.request_headers,
                                   method='get', credentials_dict=self.credentials_dict, verify=self.verify,
@@ -204,13 +230,15 @@ class RestBase(object):
 
         """Performs a get to retrieve the "Items" listing for the url.
 
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url : string
             The url for which to retrieve the items list.  Must be a fully valid FMC api "GET" path.  url can include
             the host prefix or start from the resource path.  If the host prefix is missing, it will be added
@@ -238,7 +266,7 @@ class RestBase(object):
 
         while True:
             logger.debug('get_all_items: recursing with url %s' % (url))
-            response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+            response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url = \
                 self._request_wrapper(recursed=False, url=url, responses_dict=responses_dict,
                                       headers=self.request_headers,
                                       method='get', credentials_dict=self.credentials_dict,
@@ -250,15 +278,12 @@ class RestBase(object):
                                       get_item_limit=get_item_limit)
 
             logger.debug(pformat(response_dict))
-            next_link = tree_helpers.get_jsonpath_values(self.next_link_query, response_dict)
 
             if status and self.persist_responses:
                 self.response_counter += 1
                 tree_helpers.persist_response(self.leaf_dir, self.response_counter, response_dict)
 
-            if next_link:
-                next_url = next_link[0][0]
-                response_dict['next_link'] = next_url
+            if next_url is not None:
                 url = next_url
             else:
                 break
@@ -273,13 +298,15 @@ class RestBase(object):
         Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically
         handles pagination and discovery of child urls.
 
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results for all url path GETs.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url : string
             The starting url of the path to recurse.  Must be a fully valid FMC api "GET" path.  url can include the
             host prefix or start from the resource path.  If the host prefix is missing, it will be added
@@ -310,7 +337,7 @@ class RestBase(object):
 
         while True:
             logger.debug('recurse_API_child_gets: recursing with url %s' % (url))
-            response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+            response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url = \
                 self._request_wrapper(recursed=False, url=url, responses_dict=responses_dict,
                                       headers=self.request_headers,
                                       method='get', credentials_dict=self.credentials_dict,
@@ -322,13 +349,14 @@ class RestBase(object):
                                       get_item_limit=get_item_limit)
 
             logger.debug(pformat(response_dict))
-            next_link = tree_helpers.get_jsonpath_values(self.next_link_query, response_dict)
 
             child_urls = []
+            child_types = []
             # Insert the parent url so we don't add it as a child of a child....securityzones...physical interfaces
             if response_dict['json_dict']:
-                child_urls = self._get_child_urls(response_dict, url)
+                child_urls, child_types = self._get_child_urls(response_dict, url)
             response_dict['child_urls'] = child_urls
+            response_dict['child_types'] = child_types
 
             if status and self.persist_responses:
                 self.response_counter += 1
@@ -346,9 +374,8 @@ class RestBase(object):
                                                  use_cache=use_cache, stop_on_error=stop_on_error,
                                                  get_item_limit=get_item_limit, responses_dict=responses_dict,
                                                  parent_url=url)
-            if next_link:
-                next_url = next_link[0][0]
-                response_dict['next_link'] = next_url
+
+            if next_url is not None:
                 url = next_url
             else:
                 break
@@ -358,14 +385,16 @@ class RestBase(object):
                            responses_dict=None):
 
         """Begins at given API url path and recursively GET walks path and child paths until complete.
-        
+
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results for all url path GETs.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url : string
             The starting url of the path to walk.  Must be a fully valid FMC api "GET" path.  url can include the
             host prefix or start from the resource path.  If the host prefix is missing, it will be added
@@ -397,20 +426,22 @@ class RestBase(object):
                                     exclude_filter_regex=exclude_filter_regex,
                                     use_cache=use_cache,stop_on_error=stop_on_error,
                                     get_item_limit=get_item_limit, responses_dict=responses_dict)
-    
+
         return responses_dict
 
     def _collect_responses(self, url, response_dict, responses_dict):
 
         """Utility method called by wrappers to request all pages for a given url.  Normally not called directly.
 
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string
             The url of the path to GET.  Must be a fully valid FMC api "GET" path.
         response_dict: dictionary
@@ -419,7 +450,7 @@ class RestBase(object):
             Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
             if caller would like to keep the responses isolated.
         """
-        
+
         while True:
             response_struct = self.get_json_request(url, responses_dict=responses_dict)
             logger.debug(pformat(response_struct))
@@ -438,10 +469,12 @@ class RestBase(object):
         """Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and
         posts each record individually to the target.
 
+        *****Inherited from RestBase...*****
+
         Returns - No return value.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string, keyword, default=None
             The target url to post records.
         file_path: string, keyword, default=None
@@ -457,7 +490,7 @@ class RestBase(object):
         for flatlined in flatlined_list:
             expanded = output_transforms.expand_flattened_json(flatlined)
             expanded_json = json.dumps(expanded)
-            response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+            response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url = \
                 self._request_wrapper(recursed=False, url=url, json_body=expanded_json,
                                       responses_dict=self.responses_dict, headers=self.request_headers,
                                       method='post', credentials_dict=self.credentials_dict, verify=self.verify,
@@ -469,10 +502,12 @@ class RestBase(object):
 
         """Flatlines response_json and writes to a csv record.
 
+        *****Inherited from RestBase...*****
+
         Returns - The csv records.
 
-        Parameters
-        ----------
+        *Parameters*
+
         response_json: list, keyword, default=None
             The list of responses to write to csv.
         file: file_handle, keyword, default=sys.stdout
@@ -487,10 +522,12 @@ class RestBase(object):
 
         """Returns responses matching a jsonpath query.
 
+        *****Inherited from RestBase...*****
+
         Returns - The matching responses.
 
-        Parameters
-        ----------
+        *Parameters*
+
         jsonpath: string
             The jsonpath query to match responses.
         responses_dict: dictionary, keyword, default=None
@@ -505,13 +542,15 @@ class RestBase(object):
 
         """Wrapper for a REST GET request.
 
+        *****Inherited from RestBase...*****
+
         Returns a Python dictionary object containing the response results for the GET.
 
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url : string
             The starting url of the path to walk.  Must be a fully valid FMC api "GET" path.  url can include the
             host prefix or start from the resource path.  If the host prefix is missing, it will be added
@@ -539,7 +578,7 @@ class RestBase(object):
 
         response_keys = ['response_dict', 'status', 'include_filtered', 'exclude_filtered', 'cache_hit']
         logger.debug('GET_API_path: getting url %s' % (url))
-        response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+        response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url = \
             self._request_wrapper(recursed=False, url=url, responses_dict=responses_dict,
                                   headers=self.request_headers,
                                   method='get', credentials_dict=self.credentials_dict,
@@ -561,10 +600,12 @@ class RestBase(object):
 
         """Returns a list of json fields matching an objectpath query.
 
+        *****Inherited from RestBase...*****
+
         Returns - A list of the matching fields.
 
-        Parameters
-        ----------
+        *Parameters*
+
         query_url: string, keyword, default=None
             The url for which to query fields.
         json_to_query: dictionary, keyword, default=None
@@ -579,10 +620,12 @@ class RestBase(object):
 
         """Iterates over and substitutes the values in query_list in query_url
 
+        *****Inherited from RestBase...*****
+
         Returns - All responses obtained.
 
-        Parameters
-        ----------
+        *Parameters*
+
         query_url: string, keyword, default=None
             The url for which to query fields.
         query_list: list, keyword, default=None
@@ -606,10 +649,12 @@ class RestBase(object):
 
         """Returns a list of objects matching the query_field query.
 
+        *****Inherited from RestBase...*****
+
         Returns - A list of the matching objects
 
-        Parameters
-        ----------
+        *Parameters*
+
         query_field: string, keyword, default=None
             The field for which to query fields.
         json_to_query: dictionary, keyword, default=None
@@ -623,10 +668,12 @@ class RestBase(object):
 
         """Sets properties in json_dict from properties_dict.
 
+        *****Inherited from RestBase...*****
+
         Returns - The modified json_dict.
 
-        Parameters
-        ----------
+        *Parameters*
+
         json_dict: dictionary, keyword, default=None
             The json_dict to modify.
         properties_dict: dictionary, keyword, default=None
@@ -655,10 +702,12 @@ class RestBase(object):
 
         """Sets properties in json_dict from properties_dict.
 
+        *****Inherited from RestBase...*****
+
         Returns - The modified json_dict.
 
-        Parameters
-        ----------
+        *Parameters*
+
         json_dict: dictionary, keyword, default=None
             The json_dict to modify.
         properties_dict: dictionary, keyword, default=None

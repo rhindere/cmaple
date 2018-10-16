@@ -32,3 +32,9 @@ from autologging import TRACE
 import re
 
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
+
+
+# before = (datetime.utcnow()).strftime("%Y-%m-%dT%H:%M:%SZ")
+# after = (datetime.utcnow() - timedelta(days=days, hours=hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
+# url = "https://panacea.threatgrid.com/api/v2/iocs/feeds/domains?api_key={}&domain=domain&before={}&after={}".format(
+#     self.api_key, domain, before, after)

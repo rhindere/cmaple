@@ -31,8 +31,8 @@ from pprint import pprint
 import re, sys
 import _pickle
 
-AMP_API_client_ID = 'your AMP API ID'
-AMP_API_key = 'your AMP API key'
+AMP_API_client_ID = 'your_AMP_API_client_ID'
+AMP_API_key = 'your_AMP_API_key'
 
 maple_tree = CMapleTree(logging_level='INFO', name='amp_test',
                         tree_dir=r'C:\Users\rhindere\Documents\maple_working_dir')

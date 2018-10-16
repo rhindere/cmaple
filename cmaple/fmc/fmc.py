@@ -73,8 +73,8 @@ class FMC(RestBase):
 
         Returns an FMC leaf object.
 
-        Parameters
-        ----------
+        *Parameters*
+
         json_file_path: string, keyword, default=None
             The path to the json model file.  This file is typically named 'api-docs-fmcwithll.json' and obtained
             from the target FMC.  Typically resides in the directory
@@ -165,8 +165,8 @@ class FMC(RestBase):
 
         """Migrates objects stored in source_config_path to this FMC instance.
 
-        Parameters
-        ----------
+        *Parameters*
+
         source_config_path: string, keyword, default=None
             The path to the working directory of the source FMC leaf.
         """
@@ -461,11 +461,11 @@ class FMC(RestBase):
         """Wraps all requests for an FMC leaf in order to handle FMC specifics such at re-auth and rate limit.
         This should only be called by internal methods.
 
-        Parameters
-        ----------
+        *Parameters*
+
         recursed: boolean, keyword, default=False
             Signals if this is the top level call.
-        **kwargs: dictionary
+        \*\*kwargs: dictionary
             Used to pass through arguments to wrapped methods.
         """
 
@@ -496,7 +496,18 @@ class FMC(RestBase):
                         'FMC reports requests per minute exceeding 120.  Sleeping for self._backoff_timer seconds...')
                     time.sleep(self.backoff_timer)
                 else:
-                    return response_dict, status, include_filtered, exclude_filtered, cache_hit
+
+                    next_link = tree_helpers.get_jsonpath_values(self.next_link_query, response_dict)
+
+                    next_url = None
+
+                    if next_link:
+                        next_url = next_link[0][0]
+                        response_dict['next_link'] = next_url
+                    else:
+                        next_url = None
+
+                    return response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url
         else:
             return tree_helpers.process_json_request(**kwargs)
 
@@ -509,8 +520,8 @@ class FMC(RestBase):
 
         Returns: child_url for this anomalous type
 
-        Parameters
-        ----------
+        *Parameters*
+
         type_dict: The anomalous type dictionary from the json request.
         """
 
@@ -564,8 +575,8 @@ class FMC(RestBase):
 
         Returns: child_url for this anomalous type
 
-        Parameters
-        ----------
+        *Parameters*
+
         response_dict: dictionary
             The response for which to find child urls.
         parent_url: string
@@ -596,6 +607,7 @@ class FMC(RestBase):
         response_self_id = None
         url = response_dict['url']
         child_urls = []
+        child_types = {}
         if 'id' in response_dict['json_dict']:
             response_self_id = response_dict['json_dict']['id']
         else:
@@ -665,12 +677,16 @@ class FMC(RestBase):
                     # Add the root path in if missing...
                     if self.path_root not in child_url:
                         child_url = self.path_root + child_url
+                    if id_type not in child_types:
+                        child_types[id_type] = {'urls': [], 'type_dicts': []}
+                    child_types[id_type]['urls'].append(child_url)
+                    child_types[id_type]['type_dicts'].append(type_dict)
                     child_urls.append(child_url)
                 else:
                     logger.warning('Child url %s resolved to parent url' % child_url)
             else:
                 logger.warning('no url found for child dict %s ' % type_dict)
-        return child_urls
+        return child_urls, child_types
 
     #Begin class specific methods
     ################################################################################################################
@@ -684,8 +700,8 @@ class FMC(RestBase):
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         use_cache: boolean, keyword, default=False
             If set to True, any path that has already been requested will not generate a new request
         include_filter_regex: string, keyword, default=None
@@ -752,8 +768,8 @@ class FMC(RestBase):
         
         Pickles all newly created Python dictionaries if required.
 
-        Parameters
-        ----------
+        *Parameters*
+
         json_file_path: string, keyword, default=None
             The path to the json model file.  This file is typically named 'api-docs-fmcwithll.json' and obtained
             from the target FMC.  Typically resides in the directory
@@ -836,8 +852,8 @@ class FMC(RestBase):
         Returns the id of the domain name given in the arugment.  This is the id to use in API calls 
         for the respective domain.
 
-        Parameters
-        ----------
+        *Parameters*
+
         domain : string
             The domain name for which to retrieve the id.
         """
@@ -861,8 +877,8 @@ class FMC(RestBase):
 
         Returns - No return value.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string, keyword, default=None
             The target url to post records.
         file_path: string, keyword, default=None
@@ -887,8 +903,8 @@ class FMC(RestBase):
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string
             The url of the path to intelligently GET.
             Example: policy/accesspolicies/$.items[@.name is 'access_1'].id/accessrules/$.items[@.name is 'rule_1').id
@@ -953,8 +969,8 @@ class FMC(RestBase):
         By default stores all responses in self.responses_dict unless a dictionary is passed in using the
         responses_dict parameter.
 
-        Parameters
-        ----------
+        *Parameters*
+
         url: string
             The url of the path to intelligently GET.
             Example: policy/accesspolicies/$.items[@.name is 'access_1'].id/accessrules/$.items[@.name is 'rule_1').id

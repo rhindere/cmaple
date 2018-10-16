@@ -113,32 +113,54 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span> <span class="nf">_request_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class</span>
+
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">_get_child_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class</span>
+
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">_prepare_url_for_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class</span>
+
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">or_migrate_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Must override in parent class&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Must override in parent class</span>
+
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">put_json_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Generic wrapper for a REST API Put request.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results for the Post.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url: string</span>
 <span class="sd">            The url of the path to POST.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
 <span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
@@ -157,7 +179,7 @@
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
 
         <span class="n">json_string</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span>
-        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">json_string</span><span class="p">,</span>
                                   <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;put&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
@@ -168,13 +190,15 @@
 
         <span class="sd">&quot;&quot;&quot;Generic wrapper for a REST API Post request.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results for the Post.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url: string</span>
 <span class="sd">            The url of the path to POST.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
 <span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
@@ -193,7 +217,7 @@
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
 
         <span class="n">json_string</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span>
-        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">json_string</span><span class="p">,</span>
                                   <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
@@ -204,13 +228,15 @@
 
         <span class="sd">&quot;&quot;&quot;Generic wrapper for a REST API GET request.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results for the Post.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url: string</span>
 <span class="sd">            The url of the path to GET.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
 <span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
@@ -226,7 +252,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
 
-        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span>
                                   <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
@@ -239,13 +265,15 @@
 
         <span class="sd">&quot;&quot;&quot;Performs a get to retrieve the &quot;Items&quot; listing for the url.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url : string</span>
 <span class="sd">            The url for which to retrieve the items list.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include</span>
 <span class="sd">            the host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
@@ -273,7 +301,7 @@
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;get_all_items: recursing with url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">))</span>
-            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span> <span class="o">=</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
                                       <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
                                       <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span>
@@ -285,15 +313,12 @@
                                       <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
-            <span class="n">next_link</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">next_link</span><span class="p">:</span>
-                <span class="n">next_url</span> <span class="o">=</span> <span class="n">next_link</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;next_link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_url</span>
+            <span class="k">if</span> <span class="n">next_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">url</span> <span class="o">=</span> <span class="n">next_url</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">break</span>
@@ -308,13 +333,15 @@
 <span class="sd">        Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically</span>
 <span class="sd">        handles pagination and discovery of child urls.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results for all url path GETs.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url : string</span>
 <span class="sd">            The starting url of the path to recurse.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
 <span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
@@ -343,11 +370,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">url</span><span class="p">:</span>
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Recursing url =&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
-
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;recurse_API_child_gets: recursing with url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">))</span>
-            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span> <span class="o">=</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
                                       <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
                                       <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span>
@@ -359,13 +384,14 @@
                                       <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
-            <span class="n">next_link</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
 
             <span class="n">child_urls</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">child_types</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="c1"># Insert the parent url so we don&#39;t add it as a child of a child....securityzones...physical interfaces</span>
             <span class="k">if</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">]:</span>
-                <span class="n">child_urls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_child_urls</span><span class="p">(</span><span class="n">response_dict</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+                <span class="n">child_urls</span><span class="p">,</span> <span class="n">child_types</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_child_urls</span><span class="p">(</span><span class="n">response_dict</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
             <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;child_urls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_urls</span>
+            <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;child_types&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_types</span>
 
             <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -383,9 +409,8 @@
                                                  <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
                                                  <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
                                                  <span class="n">parent_url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">next_link</span><span class="p">:</span>
-                <span class="n">next_url</span> <span class="o">=</span> <span class="n">next_link</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;next_link&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_url</span>
+
+            <span class="k">if</span> <span class="n">next_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">url</span> <span class="o">=</span> <span class="n">next_url</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">break</span>
@@ -395,14 +420,16 @@
                            <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Begins at given API url path and recursively GET walks path and child paths until complete.</span>
-<span class="sd">        </span>
+
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results for all url path GETs.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url : string</span>
 <span class="sd">            The starting url of the path to walk.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
 <span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
@@ -434,20 +461,22 @@
                                     <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
                                     <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span><span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
                                     <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
-    
+
         <span class="k">return</span> <span class="n">responses_dict</span>
 
     <span class="k">def</span> <span class="nf">_collect_responses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Utility method called by wrappers to request all pages for a given url.  Normally not called directly.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url: string</span>
 <span class="sd">            The url of the path to GET.  Must be a fully valid FMC api &quot;GET&quot; path.</span>
 <span class="sd">        response_dict: dictionary</span>
@@ -456,7 +485,7 @@
 <span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
 <span class="sd">            if caller would like to keep the responses isolated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
+
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">response_struct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_json_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_struct</span><span class="p">))</span>
@@ -475,10 +504,12 @@
         <span class="sd">&quot;&quot;&quot;Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and</span>
 <span class="sd">        posts each record individually to the target.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - No return value.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url: string, keyword, default=None</span>
 <span class="sd">            The target url to post records.</span>
 <span class="sd">        file_path: string, keyword, default=None</span>
@@ -494,7 +525,7 @@
         <span class="k">for</span> <span class="n">flatlined</span> <span class="ow">in</span> <span class="n">flatlined_list</span><span class="p">:</span>
             <span class="n">expanded</span> <span class="o">=</span> <span class="n">output_transforms</span><span class="o">.</span><span class="n">expand_flattened_json</span><span class="p">(</span><span class="n">flatlined</span><span class="p">)</span>
             <span class="n">expanded_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">expanded</span><span class="p">)</span>
-            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+            <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span> <span class="o">=</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">json_body</span><span class="o">=</span><span class="n">expanded_json</span><span class="p">,</span>
                                       <span class="n">responses_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
                                       <span class="n">method</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">,</span>
@@ -506,10 +537,12 @@
 
         <span class="sd">&quot;&quot;&quot;Flatlines response_json and writes to a csv record.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - The csv records.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        response_json: list, keyword, default=None</span>
 <span class="sd">            The list of responses to write to csv.</span>
 <span class="sd">        file: file_handle, keyword, default=sys.stdout</span>
@@ -524,10 +557,12 @@
 
         <span class="sd">&quot;&quot;&quot;Returns responses matching a jsonpath query.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - The matching responses.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        jsonpath: string</span>
 <span class="sd">            The jsonpath query to match responses.</span>
 <span class="sd">        responses_dict: dictionary, keyword, default=None</span>
@@ -542,13 +577,15 @@
 
         <span class="sd">&quot;&quot;&quot;Wrapper for a REST GET request.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns a Python dictionary object containing the response results for the GET.</span>
 
 <span class="sd">        By default stores all responses in self.responses_dict unless a dictionary is passed in using the</span>
 <span class="sd">        responses_dict parameter.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        url : string</span>
 <span class="sd">            The starting url of the path to walk.  Must be a fully valid FMC api &quot;GET&quot; path.  url can include the</span>
 <span class="sd">            host prefix or start from the resource path.  If the host prefix is missing, it will be added</span>
@@ -576,7 +613,7 @@
 
         <span class="n">response_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;response_dict&#39;</span><span class="p">,</span> <span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;include_filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;exclude_filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;cache_hit&#39;</span><span class="p">]</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;GET_API_path: getting url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">url</span><span class="p">))</span>
-        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span> <span class="o">=</span> \
+        <span class="n">response_dict</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">include_filtered</span><span class="p">,</span> <span class="n">exclude_filtered</span><span class="p">,</span> <span class="n">cache_hit</span><span class="p">,</span> <span class="n">next_url</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">_request_wrapper</span><span class="p">(</span><span class="n">recursed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
                                   <span class="n">headers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span><span class="p">,</span>
                                   <span class="n">method</span><span class="o">=</span><span class="s1">&#39;get&#39;</span><span class="p">,</span> <span class="n">credentials_dict</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span><span class="p">,</span>
@@ -598,10 +635,12 @@
 
         <span class="sd">&quot;&quot;&quot;Returns a list of json fields matching an objectpath query.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - A list of the matching fields.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        query_url: string, keyword, default=None</span>
 <span class="sd">            The url for which to query fields.</span>
 <span class="sd">        json_to_query: dictionary, keyword, default=None</span>
@@ -616,10 +655,12 @@
 
         <span class="sd">&quot;&quot;&quot;Iterates over and substitutes the values in query_list in query_url</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - All responses obtained.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        query_url: string, keyword, default=None</span>
 <span class="sd">            The url for which to query fields.</span>
 <span class="sd">        query_list: list, keyword, default=None</span>
@@ -643,10 +684,12 @@
 
         <span class="sd">&quot;&quot;&quot;Returns a list of objects matching the query_field query.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - A list of the matching objects</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        query_field: string, keyword, default=None</span>
 <span class="sd">            The field for which to query fields.</span>
 <span class="sd">        json_to_query: dictionary, keyword, default=None</span>
@@ -660,10 +703,12 @@
 
         <span class="sd">&quot;&quot;&quot;Sets properties in json_dict from properties_dict.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - The modified json_dict.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        json_dict: dictionary, keyword, default=None</span>
 <span class="sd">            The json_dict to modify.</span>
 <span class="sd">        properties_dict: dictionary, keyword, default=None</span>
@@ -692,10 +737,12 @@
 
         <span class="sd">&quot;&quot;&quot;Sets properties in json_dict from properties_dict.</span>
 
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
 <span class="sd">        Returns - The modified json_dict.</span>
 
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
+<span class="sd">        *Parameters*</span>
+
 <span class="sd">        json_dict: dictionary, keyword, default=None</span>
 <span class="sd">            The json_dict to modify.</span>
 <span class="sd">        properties_dict: dictionary, keyword, default=None</span>
