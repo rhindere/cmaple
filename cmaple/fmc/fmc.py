@@ -136,7 +136,7 @@ class FMC(RestBase):
         self.domain_ID_dict = {}
         self._url_host = 'https://' + self.FMC_host
         if self.FMC_port and not int(self.FMC_port) == int(443):
-            self._url_host += ':' + self.FMC_port
+            self._url_host += ':' + str(self.FMC_port)
         self._auth_url = self._url_host + _API_AUTH_PATH.replace('{API_version}',self.API_version)
         self.request_headers = {'Content-Type': 'application/json'}
         self._auth_headers = self.request_headers
@@ -149,7 +149,7 @@ class FMC(RestBase):
         self._get_token_and_domains()
         self.FMC_domain = fmc_helpers.validate_FMC_domain(self.FMC_domain,self.domain_ID_dict)
         self.FMC_domain_ID = self.domain_ID_dict[self.FMC_domain]
-        self.path_root='{}/{}/{}/{}/{}/{}/'.format(self._url_host,'api','fmc_config',self.API_version,'domain',
+        self.path_root = '{}/{}/{}/{}/{}/{}/'.format(self._url_host,'api','fmc_config',self.API_version,'domain',
                                                    self.FMC_domain_ID)
         # This cache will be used by _get_child_urls to store responses to handle anomaly cases
         self.anomalous_response_cache = {}
@@ -172,7 +172,8 @@ class FMC(RestBase):
         """
 
         def get_url_type(url, response_dict):
-
+            print('gut=', url)
+            pprint(response_dict)
             url_type = None
             if 'items' in response_dict['json_dict']:
                 url_type = 'item_list'
@@ -203,8 +204,6 @@ class FMC(RestBase):
 
         def prep_composite_json(json_dict):
 
-            print('in composite_json')
-            pprint(json_dict)
             def recurse_path(id_path_parts, json_dict):
                 path_part = id_path_parts.pop(0)
                 if type(json_dict) is list:
@@ -267,7 +266,7 @@ class FMC(RestBase):
                 new_json = prep_composite_json(new_json)
             return new_json
 
-        def get_item_id(url, name, type):
+        def get_item_id(url, name, type, response_dict):
             item_id = None
             if type in name_to_id_mappings and name in name_to_id_mappings[type]:
                 item_id = name_to_id_mappings[type][name]
@@ -280,10 +279,14 @@ class FMC(RestBase):
                     name_to_id_mappings[type]['item_responses'] = item_responses
                 response_urls = list(name_to_id_mappings[type]['item_responses'].keys())
                 for response_url in response_urls:
-                    for item in name_to_id_mappings[type]['item_responses'][response_url]['json_dict']['items']:
-                        if item['name'] == name:
-                            item_id = item['id']
-                        name_to_id_mappings[type][name] = item['id']
+                    if 'items' in name_to_id_mappings[type]['item_responses'][response_url]['json_dict']:
+                        for item in name_to_id_mappings[type]['item_responses'][response_url]['json_dict']['items']:
+                            if item['name'] == name:
+                                item_id = item['id']
+                            name_to_id_mappings[type][name] = item['id']
+                    else:
+                        logger.warning('No enumeration items returned for url %s.')
+                        name_to_id_mappings[type][name] = 'unsupported'
             return item_id
 
         def post_json_wrapper(response_dict, object_type):
@@ -308,7 +311,7 @@ class FMC(RestBase):
                     logger.warning('Detected existing item %s using error text %s' % (new_json, error_text))
                     name = new_json['name']
                     type = new_json['type']
-                    new_item_id = get_item_id(migration_url, name, type)
+                    new_item_id = get_item_id(migration_url, name, type, response_dict)
                     if new_item_id is None:
                         new_item_id = 'unsupported'
                         status = 'unsupported'
@@ -328,6 +331,8 @@ class FMC(RestBase):
             return status, new_item_id, posted_response
 
         def post_container(url, response_dict):
+            print('in post container')
+            pprint(response_dict)
 
             posted_response = post_json_wrapper(response_dict, 'container')
 
@@ -343,6 +348,8 @@ class FMC(RestBase):
 
         def post_end_object(url, response_dict):
 
+            print('in post end object')
+            pprint(response_dict)
             id = response_dict['json_dict']['id']
             type = response_dict['json_dict']['type']
             name = response_dict['json_dict']['name']
@@ -384,11 +391,14 @@ class FMC(RestBase):
                 if not device_id in id_mapping: # we've already found this devices new id if a mapping exists...
                     # Strip the source device id...
                     device_url = prepare_url_for_migration(device_url, device_record, id_mapping)
-                    new_device_id = get_item_id(device_url, device_name, device_type)
+                    new_device_id = get_item_id(device_url, device_name, device_type, response_dict)
                     id_mapping[device_id] = new_device_id
 
-            # Replace the host with ours
-            url = re.sub(r'https://[^/]+', 'https://' + self.FMC_host, url)
+            # # Replace the host with ours
+            # url = re.sub(r'https://[^/]+', 'https://' + self.FMC_host, url)
+
+            # Replace the path root with ours
+            url = re.sub(r'https://.+?domain/[^/]+/', self.path_root, url)
             # get the id
             id = response_dict['json_dict']['id']
             # Strip the id's
@@ -404,9 +414,16 @@ class FMC(RestBase):
         # TODO handle params (url not needed) and replace domain id and id before posting
         def process_child_urls(url, response_dict, parent_url):
             print('processing child url %s for migration' % url, file=sys.stderr)
+            print('================process child url')
+            pprint(response_dict)
             if 'type' in response_dict['json_dict']:
                 if response_dict['json_dict']['type'] in exclude_types:
                     logger.warning('type %s matched exclude pattern.  Skipping...' % response_dict['json_dict']['type'])
+                    return
+            else:
+                types = tree_helpers.get_jsonpath_values('$..type', response_dict['json_dict'])
+                if not types:
+                    logger.warning('No type found (empty set?) for response_dict %s.  Skipping...' % response_dict['json_dict'])
                     return
             if 'processed' in response_dict:
                 logger.info('url %s already processed' % url)

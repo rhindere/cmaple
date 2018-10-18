@@ -66,7 +66,8 @@ maple_tree = CMapleTree(logging_level='INFO', name=maple_tree_name,
 # Attach a cmaple fmc leaf instance for the source fmc to the tree...
 
 FMC_src_leaf = maple_tree.add_leaf_instance('fmc', name=FMC_src_leaf_name, json_file_path=model_json_file,
-                                            FMC_host=FMC_src_host, FMC_username=FMC_src_username, 
+                                            FMC_host=FMC_src_host, FMC_port=FMC_src_port,
+                                            FMC_username=FMC_src_username,
                                             FMC_password=FMC_src_password,
                                             default_get_item_limit=200)
 
@@ -93,7 +94,8 @@ ap = FMC_src_leaf.walk_API_path_gets(url='policy/accesspolicies')
 pp_ap = output.pretty_print(_object=ap)
 # All finished with the source fmc, add a leaf to the tree for the destination fmc
 FMC_dst_leaf = maple_tree.add_leaf_instance('fmc', name=FMC_dst_leaf_name, json_file_path=model_json_file,
-                                            FMC_host=FMC_dst_host, FMC_username=FMC_dst_username, 
+                                            FMC_host=FMC_dst_host, FMC_port=FMC_dst_port,
+                                            FMC_username=FMC_dst_username,
                                             FMC_password=FMC_dst_password,
                                             default_get_item_limit=200)
 

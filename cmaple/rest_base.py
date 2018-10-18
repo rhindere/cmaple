@@ -281,7 +281,7 @@ class RestBase(object):
 
             if status and self.persist_responses:
                 self.response_counter += 1
-                tree_helpers.persist_response(self.leaf_dir, self.response_counter, response_dict)
+                tree_helpers.persist_response(self.leaf_dir, self.path_root, self.response_counter, response_dict)
 
             if next_url is not None:
                 url = next_url
@@ -360,7 +360,7 @@ class RestBase(object):
 
             if status and self.persist_responses:
                 self.response_counter += 1
-                tree_helpers.persist_response(self.leaf_dir, self.response_counter, response_dict)
+                tree_helpers.persist_response(self.leaf_dir, self.path_root, self.response_counter, response_dict)
 
             for child_url in child_urls:
                 if child_url:
@@ -591,7 +591,7 @@ class RestBase(object):
 
         if status and self.persist_responses:
             self.response_counter += 1
-            tree_helpers.persist_response(self.leaf_dir, self.response_counter, response_dict)
+            tree_helpers.persist_response(self.leaf_dir, self.path_root, self.response_counter, response_dict)
 
         logger.debug(pformat(responses_dict))
         return responses_dict

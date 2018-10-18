@@ -326,11 +326,29 @@ class TG(RestBase):
         else:
             responses_dict = responses_dict
 
-        for url, params in base_paths.items():
-            url = self._prepare_url(url=sample_path, scope_params=params)
-            url = '{}&{}={}'.format(url, key, str(val))
-            print(url)
-            self.GET_API_path(url=url, responses_dict=responses_dict)
+        for base_url in base_paths:
+            url_list = []
+            substitute_dict = {}
+            url_parts = base_url.split('/')
+            for url_part in url_parts:
+                if url_part.startswith('$'):
+                    print(url_part, file=sys.stderr)
+                    substitutes = tree_helpers.get_jsonpath_values(url_part, responses_dict)
+                    if not substitutes:
+                        logger.info('No substitute values found for free form query %s in url %s' % (url_part, base_url))
+                        continue
+                    else:
+                        substitute_dict[url_part] = substitutes
+            if not substitute_dict:
+                url_list.append(base_url)
+            else:
+                pprint(substitute_dict)
+                for key, val in substitute_dict.items():
+                    url_list.append(base_url.replace(url_part, substitute))
+            for url in url_list:
+                url = self._prepare_url(url=url, params=scope_params)
+                print(url)
+                self.GET_API_path(url=url, responses_dict=responses_dict)
 
         return responses_dict
 

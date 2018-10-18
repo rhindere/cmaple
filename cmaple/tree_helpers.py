@@ -95,14 +95,14 @@ def get_datetime(year=2018, month=1, day=1, hour=0, minute=0, second=0, tz_str='
 
 @logged(logger)
 @traced(logger)
-def persist_response(leaf_dir, response_counter, response_dict):
+def persist_response(leaf_dir, path_root, response_counter, response_dict):
     """Pickles the response to the leaf working directory.
 
     """
-    url = response_dict['url']
-    pickle_file_name = ('%06d' % response_counter) + '_' + re.sub('[^a-zA-Z0-9]','~',url) + '.response_pickle'
-    with open(os.path.join(leaf_dir,pickle_file_name),'wb') as f:
-        _pickle.dump(response_dict,f)
+    url = response_dict['url'].replace(path_root, '')
+    pickle_file_name = ('%06d' % response_counter) + '_' + re.sub('[^a-zA-Z0-9]', '~', url) + '.response_pickle'
+    with open(os.path.join(leaf_dir, pickle_file_name), 'wb') as f:
+        _pickle.dump(response_dict, f)
 
 
 @logged(logger)

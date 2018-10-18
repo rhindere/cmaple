@@ -152,7 +152,7 @@ arg_parser.add_argument('-operations_config_file', '-ocf', type=validate_file_ex
                         metavar='The full path to the operations configuration file',
                         help='the full path to the operations configuration file used to execute cmaple scripts')
 
-arg_parser.add_argument('-maple_working_dir', '-mwd', type=validate_dir_exists, required=True,
+arg_parser.add_argument('-maple_working_dir', '-mwd', type=validate_dir_exists,
                         metavar='The full path to the working directory for cmaple',
                         help=('the full path to the working directory for cmaple used to store logs and other '
                               'operational files')
