@@ -66,6 +66,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">as</span> <span class="nn">tree_helpers</span>
+<span class="kn">from</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">import</span> <span class="n">set_default</span> <span class="k">as</span> <span class="n">sd</span>
 <span class="kn">import</span> <span class="nn">cmaple.threatgrid.threatgrid_helpers</span> <span class="k">as</span> <span class="nn">threatgrid_helpers</span>
 <span class="kn">import</span> <span class="nn">cmaple.input_validations</span> <span class="k">as</span> <span class="nn">input_validations</span>
 <span class="kn">import</span> <span class="nn">cmaple.output_transforms</span> <span class="k">as</span> <span class="nn">output_transforms</span>
@@ -339,7 +340,7 @@
 
 <div class="viewcode-block" id="TG.free_form"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.free_form">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
     <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">free_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">id_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">element_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">free_form</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scope_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Gets threatgrid samples.</span>
 
@@ -356,21 +357,57 @@
 <span class="sd">            if caller would like to keep the responses isolated.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">sample_path</span> <span class="o">=</span> <span class="s1">&#39;api/v2/samples/search&#39;</span>
+        <span class="k">def</span> <span class="nf">process_base_url</span><span class="p">(</span><span class="n">url_so_far</span><span class="p">,</span> <span class="n">base_url</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;processing url&#39;</span><span class="p">,</span> <span class="n">url_so_far</span><span class="p">,</span> <span class="n">base_url</span><span class="p">)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url_so_far</span>
+            <span class="n">url_parts</span> <span class="o">=</span> <span class="n">base_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">url_parts</span><span class="p">)):</span>
+                <span class="n">url_part</span> <span class="o">=</span> <span class="n">url_parts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">url_part</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">):</span>
+                    <span class="n">query_responses</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">if</span> <span class="n">url</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">query_dict</span><span class="p">:</span>
+                        <span class="n">query_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">scope_params</span><span class="p">)</span>
+                        <span class="n">query_responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">query_url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">query_responses</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">query_responses</span> <span class="o">=</span> <span class="n">query_dict</span><span class="p">[</span><span class="n">url</span><span class="p">]</span>
+                    <span class="n">query_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">url_part</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">query_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">query_dict</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">url_part</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+                        <span class="n">substitutes</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="n">url_part</span><span class="p">,</span> <span class="n">query_responses</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">substitutes</span><span class="p">:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No substitute values found for free form query </span><span class="si">%s</span><span class="s1"> in url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                                        <span class="p">(</span><span class="n">url_part</span><span class="p">,</span> <span class="n">base_url</span><span class="p">))</span>
+                            <span class="k">return</span> <span class="kc">False</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">query_dict</span><span class="p">[</span><span class="n">query_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">substitutes</span>
+                            <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+                                <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">substitute</span> <span class="ow">in</span> <span class="n">substitutes</span><span class="p">:</span>
+                                <span class="n">complete</span> <span class="o">=</span> <span class="n">process_base_url</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">substitute</span><span class="p">),</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">url_parts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]),</span>
+                                                            <span class="n">query_dict</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">complete</span><span class="p">:</span>
+                                    <span class="k">return</span> <span class="kc">False</span>
+                            <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">url</span> <span class="o">+=</span> <span class="n">url_part</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
 
-        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">sample_path</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+            <span class="c1"># Last part reached, get the responses...</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">scope_params</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
 
         <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">responses_dict</span> <span class="o">=</span> <span class="n">responses_dict</span>
 
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">sample_search_paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&amp;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">GET_API_path</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+        <span class="n">query_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">base_url</span> <span class="ow">in</span> <span class="n">base_paths</span><span class="p">:</span>
+            <span class="n">complete</span> <span class="o">=</span> <span class="n">process_base_url</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">base_url</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">complete</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{}</span>
 
-        <span class="k">return</span> <span class="n">responses_dict</span></div>
+        <span class="k">return</span> <span class="n">responses_dict</span><span class="p">,</span> <span class="n">query_dict</span></div>
 
 
 <div class="viewcode-block" id="TG.search_samples"><a class="viewcode-back" href="../../../threatgrid.html#cmaple.threatgrid.threatgrid.TG.search_samples">[docs]</a>    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
@@ -497,6 +534,9 @@
 <span class="sd">        params: dictionary, keyword, default=None</span>
 <span class="sd">            The parameters dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.+?\?[^/]+$&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
             <span class="n">url</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="s1">&#39;?&#39;</span>

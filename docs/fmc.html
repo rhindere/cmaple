@@ -140,7 +140,7 @@ This should only be called by internal methods.</p>
 
 <dl class="method">
 <dt id="cmaple.fmc.fmc.FMC.walk_API_resource_gets">
-<code class="descname">walk_API_resource_gets</code><span class="sig-paren">(</span><em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>responses_dict=None</em>, <em>use_cache=True</em>, <em>stop_on_error=False</em>, <em>get_item_limit=400</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC.walk_API_resource_gets"><span class="viewcode-link">[source]</span></a></dt>
+<code class="descname">walk_API_resource_gets</code><span class="sig-paren">(</span><em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>responses_dict=None</em>, <em>use_cache=True</em>, <em>stop_on_error=False</em>, <em>get_item_limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC.walk_API_resource_gets"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Recursively walks the API resource paths.</p>
 <p>Returns a Python dictionary object containing the response results for all url path GETs.</p>
 <p>By default stores all responses in self.responses_dict unless a dictionary is passed in using the
@@ -311,14 +311,8 @@ if caller would like to keep the responses isolated.</dd>
 </dd></dl>
 
 <dl class="method">
-<dt id="cmaple.fmc.fmc.FMC._get_API_path_request_template">
-<code class="descname">_get_API_path_request_template</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC._get_API_path_request_template"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Under construction…</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="cmaple.fmc.fmc.FMC.GET_API_path">
-<code class="descname">GET_API_path</code><span class="sig-paren">(</span><em>url</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>use_cache=False</em>, <em>responses_dict=None</em>, <em>get_item_limit=400</em><span class="sig-paren">)</span></dt>
+<code class="descname">GET_API_path</code><span class="sig-paren">(</span><em>url</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>use_cache=False</em>, <em>responses_dict=None</em>, <em>get_item_limit=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Wrapper for a REST GET request.</p>
 <p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for the GET.</p>
@@ -382,6 +376,28 @@ if caller would like to keep the responses isolated.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="cmaple.fmc.fmc.FMC._get_API_path_request_template">
+<code class="descname">_get_API_path_request_template</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC._get_API_path_request_template"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Under construction…</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cmaple.fmc.fmc.FMC._prepare_url">
+<code class="descname">_prepare_url</code><span class="sig-paren">(</span><em>url=None</em>, <em>params=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Optional override in parent class.  Prepares the url</p>
+<p><strong>***Inherited from RestBase…***</strong></p>
+<p>Prepares the url by replacing parameter placeholders with values.
+This should only be called by internal methods.</p>
+<p><em>Parameters</em></p>
+<dl class="docutils">
+<dt>url: string, keyword, default=None</dt>
+<dd>The url to prepare.</dd>
+<dt>params: dictionary, keyword, default=None</dt>
+<dd>The parameters dictionary.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="cmaple.fmc.fmc.FMC._prepare_url_for_migration">
 <code class="descname">_prepare_url_for_migration</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
 <dd><p>Must override in parent class</p>
@@ -390,7 +406,7 @@ if caller would like to keep the responses isolated.</dd>
 
 <dl class="method">
 <dt id="cmaple.fmc.fmc.FMC._recurse_API_child_gets">
-<code class="descname">_recurse_API_child_gets</code><span class="sig-paren">(</span><em>url</em>, <em>use_cache=True</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>filtered=False</em>, <em>cache_hit=False</em>, <em>get_item_limit=400</em>, <em>responses_dict=None</em>, <em>parent_url=''</em><span class="sig-paren">)</span></dt>
+<code class="descname">_recurse_API_child_gets</code><span class="sig-paren">(</span><em>url</em>, <em>use_cache=True</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>filtered=False</em>, <em>cache_hit=False</em>, <em>get_item_limit=None</em>, <em>responses_dict=None</em>, <em>parent_url=''</em><span class="sig-paren">)</span></dt>
 <dd><p>Handles recursion of a given url path.  Normally not called directly but from a wrapper method.
 Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically
 handles pagination and discovery of child urls.</p>
@@ -424,12 +440,6 @@ contains a circular object.</dd>
 </dd></dl>
 
 <dl class="method">
-<dt id="cmaple.fmc.fmc.FMC._refresh_API_gets">
-<code class="descname">_refresh_API_gets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC._refresh_API_gets"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Under construction…</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="cmaple.fmc.fmc.FMC._set_json_properties_by_objectpath">
 <code class="descname">_set_json_properties_by_objectpath</code><span class="sig-paren">(</span><em>json_dict=None</em>, <em>properties_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Sets properties in json_dict from properties_dict.</p>
@@ -445,8 +455,25 @@ contains a circular object.</dd>
 </dd></dl>
 
 <dl class="method">
+<dt id="cmaple.fmc.fmc.FMC.chained_smart_get">
+<code class="descname">chained_smart_get</code><span class="sig-paren">(</span><em>base_paths=None</em>, <em>params=None</em>, <em>responses_dict=None</em>, <em>query_dict=None</em><span class="sig-paren">)</span></dt>
+<dd><p>Gets threatgrid samples.</p>
+<p>Returns: a responses dictionary</p>
+<p><em>Parameters</em></p>
+<dl class="docutils">
+<dt>sample_search_paths: dictionary, keyword, default=None</dt>
+<dd>Defines the search parameters (e.g. checksum=&lt;sha256&gt;).</dd>
+<dt>params: dictionary, keyword, default=None</dt>
+<dd>Defines the search scope parameters (e.g. before=&lt;strftime&gt;).</dd>
+<dt>responses_dict: dictionary, keyword, default=None</dt>
+<dd>Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
+if caller would like to keep the responses isolated.</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="cmaple.fmc.fmc.FMC.get_all_items">
-<code class="descname">get_all_items</code><span class="sig-paren">(</span><em>url</em>, <em>use_cache=True</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>filtered=False</em>, <em>cache_hit=False</em>, <em>get_item_limit=400</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
+<code class="descname">get_all_items</code><span class="sig-paren">(</span><em>url</em>, <em>use_cache=True</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>stop_on_error=False</em>, <em>filtered=False</em>, <em>cache_hit=False</em>, <em>get_item_limit=None</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Performs a get to retrieve the “Items” listing for the url.</p>
 <p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results.</p>
@@ -616,7 +643,7 @@ if caller would like to keep the responses isolated.</dd>
 
 <dl class="method">
 <dt id="cmaple.fmc.fmc.FMC.walk_API_path_gets">
-<code class="descname">walk_API_path_gets</code><span class="sig-paren">(</span><em>url</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>use_cache=True</em>, <em>stop_on_error=False</em>, <em>get_item_limit=400</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
+<code class="descname">walk_API_path_gets</code><span class="sig-paren">(</span><em>url</em>, <em>end_path_regex=None</em>, <em>include_filter_regex=None</em>, <em>exclude_filter_regex=None</em>, <em>use_cache=True</em>, <em>stop_on_error=False</em>, <em>get_item_limit=None</em>, <em>responses_dict=None</em><span class="sig-paren">)</span></dt>
 <dd><p>Begins at given API url path and recursively GET walks path and child paths until complete.</p>
 <p><strong>***Inherited from RestBase…***</strong></p>
 <p>Returns a Python dictionary object containing the response results for all url path GETs.</p>
@@ -657,6 +684,12 @@ if caller would like to keep the responses isolated.</dd>
 <dt>file: file_handle, keyword, default=sys.stdout</dt>
 <dd>The file_handle target for the csv records.</dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cmaple.fmc.fmc.FMC._refresh_API_gets">
+<code class="descname">_refresh_API_gets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cmaple/fmc/fmc.html#FMC._refresh_API_gets"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Under construction…</p>
 </dd></dl>
 
 </dd></dl>

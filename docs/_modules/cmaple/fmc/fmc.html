@@ -39,7 +39,7 @@
 
 <span class="sd">@author: rhindere@cisco.com</span>
 
-<span class="sd">fmc.py implements Cisco FMC specific REST functionality.  Generic</span>
+<span class="sd">ssh.py implements Cisco FMC specific REST functionality.  Generic</span>
 <span class="sd">REST functionality is inherited by sub classing RestBase.</span>
 
 <span class="sd">Copyright (c) 2018 Cisco and/or its affiliates.</span>
@@ -67,6 +67,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">as</span> <span class="nn">tree_helpers</span>
+<span class="kn">from</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">import</span> <span class="n">set_default</span> <span class="k">as</span> <span class="n">sd</span>
 <span class="kn">import</span> <span class="nn">cmaple.fmc.fmc_helpers</span> <span class="k">as</span> <span class="nn">fmc_helpers</span>
 <span class="kn">import</span> <span class="nn">cmaple.input_validations</span> <span class="k">as</span> <span class="nn">input_validations</span>
 <span class="kn">import</span> <span class="nn">cmaple.output_transforms</span> <span class="k">as</span> <span class="nn">output_transforms</span>
@@ -83,7 +84,6 @@
 
 <span class="c1">#Define global variables...</span>
 <span class="n">_API_AUTH_PATH</span> <span class="o">=</span> <span class="s1">&#39;/api/fmc_platform/</span><span class="si">{API_version}</span><span class="s1">/auth/generatetoken&#39;</span>
-<span class="n">_DEFAULT_GET_ITEM_LIMIT</span> <span class="o">=</span> <span class="mi">400</span>
 
 <span class="c1"># Create a logger tree.fmc...</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\.[^.]+$&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="vm">__name__</span><span class="p">))</span>
@@ -149,7 +149,8 @@
         <span class="n">kwarg_defaults</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;json_file_path&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FMC_host&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FMC_port&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FMC_username&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span>
                           <span class="s1">&#39;FMC_password&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;FMC_domain&#39;</span><span class="p">:</span><span class="s1">&#39;Global&#39;</span><span class="p">,</span> <span class="s1">&#39;API_path_delimiter&#39;</span><span class="p">:</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;API_version&#39;</span><span class="p">:</span><span class="s1">&#39;v1&#39;</span><span class="p">,</span>
                           <span class="s1">&#39;verify&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;default_get_item_limit&#39;</span><span class="p">:</span><span class="mi">400</span><span class="p">,</span> <span class="s1">&#39;rpm_retries&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&#39;backoff_timer&#39;</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span>
-                          <span class="s1">&#39;persist_responses&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;restore_responses&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;leaf_dir&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+                          <span class="s1">&#39;persist_responses&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">,</span> <span class="s1">&#39;restore_responses&#39;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;leaf_dir&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                          <span class="s1">&#39;connect_device&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
 
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">kwarg_defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
@@ -171,7 +172,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_url_host</span> <span class="o">=</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">FMC_host</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">FMC_port</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FMC_port</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="mi">443</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_url_host</span> <span class="o">+=</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">FMC_port</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_url_host</span> <span class="o">+=</span> <span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FMC_port</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_auth_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_url_host</span> <span class="o">+</span> <span class="n">_API_AUTH_PATH</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{API_version}</span><span class="s1">&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">API_version</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_auth_headers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request_headers</span>
@@ -181,10 +182,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_auth_token</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_token</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_token_count</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_get_token_and_domains</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain</span> <span class="o">=</span> <span class="n">fmc_helpers</span><span class="o">.</span><span class="n">validate_FMC_domain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_url_host</span><span class="p">,</span><span class="s1">&#39;api&#39;</span><span class="p">,</span><span class="s1">&#39;fmc_config&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">API_version</span><span class="p">,</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connect_device</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_token_and_domains</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain</span> <span class="o">=</span> <span class="n">fmc_helpers</span><span class="o">.</span><span class="n">validate_FMC_domain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">domain_ID_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">restore_responses</span><span class="p">:</span>
+                <span class="n">response_url</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain_ID</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.+?/domain/([^/]+)&#39;</span><span class="p">,</span><span class="n">response_url</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain_ID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_url_host</span><span class="p">,</span><span class="s1">&#39;api&#39;</span><span class="p">,</span><span class="s1">&#39;fmc_config&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">API_version</span><span class="p">,</span><span class="s1">&#39;domain&#39;</span><span class="p">,</span>
                                                    <span class="bp">self</span><span class="o">.</span><span class="n">FMC_domain_ID</span><span class="p">)</span>
         <span class="c1"># This cache will be used by _get_child_urls to store responses to handle anomaly cases</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">anomalous_response_cache</span> <span class="o">=</span> <span class="p">{}</span>
@@ -207,7 +214,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">def</span> <span class="nf">get_url_type</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
-
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;gut=&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+            <span class="n">pprint</span><span class="p">(</span><span class="n">response_dict</span><span class="p">)</span>
             <span class="n">url_type</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="s1">&#39;items&#39;</span> <span class="ow">in</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">]:</span>
                 <span class="n">url_type</span> <span class="o">=</span> <span class="s1">&#39;item_list&#39;</span>
@@ -238,8 +246,6 @@
 
         <span class="k">def</span> <span class="nf">prep_composite_json</span><span class="p">(</span><span class="n">json_dict</span><span class="p">):</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in composite_json&#39;</span><span class="p">)</span>
-            <span class="n">pprint</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span>
             <span class="k">def</span> <span class="nf">recurse_path</span><span class="p">(</span><span class="n">id_path_parts</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">):</span>
                 <span class="n">path_part</span> <span class="o">=</span> <span class="n">id_path_parts</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
@@ -302,7 +308,7 @@
                 <span class="n">new_json</span> <span class="o">=</span> <span class="n">prep_composite_json</span><span class="p">(</span><span class="n">new_json</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">new_json</span>
 
-        <span class="k">def</span> <span class="nf">get_item_id</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">get_item_id</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
             <span class="n">item_id</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="nb">type</span> <span class="ow">in</span> <span class="n">name_to_id_mappings</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">]:</span>
                 <span class="n">item_id</span> <span class="o">=</span> <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
@@ -315,10 +321,14 @@
                     <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="s1">&#39;item_responses&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">item_responses</span>
                 <span class="n">response_urls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="s1">&#39;item_responses&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
                 <span class="k">for</span> <span class="n">response_url</span> <span class="ow">in</span> <span class="n">response_urls</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="s1">&#39;item_responses&#39;</span><span class="p">][</span><span class="n">response_url</span><span class="p">][</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">]:</span>
-                        <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
-                            <span class="n">item_id</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
-                        <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="s1">&#39;items&#39;</span> <span class="ow">in</span> <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="s1">&#39;item_responses&#39;</span><span class="p">][</span><span class="n">response_url</span><span class="p">][</span><span class="s1">&#39;json_dict&#39;</span><span class="p">]:</span>
+                        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="s1">&#39;item_responses&#39;</span><span class="p">][</span><span class="n">response_url</span><span class="p">][</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;items&#39;</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                                <span class="n">item_id</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+                            <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;No enumeration items returned for url </span><span class="si">%s</span><span class="s1">.&#39;</span><span class="p">)</span>
+                        <span class="n">name_to_id_mappings</span><span class="p">[</span><span class="nb">type</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;unsupported&#39;</span>
             <span class="k">return</span> <span class="n">item_id</span>
 
         <span class="k">def</span> <span class="nf">post_json_wrapper</span><span class="p">(</span><span class="n">response_dict</span><span class="p">,</span> <span class="n">object_type</span><span class="p">):</span>
@@ -343,15 +353,15 @@
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Detected existing item </span><span class="si">%s</span><span class="s1"> using error text </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_json</span><span class="p">,</span> <span class="n">error_text</span><span class="p">))</span>
                     <span class="n">name</span> <span class="o">=</span> <span class="n">new_json</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
                     <span class="nb">type</span> <span class="o">=</span> <span class="n">new_json</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
-                    <span class="n">new_item_id</span> <span class="o">=</span> <span class="n">get_item_id</span><span class="p">(</span><span class="n">migration_url</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span>
+                    <span class="n">new_item_id</span> <span class="o">=</span> <span class="n">get_item_id</span><span class="p">(</span><span class="n">migration_url</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">new_item_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">new_item_id</span> <span class="o">=</span> <span class="s1">&#39;unsupported&#39;</span>
                         <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;unsupported&#39;</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;exists&#39;</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Could not obtain migration id for type </span><span class="si">%s</span><span class="s1"> with name </span><span class="si">%s</span><span class="s1">.  Marking as unsupported </span><span class="se">\</span>
-<span class="s1">                                    list&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_json</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="n">new_json</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]))</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">((</span><span class="s1">&#39;Could not obtain migration id for type </span><span class="si">%s</span><span class="s1"> with name </span><span class="si">%s</span><span class="s1">.  Marking as unsupported&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;list&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">new_json</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span> <span class="n">new_json</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]))</span>
                     <span class="n">new_item_id</span> <span class="o">=</span> <span class="s1">&#39;unsupported&#39;</span>
                     <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;unsupported&#39;</span>
             <span class="k">else</span><span class="p">:</span>
@@ -363,6 +373,8 @@
             <span class="k">return</span> <span class="n">status</span><span class="p">,</span> <span class="n">new_item_id</span><span class="p">,</span> <span class="n">posted_response</span>
 
         <span class="k">def</span> <span class="nf">post_container</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in post container&#39;</span><span class="p">)</span>
+            <span class="n">pprint</span><span class="p">(</span><span class="n">response_dict</span><span class="p">)</span>
 
             <span class="n">posted_response</span> <span class="o">=</span> <span class="n">post_json_wrapper</span><span class="p">(</span><span class="n">response_dict</span><span class="p">,</span> <span class="s1">&#39;container&#39;</span><span class="p">)</span>
 
@@ -378,6 +390,8 @@
 
         <span class="k">def</span> <span class="nf">post_end_object</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">):</span>
 
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;in post end object&#39;</span><span class="p">)</span>
+            <span class="n">pprint</span><span class="p">(</span><span class="n">response_dict</span><span class="p">)</span>
             <span class="nb">id</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
             <span class="nb">type</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
@@ -419,11 +433,14 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">device_id</span> <span class="ow">in</span> <span class="n">id_mapping</span><span class="p">:</span> <span class="c1"># we&#39;ve already found this devices new id if a mapping exists...</span>
                     <span class="c1"># Strip the source device id...</span>
                     <span class="n">device_url</span> <span class="o">=</span> <span class="n">prepare_url_for_migration</span><span class="p">(</span><span class="n">device_url</span><span class="p">,</span> <span class="n">device_record</span><span class="p">,</span> <span class="n">id_mapping</span><span class="p">)</span>
-                    <span class="n">new_device_id</span> <span class="o">=</span> <span class="n">get_item_id</span><span class="p">(</span><span class="n">device_url</span><span class="p">,</span> <span class="n">device_name</span><span class="p">,</span> <span class="n">device_type</span><span class="p">)</span>
+                    <span class="n">new_device_id</span> <span class="o">=</span> <span class="n">get_item_id</span><span class="p">(</span><span class="n">device_url</span><span class="p">,</span> <span class="n">device_name</span><span class="p">,</span> <span class="n">device_type</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
                     <span class="n">id_mapping</span><span class="p">[</span><span class="n">device_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_device_id</span>
 
-            <span class="c1"># Replace the host with ours</span>
-            <span class="n">url</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;https://[^/]+&#39;</span><span class="p">,</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">FMC_host</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+            <span class="c1"># # Replace the host with ours</span>
+            <span class="c1"># url = re.sub(r&#39;https://[^/]+&#39;, &#39;https://&#39; + self.FMC_host, url)</span>
+
+            <span class="c1"># Replace the path root with ours</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;https://.+?domain/[^/]+/&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
             <span class="c1"># get the id</span>
             <span class="nb">id</span> <span class="o">=</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;id&#39;</span><span class="p">]</span>
             <span class="c1"># Strip the id&#39;s</span>
@@ -439,9 +456,16 @@
         <span class="c1"># TODO handle params (url not needed) and replace domain id and id before posting</span>
         <span class="k">def</span> <span class="nf">process_child_urls</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">,</span> <span class="n">parent_url</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;processing child url </span><span class="si">%s</span><span class="s1"> for migration&#39;</span> <span class="o">%</span> <span class="n">url</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;================process child url&#39;</span><span class="p">)</span>
+            <span class="n">pprint</span><span class="p">(</span><span class="n">response_dict</span><span class="p">)</span>
             <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">]:</span>
                 <span class="k">if</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">exclude_types</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;type </span><span class="si">%s</span><span class="s1"> matched exclude pattern.  Skipping...&#39;</span> <span class="o">%</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
+                    <span class="k">return</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">types</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="s1">&#39;$..type&#39;</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">types</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;No type found (empty set?) for response_dict </span><span class="si">%s</span><span class="s1">.  Skipping...&#39;</span> <span class="o">%</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;json_dict&#39;</span><span class="p">])</span>
                     <span class="k">return</span>
             <span class="k">if</span> <span class="s1">&#39;processed&#39;</span> <span class="ow">in</span> <span class="n">response_dict</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;url </span><span class="si">%s</span><span class="s1"> already processed&#39;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
@@ -618,22 +642,25 @@
 <span class="sd">            The parent url of this response.  Used to prevent circular object references.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">def</span> <span class="nf">recurse_for_child_dicts</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">type_list</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">recurse_for_child_dicts</span><span class="p">(</span><span class="n">json_dict</span><span class="p">,</span> <span class="n">parent_key</span><span class="p">,</span> <span class="n">type_list</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">json_dict</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">parent_key</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">parent_key</span> <span class="o">+=</span> <span class="s1">&#39;~&#39;</span> <span class="o">+</span> <span class="n">json_dict</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">dict</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="n">OrderedDict</span><span class="p">:</span>
                         <span class="k">if</span> <span class="s1">&#39;type&#39;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
-                            <span class="n">type_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;dict&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
+                            <span class="n">type_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;parent_key&#39;</span><span class="p">:</span> <span class="n">parent_key</span><span class="p">,</span> <span class="s1">&#39;dict&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
                         <span class="k">elif</span> <span class="s1">&#39;refType&#39;</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
-                            <span class="n">type_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;dict&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
-                        <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
+                            <span class="n">type_list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;parent_key&#39;</span><span class="p">:</span> <span class="n">parent_key</span><span class="p">,</span> <span class="s1">&#39;dict&#39;</span><span class="p">:</span> <span class="n">val</span><span class="p">})</span>
+                        <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="p">(</span><span class="n">parent_key</span> <span class="o">+</span> <span class="s1">&#39;~&#39;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">parent_key</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">key</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
                         <span class="k">for</span> <span class="n">val_member</span> <span class="ow">in</span> <span class="n">val</span><span class="p">:</span>
                             <span class="n">val_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val_member</span><span class="p">}</span>
-                            <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">val_dict</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
+                            <span class="c1"># recurse_for_child_dicts(val_dict, (parent_key + &#39;~&#39; if not parent_key == &#39;&#39; else &#39;&#39;) + key, type_list)</span>
+                            <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">val_dict</span><span class="p">,</span> <span class="n">parent_key</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">json_dict</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">json_member</span> <span class="ow">in</span> <span class="n">json_dict</span><span class="p">:</span>
-                    <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">json_member</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
+                    <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">json_member</span><span class="p">,</span> <span class="n">parent_key</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
 
         <span class="n">anomalous_types</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PhysicalInterface&#39;</span><span class="p">,</span>
                            <span class="p">]</span>
@@ -651,12 +678,13 @@
         <span class="k">if</span> <span class="s1">&#39;metadata&#39;</span> <span class="ow">in</span> <span class="n">temp_response_dict</span><span class="p">:</span>
             <span class="n">temp_response_dict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;metadata&#39;</span><span class="p">)</span>
         <span class="n">type_list</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">temp_response_dict</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
+        <span class="n">recurse_for_child_dicts</span><span class="p">(</span><span class="n">temp_response_dict</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">type_list</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">type_dict</span> <span class="ow">in</span> <span class="n">type_list</span><span class="p">:</span>
             <span class="n">child_url</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
             <span class="k">if</span> <span class="n">type_dict</span><span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;literals&#39;</span><span class="p">:</span>
-                <span class="k">continue</span>
+                <span class="n">child_url</span> <span class="o">=</span> <span class="s1">&#39;literal&#39;</span>
+                <span class="c1"># continue</span>
 
             <span class="n">lower_first_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">+</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">s</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
             <span class="n">id_type</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -710,13 +738,20 @@
                 <span class="c1"># Safeguard to prevent child url returning parent url - deployabledevice</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">child_url</span> <span class="o">==</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\?.+&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]):</span>
                     <span class="c1"># Add the root path in if missing...</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">child_url</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">child_url</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">child_url</span> <span class="o">==</span> <span class="s1">&#39;literal&#39;</span><span class="p">:</span>
                         <span class="n">child_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">child_url</span>
-                    <span class="k">if</span> <span class="n">id_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">child_types</span><span class="p">:</span>
-                        <span class="n">child_types</span><span class="p">[</span><span class="n">id_type</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;urls&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;type_dicts&#39;</span><span class="p">:</span> <span class="p">[]}</span>
-                    <span class="n">child_types</span><span class="p">[</span><span class="n">id_type</span><span class="p">][</span><span class="s1">&#39;urls&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_url</span><span class="p">)</span>
-                    <span class="n">child_types</span><span class="p">[</span><span class="n">id_type</span><span class="p">][</span><span class="s1">&#39;type_dicts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">type_dict</span><span class="p">)</span>
-                    <span class="n">child_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_url</span><span class="p">)</span>
+                    <span class="n">type_parent</span> <span class="o">=</span> <span class="n">type_dict</span><span class="p">[</span><span class="s1">&#39;parent_key&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">type_parent</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                        <span class="n">type_parent</span> <span class="o">=</span> <span class="n">id_type</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">type_parent</span> <span class="o">=</span> <span class="n">type_parent</span> <span class="o">+</span> <span class="s1">&#39;~&#39;</span> <span class="o">+</span> <span class="n">id_type</span>
+                    <span class="k">if</span> <span class="n">type_parent</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">child_types</span><span class="p">:</span>
+                        <span class="n">child_types</span><span class="p">[</span><span class="n">type_parent</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;urls&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;type_dicts&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+                    <span class="n">child_types</span><span class="p">[</span><span class="n">type_parent</span><span class="p">][</span><span class="s1">&#39;urls&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_url</span><span class="p">)</span>
+                    <span class="n">type_dict</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">child_url</span>
+                    <span class="n">child_types</span><span class="p">[</span><span class="n">type_parent</span><span class="p">][</span><span class="s1">&#39;type_dicts&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">type_dict</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">child_url</span> <span class="o">==</span> <span class="s1">&#39;literal&#39;</span><span class="p">:</span>
+                        <span class="n">child_urls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">child_url</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Child url </span><span class="si">%s</span><span class="s1"> resolved to parent url&#39;</span> <span class="o">%</span> <span class="n">child_url</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -726,7 +761,7 @@
     <span class="c1">#Begin class specific methods</span>
     <span class="c1">################################################################################################################</span>
 <div class="viewcode-block" id="FMC.walk_API_resource_gets"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC.walk_API_resource_gets">[docs]</a>    <span class="k">def</span> <span class="nf">walk_API_resource_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                               <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">):</span>
+                               <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Recursively walks the API resource paths.</span>
 
@@ -762,7 +797,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_recurse_API_child_gets</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
                                              <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
                                              <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
-                                             <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
+                                             <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="n">sd</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;get_item_limit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span></div>
 
@@ -1096,7 +1131,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_auth_headers</span><span class="p">[</span><span class="s1">&#39;X-auth-access-token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auth_token</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_auth_headers</span><span class="p">[</span><span class="s1">&#39;X-auth-refresh-token&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_refresh_token</span></div>
 
-    <span class="c1">#Begin TODO, rework and under construction</span>
+    <span class="k">def</span> <span class="nf">build_response_pivot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csvfile</span><span class="p">):</span>
+
+        <span class="n">fmc_helpers</span><span class="o">.</span><span class="n">build_response_pivot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">csvfile</span><span class="p">)</span>
+
+    <span class="c1"># Begin TODO, rework and under construction</span>
     <span class="c1">################################################################################################################</span>
 <div class="viewcode-block" id="FMC._convert_model_to_request_template"><a class="viewcode-back" href="../../../fmc.html#cmaple.fmc.fmc.FMC._convert_model_to_request_template">[docs]</a>    <span class="k">def</span> <span class="nf">_convert_model_to_request_template</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">model_dict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

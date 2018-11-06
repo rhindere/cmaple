@@ -64,6 +64,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">as</span> <span class="nn">tree_helpers</span>
+<span class="kn">from</span> <span class="nn">cmaple.tree_helpers</span> <span class="k">import</span> <span class="n">set_default</span> <span class="k">as</span> <span class="n">sd</span>
 <span class="kn">import</span> <span class="nn">cmaple.input_validations</span> <span class="k">as</span> <span class="nn">input_validations</span>
 <span class="kn">import</span> <span class="nn">cmaple.output_transforms</span> <span class="k">as</span> <span class="nn">output_transforms</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -80,8 +81,6 @@
 <span class="c1"># Create a logger...</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\.[^.]+$&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="vm">__name__</span><span class="p">))</span>
 <span class="c1"># Define global variables</span>
-<span class="n">_DEFAULT_GET_ITEM_LIMIT</span> <span class="o">=</span> <span class="mi">400</span>
-
 
 <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
 <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
@@ -104,13 +103,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Need to supply this in the parent class...</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1"># Need to supply this in the parent class...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">credentials_dict</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Need to supply this in the parent class...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">next_link_query</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># Need to supply this in the parent class...</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">:</span> <span class="c1"># Disables insecure warning for self signed certs...</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify</span><span class="p">:</span>  <span class="c1"># Disables insecure warning for self signed certs...</span>
             <span class="n">urllib3</span><span class="o">.</span><span class="n">disable_warnings</span><span class="p">(</span><span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InsecureRequestWarning</span><span class="p">)</span>
-        <span class="n">_DEFAULT_GET_ITEM_LIMIT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_get_item_limit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">response_index</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">restore_responses</span><span class="p">:</span>
+            <span class="n">tree_helpers</span><span class="o">.</span><span class="n">restore_responses</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_request_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Must override in parent class</span>
@@ -147,6 +149,118 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">pass</span>
+
+    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_prepare_url</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Optional override in parent class.  Prepares the url</span>
+
+<span class="sd">        *****Inherited from RestBase...*****</span>
+
+<span class="sd">        Prepares the url by replacing parameter placeholders with values.</span>
+<span class="sd">        This should only be called by internal methods.</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        url: string, keyword, default=None</span>
+<span class="sd">            The url to prepare.</span>
+<span class="sd">        params: dictionary, keyword, default=None</span>
+<span class="sd">            The parameters dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">delimiter</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;.+?\?[^/]+$&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+                <span class="n">delimiter</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delimiter</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span>
+
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">url</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">delimiter</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">))</span>
+                <span class="n">delimiter</span> <span class="o">=</span> <span class="s1">&#39;&amp;&#39;</span>
+
+        <span class="k">return</span> <span class="n">url</span>
+
+    <span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">chained_smart_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_paths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">query_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Gets threatgrid samples.</span>
+
+<span class="sd">        Returns: a responses dictionary</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        sample_search_paths: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search parameters (e.g. checksum=&lt;sha256&gt;).</span>
+<span class="sd">        params: dictionary, keyword, default=None</span>
+<span class="sd">            Defines the search scope parameters (e.g. before=&lt;strftime&gt;).</span>
+<span class="sd">        responses_dict: dictionary, keyword, default=None</span>
+<span class="sd">            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful</span>
+<span class="sd">            if caller would like to keep the responses isolated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">process_base_url</span><span class="p">(</span><span class="n">url_so_far</span><span class="p">,</span> <span class="n">base_url</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;processing url&#39;</span><span class="p">,</span> <span class="n">url_so_far</span><span class="p">,</span> <span class="n">base_url</span><span class="p">)</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">url_so_far</span>
+            <span class="n">url_parts</span> <span class="o">=</span> <span class="n">base_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">url_parts</span><span class="p">)):</span>
+                <span class="n">url_part</span> <span class="o">=</span> <span class="n">url_parts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">url_part</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">):</span>
+                    <span class="n">query_responses</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">if</span> <span class="n">url</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">query_dict</span><span class="p">:</span>
+                        <span class="n">query_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+                        <span class="n">query_responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">query_url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">query_responses</span><span class="p">)</span>
+                        <span class="n">query_dict</span><span class="p">[</span><span class="n">url</span><span class="p">]</span> <span class="o">=</span> <span class="n">query_responses</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">query_responses</span> <span class="o">=</span> <span class="n">query_dict</span><span class="p">[</span><span class="n">url</span><span class="p">]</span>
+                    <span class="n">query_path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">url_part</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">query_path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">query_dict</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">url_part</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+                        <span class="n">substitutes</span> <span class="o">=</span> <span class="n">tree_helpers</span><span class="o">.</span><span class="n">get_jsonpath_values</span><span class="p">(</span><span class="n">url_part</span><span class="p">,</span> <span class="n">query_responses</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">substitutes</span><span class="p">:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;No substitute values found for free form query </span><span class="si">%s</span><span class="s1"> in url </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span>
+                                        <span class="p">(</span><span class="n">url_part</span><span class="p">,</span> <span class="n">base_url</span><span class="p">))</span>
+                            <span class="k">return</span> <span class="kc">False</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">query_dict</span><span class="p">[</span><span class="n">query_path</span><span class="p">]</span> <span class="o">=</span> <span class="n">substitutes</span>
+                            <span class="k">if</span> <span class="n">url</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">):</span>
+                                <span class="n">url</span> <span class="o">=</span> <span class="n">url</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="k">for</span> <span class="n">substitute</span> <span class="ow">in</span> <span class="n">substitutes</span><span class="p">:</span>
+                                <span class="n">complete</span> <span class="o">=</span> <span class="n">process_base_url</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">substitute</span><span class="p">),</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">url_parts</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:]),</span>
+                                                            <span class="n">query_dict</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">complete</span><span class="p">:</span>
+                                    <span class="k">return</span> <span class="kc">False</span>
+                            <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">url</span> <span class="o">+=</span> <span class="n">url_part</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+
+            <span class="c1"># Last part reached, get the responses...</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_url</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">query_responses</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_all_items</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="p">{})</span>
+            <span class="n">query_dict</span><span class="p">[</span><span class="n">url</span><span class="p">]</span> <span class="o">=</span> <span class="n">query_responses</span>
+            <span class="k">return</span> <span class="n">query_responses</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">responses_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="n">query_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">query_dict</span> <span class="o">=</span> <span class="n">query_dict</span>
+
+        <span class="n">final_responses</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">base_url</span> <span class="ow">in</span> <span class="n">base_paths</span><span class="p">:</span>
+            <span class="n">final_responses</span> <span class="o">=</span> <span class="n">process_base_url</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">base_url</span><span class="p">,</span> <span class="n">query_dict</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">final_responses</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{},</span> <span class="n">query_dict</span>
+
+        <span class="k">return</span> <span class="n">final_responses</span><span class="p">,</span> <span class="n">query_dict</span>
 
     <span class="k">def</span> <span class="nf">put_json_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">json_dict</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
@@ -261,7 +375,7 @@
 
     <span class="k">def</span> <span class="nf">get_all_items</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">end_path_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filtered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_hit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">get_item_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Performs a get to retrieve the &quot;Items&quot; listing for the url.</span>
 
@@ -310,13 +424,13 @@
                                       <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
                                       <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
                                       <span class="n">API_path_keywords_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_API_path_keywords_list</span><span class="p">,</span>
-                                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
+                                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">sd</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;get_item_limit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+                <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">next_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">url</span> <span class="o">=</span> <span class="n">next_url</span>
@@ -327,7 +441,7 @@
 
     <span class="k">def</span> <span class="nf">_recurse_API_child_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">end_path_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">filtered</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cache_hit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent_url</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+                                <span class="n">get_item_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parent_url</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Handles recursion of a given url path.  Normally not called directly but from a wrapper method.</span>
 <span class="sd">        Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically</span>
@@ -381,7 +495,7 @@
                                       <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
                                       <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
                                       <span class="n">API_path_keywords_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_API_path_keywords_list</span><span class="p">,</span>
-                                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
+                                      <span class="n">get_item_limit</span><span class="o">=</span><span class="n">sd</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;get_item_limit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
 
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">response_dict</span><span class="p">))</span>
 
@@ -395,7 +509,7 @@
 
             <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+                <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">child_url</span> <span class="ow">in</span> <span class="n">child_urls</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">child_url</span><span class="p">:</span>
@@ -407,7 +521,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_recurse_API_child_gets</span><span class="p">(</span><span class="n">child_url</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
                                                  <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
                                                  <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
-                                                 <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
+                                                 <span class="n">get_item_limit</span><span class="o">=</span><span class="n">sd</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;get_item_limit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span>
                                                  <span class="n">parent_url</span><span class="o">=</span><span class="n">url</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">next_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -415,8 +529,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">break</span>
 
-    <span class="k">def</span> <span class="nf">walk_API_path_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">url</span><span class="p">,</span><span class="n">end_path_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                           <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">walk_API_path_gets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">end_path_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                           <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                            <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Begins at given API url path and recursively GET walks path and child paths until complete.</span>
@@ -458,9 +572,10 @@
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span> <span class="o">+</span> <span class="n">url</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_recurse_API_child_gets</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="n">include_filter_regex</span><span class="p">,</span>
-                                    <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
-                                    <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span><span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
-                                    <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
+                                     <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
+                                     <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
+                                     <span class="n">get_item_limit</span><span class="o">=</span><span class="n">sd</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;get_item_limit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span>
+                                     <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">responses_dict</span>
 
@@ -573,7 +688,7 @@
         <span class="k">return</span> <span class="n">results</span>
 
     <span class="k">def</span> <span class="nf">GET_API_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">include_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">stop_on_error</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                     <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="n">_DEFAULT_GET_ITEM_LIMIT</span><span class="p">):</span>
+                     <span class="n">use_cache</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">get_item_limit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Wrapper for a REST GET request.</span>
 
@@ -622,11 +737,11 @@
                                   <span class="n">exclude_filter_regex</span><span class="o">=</span><span class="n">exclude_filter_regex</span><span class="p">,</span>
                                   <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">stop_on_error</span><span class="o">=</span><span class="n">stop_on_error</span><span class="p">,</span>
                                   <span class="n">API_path_keywords_list</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_API_path_keywords_list</span><span class="p">,</span>
-                                  <span class="n">get_item_limit</span><span class="o">=</span><span class="n">get_item_limit</span><span class="p">)</span>
+                                  <span class="n">get_item_limit</span><span class="o">=</span><span class="n">sd</span><span class="p">(</span><span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;get_item_limit&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">status</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">persist_responses</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
+            <span class="n">tree_helpers</span><span class="o">.</span><span class="n">persist_response</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path_root</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">response_counter</span><span class="p">,</span> <span class="n">response_dict</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">responses_dict</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">responses_dict</span>

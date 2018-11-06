@@ -31,6 +31,7 @@ from cmaple.rest_base import RestBase
 import sys
 import re
 import cmaple.tree_helpers as tree_helpers
+from cmaple.tree_helpers import set_default as sd
 import cmaple.threatgrid.threatgrid_helpers as threatgrid_helpers
 import cmaple.input_validations as input_validations
 import cmaple.output_transforms as output_transforms
@@ -321,36 +322,57 @@ class TG(RestBase):
             if caller would like to keep the responses isolated.
         """
 
+        def process_base_url(url_so_far, base_url, query_dict):
+            print('processing url', url_so_far, base_url)
+            url = url_so_far
+            url_parts = base_url.split('/')
+            for i in range(0, len(url_parts)):
+                url_part = url_parts[i]
+                if url_part.startswith('$'):
+                    query_responses = {}
+                    if url not in query_dict:
+                        query_url = self._prepare_url(url=url, params=scope_params)
+                        query_responses = self.get_all_items(url=query_url, responses_dict=query_responses)
+                    else:
+                        query_responses = query_dict[url]
+                    query_path = '{}/{}'.format(url, url_part)
+                    if query_path not in query_dict:
+                        print(url_part, file=sys.stderr)
+                        substitutes = tree_helpers.get_jsonpath_values(url_part, query_responses)
+                        if not substitutes:
+                            logger.info('No substitute values found for free form query %s in url %s' %
+                                        (url_part, base_url))
+                            return False
+                        else:
+                            query_dict[query_path] = substitutes
+                            if url.endswith('/'):
+                                url = url[:-1]
+                            for substitute in substitutes:
+                                complete = process_base_url('{}/{}/'.format(url, substitute), '/'.join(url_parts[i+1:]),
+                                                            query_dict)
+                                if not complete:
+                                    return False
+                            return True
+                else:
+                    url += url_part + '/'
+
+            # Last part reached, get the responses...
+            url = self._prepare_url(url=url, params=scope_params)
+            self.get_all_items(url=url, responses_dict=responses_dict)
+            return True
+
         if responses_dict is None:
             responses_dict = self.responses_dict
         else:
             responses_dict = responses_dict
 
+        query_dict = {}
         for base_url in base_paths:
-            url_list = []
-            substitute_dict = {}
-            url_parts = base_url.split('/')
-            for url_part in url_parts:
-                if url_part.startswith('$'):
-                    print(url_part, file=sys.stderr)
-                    substitutes = tree_helpers.get_jsonpath_values(url_part, responses_dict)
-                    if not substitutes:
-                        logger.info('No substitute values found for free form query %s in url %s' % (url_part, base_url))
-                        continue
-                    else:
-                        substitute_dict[url_part] = substitutes
-            if not substitute_dict:
-                url_list.append(base_url)
-            else:
-                pprint(substitute_dict)
-                for key, val in substitute_dict.items():
-                    url_list.append(base_url.replace(url_part, substitute))
-            for url in url_list:
-                url = self._prepare_url(url=url, params=scope_params)
-                print(url)
-                self.GET_API_path(url=url, responses_dict=responses_dict)
+            complete = process_base_url('', base_url, query_dict)
+            if not complete:
+                return {}
 
-        return responses_dict
+        return responses_dict, query_dict
 
 
     @logged(logger)
@@ -477,6 +499,9 @@ class TG(RestBase):
         params: dictionary, keyword, default=None
             The parameters dictionary.
         """
+
+        if url.endswith('/'):
+            url = url[:-1]
 
         if not re.match(r'.+?\?[^/]+$', url):
             url = url + '?'

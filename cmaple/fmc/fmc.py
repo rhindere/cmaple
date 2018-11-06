@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-fmc.py implements Cisco FMC specific REST functionality.  Generic
+ssh.py implements Cisco FMC specific REST functionality.  Generic
 REST functionality is inherited by sub classing RestBase.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
@@ -32,6 +32,7 @@ import sys
 import os
 import re
 import cmaple.tree_helpers as tree_helpers
+from cmaple.tree_helpers import set_default as sd
 import cmaple.fmc.fmc_helpers as fmc_helpers
 import cmaple.input_validations as input_validations
 import cmaple.output_transforms as output_transforms
@@ -48,7 +49,6 @@ import _pickle
 
 #Define global variables...
 _API_AUTH_PATH = '/api/fmc_platform/{API_version}/auth/generatetoken'
-_DEFAULT_GET_ITEM_LIMIT = 400
 
 # Create a logger tree.fmc...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
@@ -114,7 +114,8 @@ class FMC(RestBase):
         kwarg_defaults = {'json_file_path':None, 'FMC_host':None, 'FMC_port':None, 'FMC_username':None,
                           'FMC_password':None, 'FMC_domain':'Global', 'API_path_delimiter':'/', 'API_version':'v1',
                           'verify':False, 'default_get_item_limit':400, 'rpm_retries':5, 'backoff_timer':30,
-                          'persist_responses':True, 'restore_responses':False, 'leaf_dir': None}
+                          'persist_responses':True, 'restore_responses':False, 'leaf_dir': None,
+                          'connect_device': True}
 
         for key, val in kwargs.items():
             kwarg_defaults[key] = val
@@ -146,9 +147,15 @@ class FMC(RestBase):
         self._auth_token = None
         self._refresh_token = None
         self._refresh_token_count = 0
-        self._get_token_and_domains()
-        self.FMC_domain = fmc_helpers.validate_FMC_domain(self.FMC_domain,self.domain_ID_dict)
-        self.FMC_domain_ID = self.domain_ID_dict[self.FMC_domain]
+        if self.connect_device:
+            self._get_token_and_domains()
+            self.FMC_domain = fmc_helpers.validate_FMC_domain(self.FMC_domain,self.domain_ID_dict)
+            self.FMC_domain_ID = self.domain_ID_dict[self.FMC_domain]
+        else:
+            if self.restore_responses:
+                response_url = list(self.responses_dict.keys())[0]
+                self.FMC_domain_ID = re.match(r'.+?/domain/([^/]+)',response_url).group(1)
+                print(self.FMC_domain_ID)
         self.path_root = '{}/{}/{}/{}/{}/{}/'.format(self._url_host,'api','fmc_config',self.API_version,'domain',
                                                    self.FMC_domain_ID)
         # This cache will be used by _get_child_urls to store responses to handle anomaly cases
@@ -318,8 +325,8 @@ class FMC(RestBase):
                     else:
                         status = 'exists'
                 else:
-                    logger.warning('Could not obtain migration id for type %s with name %s.  Marking as unsupported \
-                                    list' % (new_json['type'], new_json['name']))
+                    logger.warning(('Could not obtain migration id for type %s with name %s.  Marking as unsupported',
+                                    'list') % (new_json['type'], new_json['name']))
                     new_item_id = 'unsupported'
                     status = 'unsupported'
             else:
@@ -600,22 +607,25 @@ class FMC(RestBase):
             The parent url of this response.  Used to prevent circular object references.
         """
 
-        def recurse_for_child_dicts(json_dict, type_list):
+        def recurse_for_child_dicts(json_dict, parent_key, type_list):
             if type(json_dict) is dict or type(json_dict) is OrderedDict:
+                if 'type' in json_dict and not parent_key == '':
+                    parent_key += '~' + json_dict['type']
                 for key, val in json_dict.items():
                     if type(val) is dict or type(val) is OrderedDict:
                         if 'type' in val:
-                            type_list.append({'key': key, 'dict': val})
+                            type_list.append({'key': key, 'parent_key': parent_key, 'dict': val})
                         elif 'refType' in val:
-                            type_list.append({'key': key, 'dict': val})
-                        recurse_for_child_dicts(val, type_list)
+                            type_list.append({'key': key, 'parent_key': parent_key, 'dict': val})
+                        recurse_for_child_dicts(val, (parent_key + '~' if not parent_key == '' else '') + key, type_list)
                     elif type(val) is list:
                         for val_member in val:
                             val_dict = {key: val_member}
-                            recurse_for_child_dicts(val_dict, type_list)
+                            # recurse_for_child_dicts(val_dict, (parent_key + '~' if not parent_key == '' else '') + key, type_list)
+                            recurse_for_child_dicts(val_dict, parent_key, type_list)
             elif type(json_dict) is list:
                 for json_member in json_dict:
-                    recurse_for_child_dicts(json_member, type_list)
+                    recurse_for_child_dicts(json_member, parent_key, type_list)
 
         anomalous_types = ['PhysicalInterface',
                            ]
@@ -633,12 +643,13 @@ class FMC(RestBase):
         if 'metadata' in temp_response_dict:
             temp_response_dict.pop('metadata')
         type_list = []
-        recurse_for_child_dicts(temp_response_dict, type_list)
+        recurse_for_child_dicts(temp_response_dict, '', type_list)
 
         for type_dict in type_list:
             child_url = ''
             if type_dict['key'] == 'literals':
-                continue
+                child_url = 'literal'
+                # continue
 
             lower_first_func = lambda s: s[:1].lower() + s[1:] if s else ''
             id_type = ''
@@ -692,13 +703,20 @@ class FMC(RestBase):
                 # Safeguard to prevent child url returning parent url - deployabledevice
                 if not child_url == re.sub('\?.+', '', response_dict['url']):
                     # Add the root path in if missing...
-                    if self.path_root not in child_url:
+                    if self.path_root not in child_url and not child_url == 'literal':
                         child_url = self.path_root + child_url
-                    if id_type not in child_types:
-                        child_types[id_type] = {'urls': [], 'type_dicts': []}
-                    child_types[id_type]['urls'].append(child_url)
-                    child_types[id_type]['type_dicts'].append(type_dict)
-                    child_urls.append(child_url)
+                    type_parent = type_dict['parent_key']
+                    if type_parent == '':
+                        type_parent = id_type
+                    else:
+                        type_parent = type_parent + '~' + id_type
+                    if type_parent not in child_types:
+                        child_types[type_parent] = {'urls': [], 'type_dicts': []}
+                    child_types[type_parent]['urls'].append(child_url)
+                    type_dict['url'] = child_url
+                    child_types[type_parent]['type_dicts'].append(type_dict)
+                    if not child_url == 'literal':
+                        child_urls.append(child_url)
                 else:
                     logger.warning('Child url %s resolved to parent url' % child_url)
             else:
@@ -708,7 +726,7 @@ class FMC(RestBase):
     #Begin class specific methods
     ################################################################################################################
     def walk_API_resource_gets(self, include_filter_regex=None, exclude_filter_regex=None, responses_dict=None,
-                               use_cache=True, stop_on_error=False, get_item_limit=_DEFAULT_GET_ITEM_LIMIT):
+                               use_cache=True, stop_on_error=False, get_item_limit=None):
 
         """Recursively walks the API resource paths.
 
@@ -744,7 +762,7 @@ class FMC(RestBase):
                 self._recurse_API_child_gets(url, include_filter_regex=include_filter_regex,
                                              exclude_filter_regex=exclude_filter_regex,
                                              use_cache=use_cache, stop_on_error=stop_on_error,
-                                             responses_dict=responses_dict, get_item_limit=get_item_limit)
+                                             responses_dict=responses_dict, get_item_limit=sd(locals(), 'get_item_limit', self))
 
         return self.responses_dict
 
@@ -1078,7 +1096,11 @@ class FMC(RestBase):
         self._auth_headers['X-auth-access-token'] = self._auth_token
         self._auth_headers['X-auth-refresh-token'] = self._refresh_token
 
-    #Begin TODO, rework and under construction
+    def build_response_pivot(self, csvfile):
+
+        fmc_helpers.build_response_pivot(self.responses_dict, csvfile)
+
+    # Begin TODO, rework and under construction
     ################################################################################################################
     def _convert_model_to_request_template(self,model_dict):
         """

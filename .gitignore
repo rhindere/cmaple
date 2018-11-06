@@ -9,3 +9,7 @@ build
 !LICENSE.txt
 dist
 doc
+**.csv
+**.xls
+**.xlsm
+**.xlsx

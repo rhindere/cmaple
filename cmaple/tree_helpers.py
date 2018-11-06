@@ -50,10 +50,27 @@ from datetime import datetime, timedelta
 import calendar
 import pytz
 import _pickle
-from dateutil import parser as date_parser
 
 # Create a logger for this module...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
+
+
+@logged(logger)
+@traced(logger)
+def set_default(locals, name, instance):
+
+    if locals[name] is not None:
+        return locals[name]
+    else:
+        if 'default_' + name in instance.__dict__:
+            return instance.__dict__['default_' + name]
+
+
+@logged(logger)
+@traced(logger)
+def gsv(_instance, var_name):
+
+    return getattr(_instance, var_name)
 
 
 @logged(logger)
@@ -181,6 +198,22 @@ def deep_update(d, u):
             d[k] = u[k]
     return d
 
+
+# @logged(logger)
+# @traced(logger)
+# def update_index_dict(index_dict, update_dict):
+#     return
+#
+#
+# @logged(logger)
+# @traced(logger)
+# def add_response_to_index(responses_dict, response_dict):
+#     return
+#     if 'index' not in responses_dict:
+#         responses_dict['index'] = {}
+#     update_index_dict(responses_dict['index'], response_dict)
+#
+#
 @logged(logger)
 @traced(logger)
 def store_json_response_by_url(r, url, good_status_code, responses_dict,
@@ -211,7 +244,7 @@ def store_json_response_by_url(r, url, good_status_code, responses_dict,
         if r.status_code == good_status_code:
             if r.text:
                 if not re.match(r'.+?\.xml$',url):
-                    responses_dict[url]['json_dict'] = json.loads(r.text)
+                    responses_dict[url]['json_dict'] = json.loads(r.text, encoding='UTF-8')
                 else:
                     responses_dict[url]['json_dict'] = xmltodict.parse(r.text)
         else:
@@ -219,6 +252,8 @@ def store_json_response_by_url(r, url, good_status_code, responses_dict,
                 responses_dict[url]['error'] = r.text
     else:
         responses_dict[url]['null_response'] = True
+
+    # add_response_to_index(responses_dict[url], responses_dict)
 
     if not include_filtered or exclude_filtered or cache_hit or r.status_code != good_status_code:
         return False

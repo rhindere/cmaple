@@ -29,6 +29,7 @@ import sys
 import os
 import re
 import cmaple.tree_helpers as tree_helpers
+from cmaple.tree_helpers import set_default as sd
 import cmaple.input_validations as input_validations
 import cmaple.output_transforms as output_transforms
 import json
@@ -45,8 +46,6 @@ from objectpath import *
 # Create a logger...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 # Define global variables
-_DEFAULT_GET_ITEM_LIMIT = 400
-
 
 @logged(logger)
 @traced(logger)
@@ -69,13 +68,16 @@ class RestBase(object):
         """
 
         self.response_counter = 0
-        self.credentials_dict = {} # Need to supply this in the parent class...
-        self.next_link_query = '' # Need to supply this in the parent class...
+        self.credentials_dict = {}  # Need to supply this in the parent class...
+        self.next_link_query = ''  # Need to supply this in the parent class...
 
-        if not self.verify: # Disables insecure warning for self signed certs...
+        if not self.verify:  # Disables insecure warning for self signed certs...
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        _DEFAULT_GET_ITEM_LIMIT = self.default_get_item_limit
         self.responses_dict = {}
+        self.response_index = {}
+
+        if self.restore_responses:
+            tree_helpers.restore_responses(self.leaf_dir, self.responses_dict)
 
     def _request_wrapper(self):
         """Must override in parent class
@@ -112,6 +114,118 @@ class RestBase(object):
         """
 
         pass
+
+    @logged(logger)
+    @traced(logger)
+    def _prepare_url(self, url=None, params=None):
+        """Optional override in parent class.  Prepares the url
+
+        *****Inherited from RestBase...*****
+
+        Prepares the url by replacing parameter placeholders with values.
+        This should only be called by internal methods.
+
+        *Parameters*
+
+        url: string, keyword, default=None
+            The url to prepare.
+        params: dictionary, keyword, default=None
+            The parameters dictionary.
+        """
+
+        if url.endswith('/'):
+            url = url[:-1]
+
+        if params is not None:
+            delimiter = ''
+            if not re.match(r'.+?\?[^/]+$', url):
+                delimiter = '?'
+            else:
+                delimiter = '&'
+
+            for key, val in params.items():
+                url += '{}{}={}'.format(delimiter, key, str(val))
+                delimiter = '&'
+
+        return url
+
+    @logged(logger)
+    @traced(logger)
+    def chained_smart_get(self, base_paths=None, params=None, responses_dict=None, query_dict=None):
+
+        """Gets threatgrid samples.
+
+        Returns: a responses dictionary
+
+        *Parameters*
+
+        sample_search_paths: dictionary, keyword, default=None
+            Defines the search parameters (e.g. checksum=<sha256>).
+        params: dictionary, keyword, default=None
+            Defines the search scope parameters (e.g. before=<strftime>).
+        responses_dict: dictionary, keyword, default=None
+            Allows the caller to override the default behavior to store responses in the self.responses_dict.  Useful
+            if caller would like to keep the responses isolated.
+        """
+
+        def process_base_url(url_so_far, base_url, query_dict):
+            print('processing url', url_so_far, base_url)
+            url = url_so_far
+            url_parts = base_url.split('/')
+            for i in range(0, len(url_parts)):
+                url_part = url_parts[i]
+                if url_part.startswith('$'):
+                    query_responses = {}
+                    if url not in query_dict:
+                        query_url = self._prepare_url(url=url, params=params)
+                        query_responses = self.get_all_items(url=query_url, responses_dict=query_responses)
+                        query_dict[url] = query_responses
+                    else:
+                        query_responses = query_dict[url]
+                    query_path = '{}/{}'.format(url, url_part)
+                    if query_path not in query_dict:
+                        print(url_part, file=sys.stderr)
+                        substitutes = tree_helpers.get_jsonpath_values(url_part, query_responses)
+                        if not substitutes:
+                            logger.info('No substitute values found for free form query %s in url %s' %
+                                        (url_part, base_url))
+                            return False
+                        else:
+                            query_dict[query_path] = substitutes
+                            if url.endswith('/'):
+                                url = url[:-1]
+                            for substitute in substitutes:
+                                complete = process_base_url('{}/{}/'.format(url, substitute), '/'.join(url_parts[i+1:]),
+                                                            query_dict)
+                                if not complete:
+                                    return False
+                            return True
+                else:
+                    url += url_part + '/'
+
+            # Last part reached, get the responses...
+            url = self._prepare_url(url=url, params=params)
+            query_responses = self.get_all_items(url=url, responses_dict={})
+            query_dict[url] = query_responses
+            return query_responses
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+        else:
+            responses_dict = responses_dict
+
+        if query_dict is None:
+            query_dict = {}
+        else:
+            query_dict = query_dict
+
+        final_responses = {}
+        for base_url in base_paths:
+            final_responses = process_base_url('', base_url, query_dict)
+            if not final_responses:
+                return {}, query_dict
+
+        return final_responses, query_dict
 
     def put_json_request(self, url, json_dict, responses_dict=None):
 
@@ -226,7 +340,7 @@ class RestBase(object):
 
     def get_all_items(self, url, use_cache=True, end_path_regex=None, include_filter_regex=None,
                       exclude_filter_regex=None, stop_on_error=False, filtered=False, cache_hit=False,
-                      get_item_limit=_DEFAULT_GET_ITEM_LIMIT, responses_dict=None):
+                      get_item_limit=None, responses_dict=None):
 
         """Performs a get to retrieve the "Items" listing for the url.
 
@@ -275,7 +389,7 @@ class RestBase(object):
                                       exclude_filter_regex=exclude_filter_regex,
                                       use_cache=use_cache, stop_on_error=stop_on_error,
                                       API_path_keywords_list=self._API_path_keywords_list,
-                                      get_item_limit=get_item_limit)
+                                      get_item_limit=sd(locals(), 'get_item_limit', self))
 
             logger.debug(pformat(response_dict))
 
@@ -292,7 +406,7 @@ class RestBase(object):
 
     def _recurse_API_child_gets(self, url, use_cache=True, end_path_regex=None, include_filter_regex=None,
                                 exclude_filter_regex=None, stop_on_error=False, filtered=False, cache_hit=False,
-                                get_item_limit=_DEFAULT_GET_ITEM_LIMIT, responses_dict=None, parent_url=''):
+                                get_item_limit=None, responses_dict=None, parent_url=''):
 
         """Handles recursion of a given url path.  Normally not called directly but from a wrapper method.
         Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically
@@ -346,7 +460,7 @@ class RestBase(object):
                                       exclude_filter_regex=exclude_filter_regex,
                                       use_cache=use_cache, stop_on_error=stop_on_error,
                                       API_path_keywords_list=self._API_path_keywords_list,
-                                      get_item_limit=get_item_limit)
+                                      get_item_limit=sd(locals(), 'get_item_limit', self))
 
             logger.debug(pformat(response_dict))
 
@@ -372,7 +486,7 @@ class RestBase(object):
                     self._recurse_API_child_gets(child_url, include_filter_regex=include_filter_regex,
                                                  exclude_filter_regex=exclude_filter_regex,
                                                  use_cache=use_cache, stop_on_error=stop_on_error,
-                                                 get_item_limit=get_item_limit, responses_dict=responses_dict,
+                                                 get_item_limit=sd(locals(), 'get_item_limit', self), responses_dict=responses_dict,
                                                  parent_url=url)
 
             if next_url is not None:
@@ -380,8 +494,8 @@ class RestBase(object):
             else:
                 break
 
-    def walk_API_path_gets(self,url,end_path_regex=None,include_filter_regex=None,exclude_filter_regex=None,
-                           use_cache=True,stop_on_error=False,get_item_limit=_DEFAULT_GET_ITEM_LIMIT,
+    def walk_API_path_gets(self, url, end_path_regex=None, include_filter_regex=None, exclude_filter_regex=None,
+                           use_cache=True, stop_on_error=False, get_item_limit=None,
                            responses_dict=None):
 
         """Begins at given API url path and recursively GET walks path and child paths until complete.
@@ -423,9 +537,10 @@ class RestBase(object):
             url = self.path_root + url
 
         self._recurse_API_child_gets(url, include_filter_regex=include_filter_regex,
-                                    exclude_filter_regex=exclude_filter_regex,
-                                    use_cache=use_cache,stop_on_error=stop_on_error,
-                                    get_item_limit=get_item_limit, responses_dict=responses_dict)
+                                     exclude_filter_regex=exclude_filter_regex,
+                                     use_cache=use_cache, stop_on_error=stop_on_error,
+                                     get_item_limit=sd(locals(), 'get_item_limit', self),
+                                     responses_dict=responses_dict)
 
         return responses_dict
 
@@ -538,7 +653,7 @@ class RestBase(object):
         return results
 
     def GET_API_path(self, url, include_filter_regex=None, exclude_filter_regex=None,stop_on_error=False,
-                     use_cache=False, responses_dict=None, get_item_limit=_DEFAULT_GET_ITEM_LIMIT):
+                     use_cache=False, responses_dict=None, get_item_limit=None):
 
         """Wrapper for a REST GET request.
 
@@ -587,7 +702,7 @@ class RestBase(object):
                                   exclude_filter_regex=exclude_filter_regex,
                                   use_cache=use_cache, stop_on_error=stop_on_error,
                                   API_path_keywords_list=self._API_path_keywords_list,
-                                  get_item_limit=get_item_limit)
+                                  get_item_limit=sd(locals(), 'get_item_limit', self))
 
         if status and self.persist_responses:
             self.response_counter += 1

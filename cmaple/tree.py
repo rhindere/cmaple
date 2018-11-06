@@ -30,13 +30,14 @@ __license__ = "Cisco DEVNET"
 
 import logging
 from autologging import logged, traced
-
+import cmaple.output_transforms as output_transforms
 import sys
 import os
 import re
+import configparser
 
 # Create and configure a logger for cmaple...
-logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
+logger = logging.getLogger(re.sub('\.[^.]+$', '', __name__))
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.ERROR)
 formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(funcName)s:%(message)s')
@@ -44,9 +45,10 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 logger.setLevel(logging.INFO)
 
+
 @logged(logger)
 @traced(logger)
-class CMapleTree():
+class CMapleTree:
     """This class defines the top level object for MAPLE; the 'tree' object.
 
     The tree object provides methods to instantiate and manage MAPLE 'leaf' objects.
@@ -88,6 +90,11 @@ class CMapleTree():
                     logger.error("Error creating cmaple working directory, error message--> " + str(err))
                     sys.exit(str(err))
 
+        # Get a pointer to the global variables
+        # Read in the global variable configuration...
+        self.globals = configparser.ConfigParser()
+        self.globals.read('globals.ini')
+
         # Create the tree directory named 'tree_name'
         maple_tree_dir = os.path.join(tree_dir, name)
         if not os.path.isdir(maple_tree_dir):
@@ -100,20 +107,20 @@ class CMapleTree():
         if logging_config_dict:
             logger.config.dictConfig(logging_config_dict)
         logger.setLevel(logging.getLevelName(logging_level))
-        file_handler = logging.FileHandler(os.path.join(maple_tree_dir,'cmaple.log'), mode=log_file_mode)
+        file_handler = logging.FileHandler(os.path.join(maple_tree_dir, 'cmaple.log'), mode=log_file_mode)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
         logger.info('Starting new cmaple session...')
         
         self.name = name
-        self.leaf_modules ={}
+        self.leaf_modules = {}
         self.leaf_instances = {}
         self.logging_config_dict = logging_config_dict
         self.logging_level = logging_level
         self.log_file_mode = log_file_mode
         self.maple_tree_dir = maple_tree_dir
 
-    def add_leaf_instance(self,leaf_type=None,**kwargs):
+    def add_leaf_instance(self, leaf_type=None, **kwargs):
 
         """Initializes a leaf instance.
 
@@ -130,7 +137,8 @@ class CMapleTree():
         kwargs['maple_parent'] = self
 
         leaf = leaf_type.lower()
-        
+
+        # TODO add check for duplicate leaf name
         # Create a working directory for the new leaf...
         if not 'name' in kwargs:
             logger.error('name argument is None. %s leaf must have a name...exiting' % (leaf))
@@ -158,13 +166,67 @@ class CMapleTree():
             import cmaple.threatgrid.threatgrid
             self.leaf_modules[leaf] = cmaple.threatgrid.threatgrid
 
+        if leaf == 'asa':
+            import cmaple.asa.asa
+            self.leaf_modules[leaf] = cmaple.asa.asa
+
         if leaf == 'html_leaf':
             import cmaple.under_construction.html_leaf.HTML_leaf
             self.leaf_modules[leaf] = cmaple.under_construction.html_leaf.HTML_leaf
 
         if leaf not in self.leaf_instances:
-            self.leaf_instances[leaf] = []
+            self.leaf_instances[leaf] = {}
+        if kwargs['name'] not in self.leaf_instances[leaf]:
+            self.leaf_instances[leaf][kwargs['name']] = None
+        else:
+            logger.error('Duplicate leaf name detected for leaf type %s with name %s.  Exiting...' %
+                         (leaf, kwargs['name']))
+            sys.exit()
+
         leaf_class = getattr(self.leaf_modules[leaf], leaf.upper())
-        self.leaf_instances[leaf].append(leaf_class(**kwargs, leaf_dir=leaf_dir))
+        self.leaf_instances[leaf][kwargs['name']] = leaf_class(**kwargs, leaf_dir=leaf_dir)
         
-        return self.leaf_instances[leaf][-1]
+        return self.leaf_instances[leaf][kwargs['name']]
+
+    def multi_leaf_chained_smart_get(self, get_chains=None, responses_dict=None, query_dict=None):
+
+        """Under construction.
+
+        Returns...
+
+        *Parameters*
+
+        ...: string, keyword, default=None
+            The leaf type to initialize.
+        """
+
+        if responses_dict is None:
+            responses_dict = {}
+        else:
+            responses_dict = responses_dict
+
+        if query_dict is None:
+            query_dict = {}
+        else:
+            query_dict = query_dict
+
+        for get_chain in get_chains:
+
+            leaf = get_chain['leaf']
+            base_paths = get_chain['base_paths']
+            if 'params' in get_chain:
+                params = get_chain['params']
+            else:
+                params = None
+
+            responses_dict, query_dict = leaf.chained_smart_get(base_paths=base_paths, params=params,
+                                                                responses_dict=responses_dict, query_dict=query_dict)
+
+            if not responses_dict:
+                logger.warning('Leaf %s returned empty result set...' % leaf.name)
+
+        return responses_dict, query_dict
+
+    def object_dump(self,_object):
+
+        output_transforms.object_dump(_object)

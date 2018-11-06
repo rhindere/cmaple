@@ -65,13 +65,14 @@
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">autologging</span> <span class="k">import</span> <span class="n">logged</span><span class="p">,</span> <span class="n">traced</span>
-
+<span class="kn">import</span> <span class="nn">cmaple.output_transforms</span> <span class="k">as</span> <span class="nn">output_transforms</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">configparser</span>
 
 <span class="c1"># Create and configure a logger for cmaple...</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\.[^.]+$&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">,</span><span class="vm">__name__</span><span class="p">))</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">&#39;\.[^.]+$&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="vm">__name__</span><span class="p">))</span>
 <span class="n">console_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
 <span class="n">console_handler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
 <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">:</span><span class="si">%(name)s</span><span class="s1">:</span><span class="si">%(funcName)s</span><span class="s1">:</span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -79,9 +80,10 @@
 <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">console_handler</span><span class="p">)</span>
 <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
 
+
 <div class="viewcode-block" id="CMapleTree"><a class="viewcode-back" href="../../tree.html#cmaple.tree.CMapleTree">[docs]</a><span class="nd">@logged</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
 <span class="nd">@traced</span><span class="p">(</span><span class="n">logger</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">CMapleTree</span><span class="p">():</span>
+<span class="k">class</span> <span class="nc">CMapleTree</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;This class defines the top level object for MAPLE; the &#39;tree&#39; object.</span>
 
 <span class="sd">    The tree object provides methods to instantiate and manage MAPLE &#39;leaf&#39; objects.</span>
@@ -123,6 +125,11 @@
                     <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error creating cmaple working directory, error message--&gt; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
                     <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
 
+        <span class="c1"># Get a pointer to the global variables</span>
+        <span class="c1"># Read in the global variable configuration...</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">globals</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">globals</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;globals.ini&#39;</span><span class="p">)</span>
+
         <span class="c1"># Create the tree directory named &#39;tree_name&#39;</span>
         <span class="n">maple_tree_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tree_dir</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">maple_tree_dir</span><span class="p">):</span>
@@ -135,20 +142,20 @@
         <span class="k">if</span> <span class="n">logging_config_dict</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">logging_config_dict</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">getLevelName</span><span class="p">(</span><span class="n">logging_level</span><span class="p">))</span>
-        <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">maple_tree_dir</span><span class="p">,</span><span class="s1">&#39;cmaple.log&#39;</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="n">log_file_mode</span><span class="p">)</span>
+        <span class="n">file_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">maple_tree_dir</span><span class="p">,</span> <span class="s1">&#39;cmaple.log&#39;</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="n">log_file_mode</span><span class="p">)</span>
         <span class="n">file_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">file_handler</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting new cmaple session...&#39;</span><span class="p">)</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span> <span class="o">=</span><span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logging_config_dict</span> <span class="o">=</span> <span class="n">logging_config_dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logging_level</span> <span class="o">=</span> <span class="n">logging_level</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">log_file_mode</span> <span class="o">=</span> <span class="n">log_file_mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">maple_tree_dir</span> <span class="o">=</span> <span class="n">maple_tree_dir</span></div>
 
-<div class="viewcode-block" id="CMapleTree.add_leaf_instance"><a class="viewcode-back" href="../../tree.html#cmaple.tree.CMapleTree.add_leaf_instance">[docs]</a>    <span class="k">def</span> <span class="nf">add_leaf_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">leaf_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="CMapleTree.add_leaf_instance"><a class="viewcode-back" href="../../tree.html#cmaple.tree.CMapleTree.add_leaf_instance">[docs]</a>    <span class="k">def</span> <span class="nf">add_leaf_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">leaf_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;Initializes a leaf instance.</span>
 
@@ -165,7 +172,8 @@
         <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;maple_parent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
 
         <span class="n">leaf</span> <span class="o">=</span> <span class="n">leaf_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        
+
+        <span class="c1"># TODO add check for duplicate leaf name</span>
         <span class="c1"># Create a working directory for the new leaf...</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;name argument is None. </span><span class="si">%s</span><span class="s1"> leaf must have a name...exiting&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">leaf</span><span class="p">))</span>
@@ -193,16 +201,70 @@
             <span class="kn">import</span> <span class="nn">cmaple.threatgrid.threatgrid</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmaple</span><span class="o">.</span><span class="n">threatgrid</span><span class="o">.</span><span class="n">threatgrid</span>
 
+        <span class="k">if</span> <span class="n">leaf</span> <span class="o">==</span> <span class="s1">&#39;asa&#39;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">cmaple.asa.asa</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmaple</span><span class="o">.</span><span class="n">asa</span><span class="o">.</span><span class="n">asa</span>
+
         <span class="k">if</span> <span class="n">leaf</span> <span class="o">==</span> <span class="s1">&#39;html_leaf&#39;</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">cmaple.under_construction.html_leaf.HTML_leaf</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmaple</span><span class="o">.</span><span class="n">under_construction</span><span class="o">.</span><span class="n">html_leaf</span><span class="o">.</span><span class="n">HTML_leaf</span>
 
         <span class="k">if</span> <span class="n">leaf</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">][</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Duplicate leaf name detected for leaf type </span><span class="si">%s</span><span class="s1"> with name </span><span class="si">%s</span><span class="s1">.  Exiting...&#39;</span> <span class="o">%</span>
+                         <span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]))</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
         <span class="n">leaf_class</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">],</span> <span class="n">leaf</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">leaf_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">leaf_dir</span><span class="o">=</span><span class="n">leaf_dir</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">][</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">leaf_class</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">leaf_dir</span><span class="o">=</span><span class="n">leaf_dir</span><span class="p">)</span>
         
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">leaf_instances</span><span class="p">[</span><span class="n">leaf</span><span class="p">][</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="CMapleTree.multi_leaf_chained_smart_get"><a class="viewcode-back" href="../../tree.html#cmaple.tree.CMapleTree.multi_leaf_chained_smart_get">[docs]</a>    <span class="k">def</span> <span class="nf">multi_leaf_chained_smart_get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">get_chains</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">responses_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">query_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Under construction.</span>
+
+<span class="sd">        Returns...</span>
+
+<span class="sd">        *Parameters*</span>
+
+<span class="sd">        ...: string, keyword, default=None</span>
+<span class="sd">            The leaf type to initialize.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">responses_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">responses_dict</span> <span class="o">=</span> <span class="n">responses_dict</span>
+
+        <span class="k">if</span> <span class="n">query_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">query_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">query_dict</span> <span class="o">=</span> <span class="n">query_dict</span>
+
+        <span class="k">for</span> <span class="n">get_chain</span> <span class="ow">in</span> <span class="n">get_chains</span><span class="p">:</span>
+
+            <span class="n">leaf</span> <span class="o">=</span> <span class="n">get_chain</span><span class="p">[</span><span class="s1">&#39;leaf&#39;</span><span class="p">]</span>
+            <span class="n">base_paths</span> <span class="o">=</span> <span class="n">get_chain</span><span class="p">[</span><span class="s1">&#39;base_paths&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;params&#39;</span> <span class="ow">in</span> <span class="n">get_chain</span><span class="p">:</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="n">get_chain</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="n">responses_dict</span><span class="p">,</span> <span class="n">query_dict</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">chained_smart_get</span><span class="p">(</span><span class="n">base_paths</span><span class="o">=</span><span class="n">base_paths</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+                                                                <span class="n">responses_dict</span><span class="o">=</span><span class="n">responses_dict</span><span class="p">,</span> <span class="n">query_dict</span><span class="o">=</span><span class="n">query_dict</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">responses_dict</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Leaf </span><span class="si">%s</span><span class="s1"> returned empty result set...&#39;</span> <span class="o">%</span> <span class="n">leaf</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">responses_dict</span><span class="p">,</span> <span class="n">query_dict</span></div>
+
+    <span class="k">def</span> <span class="nf">object_dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">_object</span><span class="p">):</span>
+
+        <span class="n">output_transforms</span><span class="o">.</span><span class="n">object_dump</span><span class="p">(</span><span class="n">_object</span><span class="p">)</span></div>
 </pre></div>
 
           </div>
