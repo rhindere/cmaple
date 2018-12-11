@@ -36,6 +36,7 @@ import sys
 import os
 import re
 from cmaple.tree import CMapleTree
+from cmaple.tree_helpers import *
 from cmaple.input_validations import *
 import cmaple.output_transforms as output
 from pprint import pprint

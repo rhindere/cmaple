@@ -170,6 +170,14 @@ class CMapleTree:
             import cmaple.asa.asa
             self.leaf_modules[leaf] = cmaple.asa.asa
 
+        if leaf == 'bps':
+            import cmaple.bps.bps
+            self.leaf_modules[leaf] = cmaple.bps.bps
+
+        if leaf == 'ipt':
+            import cmaple.iptables.iptables
+            self.leaf_modules[leaf] = cmaple.iptables.iptables
+
         if leaf == 'html_leaf':
             import cmaple.under_construction.html_leaf.HTML_leaf
             self.leaf_modules[leaf] = cmaple.under_construction.html_leaf.HTML_leaf

@@ -205,6 +205,14 @@
             <span class="kn">import</span> <span class="nn">cmaple.asa.asa</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmaple</span><span class="o">.</span><span class="n">asa</span><span class="o">.</span><span class="n">asa</span>
 
+        <span class="k">if</span> <span class="n">leaf</span> <span class="o">==</span> <span class="s1">&#39;bps&#39;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">cmaple.bps.bps</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmaple</span><span class="o">.</span><span class="n">bps</span><span class="o">.</span><span class="n">bps</span>
+
+        <span class="k">if</span> <span class="n">leaf</span> <span class="o">==</span> <span class="s1">&#39;ipt&#39;</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">cmaple.iptables.iptables</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmaple</span><span class="o">.</span><span class="n">iptables</span><span class="o">.</span><span class="n">iptables</span>
+
         <span class="k">if</span> <span class="n">leaf</span> <span class="o">==</span> <span class="s1">&#39;html_leaf&#39;</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">cmaple.under_construction.html_leaf.HTML_leaf</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">leaf_modules</span><span class="p">[</span><span class="n">leaf</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmaple</span><span class="o">.</span><span class="n">under_construction</span><span class="o">.</span><span class="n">html_leaf</span><span class="o">.</span><span class="n">HTML_leaf</span>

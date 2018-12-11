@@ -731,7 +731,7 @@ class RestBase(object):
         query_values = tree_helpers.get_objectpath_values('$..' + query_field, json_to_query)
         return query_values
 
-    def query_with_list(self, query_url=None, query_list=None):
+    def query_with_list(self, query_url=None, query_list=None, responses_dict=None):
 
         """Iterates over and substitutes the values in query_list in query_url
 
@@ -747,18 +747,19 @@ class RestBase(object):
             The list of values to iterate over and substitute in query_url.
         """
 
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+
         query_field = re.match(r'.+?~([^~]+)~', query_url).group(1)
         values_seen = []
-        print(query_field)
 
         for query_value in query_list:
             if not query_value in values_seen:
                 values_seen.append(query_value)
                 url = query_url.replace('~' + query_field + '~', str(query_value))
-                print(url)
-                self.GET_API_path(url)
+                self.GET_API_path(url, responses_dict=responses_dict)
 
-        return self.responses_dict
+        return responses_dict
 
     def query_json_field(self, query_field=None, json_to_query=None):
 

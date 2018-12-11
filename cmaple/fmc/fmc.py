@@ -1083,7 +1083,7 @@ class FMC(RestBase):
             tree_helpers.process_json_request(url=self._auth_url, responses_dict=self.responses_dict,
                                               method='post', headers=self._auth_headers, stop_on_error=True,
                                               credentials_dict=self.credentials_dict, success_status_code=204,
-                                              verify=False)
+                                              verify=self.verify)
 
         auth_headers = response_dict['headers']
         self._auth_token = auth_headers.get('X-auth-access-token', default=None)
