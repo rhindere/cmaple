@@ -5,6 +5,8 @@
 build
 **.log
 **.txt
+/*.py
+!/setup.py
 !LICENSE.txt
 !README.txt
 dist
