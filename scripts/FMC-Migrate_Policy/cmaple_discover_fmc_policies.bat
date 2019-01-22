@@ -1,0 +1,1 @@
+windows_cmaple_cli @cmaple_cli_parameters.parameters -ocf discover_fmc.operations >cmaple_discover_output.txt

@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-tree_helpers.py implements various helper function common to most leaf type.
+asa_helpers.py implements various helper functions for the ASA leaf type.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
 

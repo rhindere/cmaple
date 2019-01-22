@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-ssh.py implements Cisco ASA specific REST functionality.  Generic
+asa.py implements Cisco ASA specific REST functionality.  Generic
 REST functionality is inherited by sub classing RestBase.
 
 Copyright (c) 2018 Cisco and/or its affiliates.

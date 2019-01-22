@@ -1,0 +1,46 @@
+[vars]
+# common vars
+domain=Global
+type=fmc
+tree_name=mig_tree_1
+
+# Path to the 'api-docs-fmcwithll.json' file
+# CMAPLE bases most FMC operations on the current API model as defined in the file
+# named ‘api-docs-fmcwithll.json’ and obtained from the target FMC. This file currently
+# resides in the directory ‘/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api’.
+# This file provides the API model to CMAPLE:FMC which is used for many of the operations
+# to derive urls, etc. This file can be copied from the target FMC using scp and placed
+# in a directory of the users choice.
+model_json_file=api-docs-fmcwithll.json
+
+# vars specific to the destination fmc
+FMC_dst_host=10.1.101.39
+FMC_dst_port=443
+FMC_dst_name=fmc_mig_dst
+FMC_dst_user=@rest_admin_user
+FMC_dst_pass=@rest_admin_password
+
+# The name given to the source fmc leaf
+FMC_src_name=fmc_mig_src
+
+#RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
+[tree]
+#RH – sets the logging level for MAPLE.  Log file is maple.log in default directory
+logging_level=INFO
+
+#RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an '@', it will be replaced with
+#the value passed either on the command line or in the parameters file.
+RUN tree=CMapleTree(name={vars$tree_name},tree_dir=@maple_working_dir,logging_level={tree$logging_level})
+
+#RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
+#Migrate to the destination...
+[leaf]
+
+#RH – creates a substitution variable to hold the arguments for creating the leaf object.  Not necessary, only for readability
+leaf_args=leaf_type={vars$type},name={vars$FMC_dst_name},json_file_path={vars$model_json_file},FMC_host={vars$FMC_dst_host},FMC_port={vars$FMC_dst_port},FMC_username={vars$FMC_dst_user},FMC_password={vars$FMC_dst_pass},FMC_domain={vars$domain},restore_responses=True
+
+#RH – adds the leaf instance for the FMC to the tree
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf$leaf_args})
+
+#Run the migrate method
+RUN migrate = {leaf$RUN leaf}.or_migrate_config(source_config_path={vars$tree_name}/{vars$FMC_src_name})

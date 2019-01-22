@@ -1,0 +1,112 @@
+[vars]
+# vars common to both the source and destination fmc
+domain=Global
+type=fmc
+tree_name=mig_tree_1
+
+# Path to the 'api-docs-fmcwithll.json' file
+# CMAPLE bases most FMC operations on the current API model as defined in the file
+# named ‘api-docs-fmcwithll.json’ and obtained from the target FMC. This file currently
+# resides in the directory ‘/var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api’.
+# This file provides the API model to CMAPLE:FMC which is used for many of the operations
+# to derive urls, etc. This file can be copied from the target FMC using scp and placed
+# in a directory of the users choice.
+model_json_file=api-docs-fmcwithll.json
+
+# vars specific to the source fmc
+FMC_src_host=10.1.101.40
+FMC_src_port=443
+FMC_src_name=fmc_mig_src
+FMC_src_user=@rest_admin_user
+FMC_src_pass=@rest_admin_password
+
+#RH – section to define and create the top level object for MAPLE (the “tree” object).  Note “tree” is arbitrary and can be “foo” or whatever.  It is just a label.
+[tree]
+#RH – sets the logging level for MAPLE.  Log file is maple.log in default directory
+logging_level=INFO
+
+#RH – Instantiates the top level MAPLE object and stores the object reference to “RUN tree”. Since maple_working_dir is preceded by an '@', it will be replaced with
+#the value passed either on the command line or in the parameters file.
+RUN tree=CMapleTree(name={vars$tree_name},tree_dir=@maple_working_dir,logging_level={tree$logging_level})
+
+#RH – section to define and create the FMC leaf object for the MAPLE tree (the “leaf” object).  Note: 'leaf' is an arbitrary label.
+[leaf]
+
+#RH – creates a substitution variable to hold the arguments for creating the leaf object.  Not necessary, only for readability
+leaf_args=leaf_type={vars$type},name={vars$FMC_src_name},json_file_path={vars$model_json_file},FMC_host={vars$FMC_src_host},FMC_port={vars$FMC_src_port},FMC_username={vars$FMC_src_user},FMC_password={vars$FMC_src_pass},FMC_domain={vars$domain},restore_responses=True
+
+#RH – adds the leaf instance for the FMC to the tree
+RUN leaf={tree$RUN tree}.add_leaf_instance({leaf$leaf_args})
+
+#RH – gets the domain id for the given domain
+RUN domain_id={leaf$RUN leaf}.get_domain_id(domain={vars$domain})
+
+[get_source_policies]
+# If security zones are to be migrated, the device records and physical interfaces need to be obtained due to json model anomalies in fmc
+RUN dr = {leaf$RUN leaf}.get_all_items(url=devices/devicerecords)
+
+# Get a list of all the device
+RUN did = {leaf$RUN leaf}.query_json_field(query_field=items.id,json_to_query={get_source_policies$RUN dr})
+
+#Get all device records
+#Run multiple gets iterating over values in the device id list substituting each value in the list for ~id~
+drs = devices/devicerecords/~id~
+RUN drq = {leaf$RUN leaf}.query_with_list(query_url={get_source_policies$drs},query_list={get_source_policies$RUN did})
+RUN pp_drq=output.pretty_print(_object={get_source_policies$RUN drq})
+
+#Get all physical interfaces for each device
+#Run multiple get iterating over values in the device id list substituting each value in the list for ~id~
+piu = devices/devicerecords/~id~/physicalinterfaces
+RUN piq = {leaf$RUN leaf}.query_with_list(query_url={get_source_policies$piu},query_list={get_source_policies$RUN did})
+RUN pp_piq=output.pretty_print(_object={get_source_policies$RUN piq})
+
+#Discover the source objects.  Remove the # symbol for elements to be discovered
+### Policies
+RUN accesspolicies={leaf$RUN leaf}.walk_API_path_gets(url=policy/accesspolicies)
+RUN ftdnatpolicies={leaf$RUN leaf}.walk_API_path_gets(url=policy/ftdnatpolicies)
+#RUN snmpalerts={leaf$RUN leaf}.walk_API_path_gets(url=policy/snmpalerts)
+#RUN syslogalerts={leaf$RUN leaf}.walk_API_path_gets(url=policy/syslogalerts)
+
+### Objects
+#RUN anyprotocolportobjects={leaf$RUN leaf}.walk_API_path_gets(url=object/anyprotocolportobjects)
+#RUN applicationcategories={leaf$RUN leaf}.walk_API_path_gets(url=object/applicationcategories)
+#RUN applicationfilters={leaf$RUN leaf}.walk_API_path_gets(url=object/applicationfilters)
+#RUN applicationproductivities={leaf$RUN leaf}.walk_API_path_gets(url=object/applicationproductivities)
+#RUN applicationrisks={leaf$RUN leaf}.walk_API_path_gets(url=object/applicationrisks)
+#RUN applications={leaf$RUN leaf}.walk_API_path_gets(url=object/applications)
+#RUN applicationtags={leaf$RUN leaf}.walk_API_path_gets(url=object/applicationtags)
+#RUN applicationtypes={leaf$RUN leaf}.walk_API_path_gets(url=object/applicationtypes)
+#RUN continents={leaf$RUN leaf}.walk_API_path_gets(url=object/continents)
+#RUN countries={leaf$RUN leaf}.walk_API_path_gets(url=object/countries)
+#RUN endpointdevicetypes={leaf$RUN leaf}.walk_API_path_gets(url=object/endpointdevicetypes)
+#RUN geolocations={leaf$RUN leaf}.walk_API_path_gets(url=object/geolocations)
+#RUN hosts={leaf$RUN leaf}.walk_API_path_gets(url=object/hosts)
+#RUN icmpv4objects={leaf$RUN leaf}.walk_API_path_gets(url=object/icmpv4objects)
+#RUN icmpv6objects={leaf$RUN leaf}.walk_API_path_gets(url=object/icmpv6objects)
+#RUN interfacegroups={leaf$RUN leaf}.walk_API_path_gets(url=object/interfacegroups)
+#RUN interfaceobjects={leaf$RUN leaf}.walk_API_path_gets(url=object/interfaceobjects)
+#RUN isesecuritygrouptags={leaf$RUN leaf}.walk_API_path_gets(url=object/isesecuritygrouptags)
+#RUN networkaddresses={leaf$RUN leaf}.walk_API_path_gets(url=object/networkaddresses)
+#RUN networkgroups={leaf$RUN leaf}.walk_API_path_gets(url=object/networkgroups)
+#RUN networks={leaf$RUN leaf}.walk_API_path_gets(url=object/networks)
+#RUN portobjectgroups={leaf$RUN leaf}.walk_API_path_gets(url=object/portobjectgroups)
+#RUN ports={leaf$RUN leaf}.walk_API_path_gets(url=object/ports)
+#RUN protocolportobjects={leaf$RUN leaf}.walk_API_path_gets(url=object/protocolportobjects)
+#RUN ranges={leaf$RUN leaf}.walk_API_path_gets(url=object/ranges)
+#RUN realms={leaf$RUN leaf}.walk_API_path_gets(url=object/realms)
+#RUN realmusergroups={leaf$RUN leaf}.walk_API_path_gets(url=object/realmusergroups)
+#RUN realmusers={leaf$RUN leaf}.walk_API_path_gets(url=object/realmusers)
+#RUN securitygrouptags={leaf$RUN leaf}.walk_API_path_gets(url=object/securitygrouptags)
+#RUN securityzones={leaf$RUN leaf}.walk_API_path_gets(url=object/securityzones)
+#RUN siurlfeeds={leaf$RUN leaf}.walk_API_path_gets(url=object/siurlfeeds)
+#RUN siurllists={leaf$RUN leaf}.walk_API_path_gets(url=object/siurllists)
+#RUN slamonitors={leaf$RUN leaf}.walk_API_path_gets(url=object/slamonitors)
+#RUN tunneltags={leaf$RUN leaf}.walk_API_path_gets(url=object/tunneltags)
+#RUN urlcategories={leaf$RUN leaf}.walk_API_path_gets(url=object/urlcategories)
+#RUN urlgroups={leaf$RUN leaf}.walk_API_path_gets(url=object/urlgroups)
+#RUN urls={leaf$RUN leaf}.walk_API_path_gets(url=object/urls)
+#RUN variablesets={leaf$RUN leaf}.walk_API_path_gets(url=object/variablesets)
+#RUN vlangrouptags={leaf$RUN leaf}.walk_API_path_gets(url=object/vlangrouptags)
+#RUN vlantags={leaf$RUN leaf}.walk_API_path_gets(url=object/vlantags)
+#RUN nat={leaf$RUN leaf}.walk_API_path_gets(url=policy/ftdnatpolicies)
+#RUN pp_nat=output.pretty_print(_object={get_source_policies$RUN nat})

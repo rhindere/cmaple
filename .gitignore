@@ -1,7 +1,6 @@
 **/venv
 .idea
 **/parking*
-**/under_construction
 **/__pycache__
 build
 **.log
@@ -15,3 +14,7 @@ doc
 **.xlsx
 test_output
 test_data
+**/under_construction
+**/sfo
+**/iptables
+**/bps
