@@ -6,6 +6,7 @@ build
 **.log
 **.txt
 !LICENSE.txt
+!README.txt
 dist
 doc
 **.csv
