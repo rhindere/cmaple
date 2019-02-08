@@ -4,8 +4,8 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-migrate_fmc.py - Example script to migrate policies from one FMC to
-another using the API.
+fmc_generate_object_reference.py - Example script to create a csv file
+representing the target FMCs policies and objects.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
 
@@ -75,6 +75,8 @@ FMC_src_leaf = maple_tree.add_leaf_instance('fmc', name=FMC_src_leaf_name, json_
 FMC_src_leaf.walk_API_path_gets(url='policy/accesspolicies')
 FMC_src_leaf.walk_API_path_gets(url='policy/ftdnatpolicies')
 
+# Create the csv file from the leaf's response_dict
+# TODO Need to create command line arg for csv file name.
 csvfile = open('csv_file.csv', 'w', newline='')
 
 FMC_src_leaf.build_response_pivot(csvfile)

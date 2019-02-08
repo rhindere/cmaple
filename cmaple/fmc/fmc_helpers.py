@@ -99,7 +99,6 @@ def build_response_pivot(responses_dict, csvfile):
                     child_fields[child_field_name].append({})
                     child_fields = child_fields[child_field_name][-1]
                 for type_dict in child_type_val['type_dicts']:
-                    pprint(type_dict)
                     child_url = type_dict['url']
                     if not child_url == 'literal':
                         if child_url in responses_dict:
