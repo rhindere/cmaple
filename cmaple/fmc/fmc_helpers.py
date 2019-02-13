@@ -199,23 +199,28 @@ def get_all_reference_dicts(FMC_instance):
                     models_dict[model_ID] = tree_helpers.get_jsonpath_values(properties_path,resource_dict)[0]
         operations_list = tree_helpers.get_jsonpath_values('$..operations',resource_dict)
         for operation_list in operations_list:
+            model_ID = None
             for operation in operation_list:
                 if not operation is None:
                     path = re.sub('^/','',operation['path'])
                     method = tree_helpers.get_jsonpath_values('$..method',operation)[0]
-                    model_ID = None
-                    for example in operation['examples']:
-                        if 'responseData' in example:
-                            if 'type' in example['responseData']:
-                                model_ID = example['responseData']['type']
-                                break
-                    if not model_ID:
-                        model_ID = operation['type']['modelId']
-                    model_path_dict[model_ID] = path
-                    path_model_dict[path] = model_ID
+                    if model_ID is None:
+                        for example in operation['examples']:
+                            if not 'override' in example['url']:
+                                if 'responseData' in example:
+                                    if 'type' in example['responseData']:
+                                        model_ID = example['responseData']['type']
+                                        break
                     if not path in operations_dict:
-                        operations_dict[path] = {'methods':{},'operation_path':operation['path']}
+                        operations_dict[path] = {'methods': {}, 'operation_path': operation['path']}
                     operations_dict[path]['methods'][method] = operation
+            if not model_ID:
+                model_ID = operation_list[-1]['type']['modelId']
+            # model_path_dict[model_ID] = path
+            path = operation_list[-1]['path']
+            path = re.sub('^/', '', path)
+            model_path_dict[model_ID] = path
+            path_model_dict[path] = model_ID
     for path in operations_dict.keys():
         operation_path = operations_dict[path]['operation_path']
         all_API_paths_list.append(path)
@@ -227,7 +232,7 @@ def get_all_reference_dicts(FMC_instance):
         else:
             continue
         add_paths_to_dict(path_parts,paths_dict,API_path_keywords_list)
-    
+
     all_API_paths_list.sort()
     return OrderedDict(sorted(resource_path_dict.items())), OrderedDict(sorted(operations_dict.items())), \
            OrderedDict(sorted(model_path_dict.items())), OrderedDict(sorted(paths_dict.items())), \

@@ -1,1 +1,1 @@
-python cmaple_cli.py @cmaple_cli_examples\cmaple_cli_parameters.parameters -ocf cmaple_cli_examples\get_source_fmc_policy.operations >cmaple_output.txt
+python cmaple_cli.py @"parking lot for test code\cmaple_cli_parameters.parameters" -ocf "parking lot for test code\get_source_fmc_policy.operations" >cmaple_output.txt
