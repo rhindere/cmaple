@@ -158,6 +158,10 @@ class CMapleTree:
             import cmaple.fmc.fmc
             self.leaf_modules[leaf] = cmaple.fmc.fmc
 
+        if leaf == 'fdm':
+            import cmaple.fdm.fdm
+            self.leaf_modules[leaf] = cmaple.fdm.fdm
+
         if leaf == 'amp':
             import cmaple.amp.amp
             self.leaf_modules[leaf] = cmaple.amp.amp

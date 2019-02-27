@@ -290,6 +290,10 @@ def process_json_request(url, responses_dict, headers, method, credentials_dict,
     """
 
     print('Processing url %s...' % url, file=sys.stderr)
+    logger.debug('Entering process_json_request with url %s' % url)
+    logger.debug('Headers = %s' % headers)
+    logger.debug('Credentials = %s' % credentials_dict)
+    logger.debug('Json body = %s' % json_body)
     store_status = None
     logger.debug('Processing json request method %s for url %s...' % (method,url))
     exclude_filtered = False
@@ -311,12 +315,13 @@ def process_json_request(url, responses_dict, headers, method, credentials_dict,
         else:
             auth = ''
         try:
+            logger.debug('getting request method handle for method %s' % method)
             request_method = getattr(requests, method)
         except Exception as err:
             logger.error("Error getting method reference for method %s, error message--> "+str(err))
             sys.exit(str(err))
         try:
-            logger.debug('Requesting url %s with method %s and expecting %s...' % (url,method,success_status_code))
+            logger.debug('Requesting url %s with method %s and expecting %s...' % (url, method, success_status_code))
             if method == 'get':
                 url_no_parameters = re.sub(r'\?[^?]+$','',url)
                 last_path_part = re.search('[^/]+$',url_no_parameters).group(0)

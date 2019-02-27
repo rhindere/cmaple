@@ -75,7 +75,6 @@ class RestBase(object):
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self.responses_dict = {}
         self.response_index = {}
-
         if self.restore_responses:
             tree_helpers.restore_responses(self.leaf_dir, self.responses_dict)
 
@@ -406,7 +405,7 @@ class RestBase(object):
 
     def _recurse_API_child_gets(self, url, use_cache=True, end_path_regex=None, include_filter_regex=None,
                                 exclude_filter_regex=None, stop_on_error=False, filtered=False, cache_hit=False,
-                                get_item_limit=None, responses_dict=None, parent_url=''):
+                                get_item_limit=None, responses_dict=None, parent_url='', parent_recursion_stack=[]):
 
         """Handles recursion of a given url path.  Normally not called directly but from a wrapper method.
         Begins at given API url path and recursively GET walks path and child paths until complete.  Automatically
@@ -486,8 +485,9 @@ class RestBase(object):
                     self._recurse_API_child_gets(child_url, include_filter_regex=include_filter_regex,
                                                  exclude_filter_regex=exclude_filter_regex,
                                                  use_cache=use_cache, stop_on_error=stop_on_error,
-                                                 get_item_limit=sd(locals(), 'get_item_limit', self), responses_dict=responses_dict,
-                                                 parent_url=url)
+                                                 get_item_limit=sd(locals(), 'get_item_limit', self),
+                                                 responses_dict=responses_dict, parent_url=url,
+                                                 parent_recursion_stack=parent_recursion_stack)
 
             if next_url is not None:
                 url = next_url
@@ -535,7 +535,6 @@ class RestBase(object):
 
         if self.path_root not in url:
             url = self.path_root + url
-
         self._recurse_API_child_gets(url, include_filter_regex=include_filter_regex,
                                      exclude_filter_regex=exclude_filter_regex,
                                      use_cache=use_cache, stop_on_error=stop_on_error,

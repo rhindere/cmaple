@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-fmc.py implements Cisco FMC specific REST functionality.  Generic
+fdm.py implements Cisco FDM specific REST functionality.  Generic
 REST functionality is inherited by sub classing RestBase.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
@@ -33,7 +33,7 @@ import os
 import re
 import cmaple.tree_helpers as tree_helpers
 from cmaple.tree_helpers import set_default as sd
-import cmaple.fmc.fmc_helpers as fmc_helpers
+import cmaple.fdm.fdm_helpers as fdm_helpers
 import cmaple.input_validations as input_validations
 import cmaple.output_transforms as output_transforms
 import json
@@ -48,16 +48,16 @@ from collections import OrderedDict
 import _pickle
 
 #Define global variables...
-_API_AUTH_PATH = '/api/fmc_platform/{API_version}/auth/generatetoken'
+_API_AUTH_PATH = '/api/fdm/{API_version}/fdm/token'
 
-# Create a logger tree.fmc...
+# Create a logger tree.fdm...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 
 @logged(logger)
 @traced(logger)
-class FMC(RestBase):
+class FDM(RestBase):
     """
-    This class defines the API interface for the FMC.
+    This class defines the API interface for the fdm.
 
     Inherits generic REST functionality from RestBase.
 
@@ -71,29 +71,29 @@ class FMC(RestBase):
         """__init__ receives a kwargs dict to define parameters.  This allows __init__ to pass these parameters
         to the superclass.
 
-        Returns an FMC leaf object.
+        Returns an fdm leaf object.
 
         *Parameters*
 
         json_file_path: string, keyword, default=None
-            The path to the json model file.  This file is typically named 'api-docs-fmcwithll.json' and obtained
-            from the target FMC.  Typically resides in the directory
-            /var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api.
-            This file provides the API model to MAPLE:FMC which is used for many of the operations to derive urls, etc.
-        FMC_host: string, keyword, default=None
-            The ip address or fqdn of the FMC
-        FMC_port: integer, keyword, default=443
-            The TCP/IP FMC management port
-        FMC_username: string, keyword, default=None
-            The username for FMC
-        FMC_password: string, keyword, default=None
-            The password for FMC
-        FMC_domain: string, keyword, default='Global'
-            The target FMC domain.
+            The path to the json model file.  This file is typically named 'ngfw.json' and obtained
+            from the target fdm.  Typically resides in the directory
+            /ngfw/var/cisco/ngfwWebUi/tomcat/webapps/ROOT/apispec.
+            This file provides the API model to MAPLE:fdm which is used for many of the operations to derive urls, etc.
+        fdm_host: string, keyword, default=None
+            The ip address or fqdn of the fdm
+        fdm_port: integer, keyword, default=443
+            The TCP/IP fdm management port
+        fdm_username: string, keyword, default=None
+            The username for fdm
+        fdm_password: string, keyword, default=None
+            The password for fdm
+        fdm_domain: string, keyword, default='Global'
+            The target fdm domain.
         API_path_delimiter: string, keyword, default='/'
             The default delimiter for the API path.
         API_version: string, keyword, default='v1'
-            The API version supported by the target FMC.
+            The API version supported by the target fdm.
         verify: boolean, keyword, default=False
             If True, verify the certificate.  If False disable verification.
         default_get_item_limit: integer, keyword, default=400
@@ -111,10 +111,10 @@ class FMC(RestBase):
             for the leaf instance are stored.
         """
 
-        kwarg_defaults = {'json_file_path':None, 'FMC_host':None, 'FMC_port':None, 'FMC_username':None,
-                          'FMC_password':None, 'FMC_domain':'Global', 'API_path_delimiter':'/', 'API_version':'v1',
-                          'verify':False, 'default_get_item_limit':400, 'rpm_retries':5, 'backoff_timer':30,
-                          'persist_responses':True, 'restore_responses':False, 'leaf_dir': None,
+        kwarg_defaults = {'json_file_path': None, 'fdm_host': None, 'fdm_port': None, 'fdm_username': None,
+                          'fdm_password': None, 'fdm_domain': 'Global', 'API_path_delimiter': '/', 'API_version': 'v2',
+                          'verify': False, 'default_get_item_limit': 400, 'rpm_retries': 5, 'backoff_timer': 30,
+                          'persist_responses': True, 'restore_responses': False, 'leaf_dir': None,
                           'connect_device': True}
 
         for key, val in kwargs.items():
@@ -122,25 +122,28 @@ class FMC(RestBase):
 
         self.__dict__.update(kwarg_defaults)
 
-        super(FMC, self).__init__()
+        super(FDM, self).__init__()
         
         #Attributes inherited from leaf_base to override in this class
         self.next_link_query = '$..next'
-        self.credentials_dict = {'username':self.FMC_username,'password':self.FMC_password}
+        self.credentials_dict = {}
 
         #Validate critical attributes
-        self.FMC_host = input_validations.validate_ip_host(self.FMC_host)
-        self.FMC_user = input_validations.validate_string_value(self.FMC_username,'fmc username')
-        self.FMC_password = input_validations.validate_string_value(self.FMC_password,'fmc password')
+        self.fdm_host = input_validations.validate_ip_host(self.fdm_host)
+        self.fdm_user = input_validations.validate_string_value(self.fdm_username, 'fdm username')
+        self.fdm_password = input_validations.validate_string_value(self.fdm_password, 'fdm password')
         
         #Add class specific attributes
-        self.domain_ID_dict = {}
-        self._url_host = 'https://' + self.FMC_host
-        if self.FMC_port and not int(self.FMC_port) == int(443):
-            self._url_host += ':' + str(self.FMC_port)
-        self._auth_url = self._url_host + _API_AUTH_PATH.replace('{API_version}',self.API_version)
-        self.request_headers = {'Content-Type': 'application/json'}
-        self._auth_headers = self.request_headers
+        self._url_host = 'https://' + self.fdm_host
+        if self.fdm_port and not int(self.fdm_port) == int(443):
+            self._url_host += ':' + str(self.fdm_port)
+        self._auth_url = self._url_host + _API_AUTH_PATH.replace('{API_version}', self.API_version)
+
+        self.request_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        self._auth_headers = self.request_headers.copy()
+        self._auth_body = {'grant_type': 'password', 'username': self.fdm_username, 'password': self.fdm_password}
+        self._auth_body.update(self.request_headers)
+
         self._auth_token_time = None
         self._requests_per_minute_time = None
         self._requests_counter = 0
@@ -148,36 +151,31 @@ class FMC(RestBase):
         self._refresh_token = None
         self._refresh_token_count = 0
         if self.connect_device:
-            self._get_token_and_domains()
-            self.FMC_domain = fmc_helpers.validate_FMC_domain(self.FMC_domain,self.domain_ID_dict)
-            self.FMC_domain_ID = self.domain_ID_dict[self.FMC_domain]
+            self._get_token()
         else:
             if self.restore_responses:
                 response_url = list(self.responses_dict.keys())[0]
-                self.FMC_domain_ID = re.match(r'.+?/domain/([^/]+)',response_url).group(1)
-        self.path_root = '{}/{}/{}/{}/{}/{}/'.format(self._url_host,'api','fmc_config',self.API_version,'domain',
-                                                   self.FMC_domain_ID)
+        self.path_root = '{}/{}/{}/{}/'.format(self._url_host, 'api', 'fdm', self.API_version)
         # This cache will be used by _get_child_urls to store responses to handle anomaly cases
         self.anomalous_response_cache = {}
 
         # Load the model and build the reference dictionaries...
         self._get_json_dict(self.json_file_path)
+
     #Methods inherited from leaf_base to override in this class
     ##############################################################################################################
     @logged(logger)
     @traced(logger)
     def or_migrate_config(self, source_config_path=None):
 
-        """Migrates objects stored in source_config_path to this FMC instance.
+        """Migrates objects stored in source_config_path to this fdm instance.
 
         *Parameters*
 
         source_config_path: string, keyword, default=None
-            The path to the working directory of the source FMC leaf.
+            The path to the working directory of the source fdm leaf.
         """
         def get_url_type(url, response_dict):
-            print('gut =', url)
-            pprint(response_dict)
             url_type = None
             if 'items' in response_dict['json_dict']:
                 url_type = 'item_list'
@@ -406,7 +404,7 @@ class FMC(RestBase):
             type = response_dict['json_dict']['type']
             name = response_dict['json_dict']['name']
             if type in name_to_id_mappings and name in name_to_id_mappings[type]:
-                logger.info('post_end_object: end_object type %s with name %s already exists on target FMC...' % (type, name))
+                logger.info('post_end_object: end_object type %s with name %s already exists on target fdm...' % (type, name))
                 id_mappings[id] = name_to_id_mappings[type][name]
                 return True
 
@@ -437,7 +435,7 @@ class FMC(RestBase):
                             url += '?section=%s' % section
 
             elif type == 'PhysicalInterface':
-                # First we need to find the source device associated with this interface on the source fmc...
+                # First we need to find the source device associated with this interface on the source fdm...
                 # Get the device record...
                 device_url = re.match(r'(.+?/devices/devicerecords/[^/]+)', url).group(1)
                 device_record = self.source_responses_dict[device_url]
@@ -456,7 +454,7 @@ class FMC(RestBase):
                         id_mapping[device_id] = new_device_id
 
             # # Replace the host with ours
-            # url = re.sub(r'https://[^/]+', 'https://' + self.FMC_host, url)
+            # url = re.sub(r'https://[^/]+', 'https://' + self.fdm_host, url)
 
             # Replace the path root with ours
             url = re.sub(r'https://.+?domain/[^/]+/', self.path_root, url)
@@ -535,14 +533,13 @@ class FMC(RestBase):
         def recurse_migrate_config(source_responses_dict):
             for url, response_dict in self.source_responses_dict.items():
                 source_domain_id = re.match(r'.+?/domain/([^/]+)', url).group(1)
-                id_mappings[source_domain_id] = self.FMC_domain_ID
+                id_mappings[source_domain_id] = self.fdm_domain_ID
                 process_child_urls(url, response_dict, '')
 
         self.source_responses_dict = OrderedDict()
 
-        exclude_types = ['Device',
-                         ]
-        # exclude_types = []
+        #exclude_types = ['Device',]
+        exclude_types = []
 
         id_mappings = {}
         name_to_id_mappings = {}
@@ -554,7 +551,7 @@ class FMC(RestBase):
     @traced(logger)
     def _request_wrapper(self, recursed=False, **kwargs):
 
-        """Wraps all requests for an FMC leaf in order to handle FMC specifics such at re-auth and rate limit.
+        """Wraps all requests for an fdm leaf in order to handle fdm specifics such at re-auth and rate limit.
         This should only be called by internal methods.
 
         *Parameters*
@@ -566,16 +563,9 @@ class FMC(RestBase):
         """
 
         time_diff = time.time() - self._auth_token_time
-        if time_diff > 1500:  # 1500 = 25 minutes...
+        if time_diff > 1700:
             logger.info('Refreshing authentication token...')
-            if self._refresh_token_count < 3:
-                self._refresh_token_count += 1
-            else:
-                logger.info('Token has been refreshed the maximum of 3 times, requesting new token...')
-                self._refresh_token_count = 0
-                self._auth_headers.pop('X-auth-access-token')
-                self._auth_headers.pop('X-auth-refresh-token')
-            self._get_token_and_domains()
+            self._get_token()
 
         if not recursed:
 
@@ -589,7 +579,7 @@ class FMC(RestBase):
                         logger.error('Requests per minute code 429 retry count exceeded.  Exiting...')
                         sys.exit()
                     logger.info(
-                        'FMC reports requests per minute exceeding 120.  Sleeping for self._backoff_timer seconds...')
+                        'fdm reports requests per minute exceeding 120.  Sleeping for self._backoff_timer seconds...')
                     time.sleep(self.backoff_timer)
                 else:
 
@@ -597,11 +587,15 @@ class FMC(RestBase):
 
                     next_url = None
 
-                    if next_link:
+                    logger.debug('next_link query results = %s' % next_link)
+
+                    if next_link and len(next_link[0]) > 0:
                         next_url = next_link[0][0]
                         response_dict['next_link'] = next_url
                     else:
                         next_url = None
+
+                    logger.debug('next_url = %s' % next_url)
 
                     return response_dict, status, include_filtered, exclude_filtered, cache_hit, next_url
         else:
@@ -920,9 +914,9 @@ class FMC(RestBase):
 
     def get_all_API_paths_list(self):
 
-        """Returns a list of all valid API paths for the FMC host.
+        """Returns a list of all valid API paths for the fdm host.
 
-        Returns a list of all the valid API paths for this FMC host.  Contains the domain id for the FMC but container
+        Returns a list of all the valid API paths for this fdm host.  Contains the domain id for the fdm but container
         and object will be required as indicated by placeholders {containerUUID} and {objectId}.
         """
 
@@ -944,113 +938,29 @@ class FMC(RestBase):
 
     def _get_json_dict(self, json_file_path=''):
 
-        """Reads the current json FMC API model into a Python dictionary and build all required reference
+        """Reads the current json fdm API model into a Python dictionary and build all required reference
         dictionaries.
 
         Returns a Python dictionary object containing json model.
 
-        Processing the json model file takes up to one minute.  Therefore, this method will check to see if the model
-        has changed since the last run.  It it is the same it will restore the json model dictionary and all derived
-        reference dictionaries from pickled files.
-        
-        Pickles all newly created Python dictionaries if required.
-
         *Parameters*
 
         json_file_path: string, keyword, default=None
-            The path to the json model file.  This file is typically named 'api-docs-fmcwithll.json' and obtained
-            from the target FMC.  Typically resides in the directory
-            /var/opt/CSCOpx/MDC/tomcat/vms/api/api-explorer/api.
-            This file provides the API model to MAPLE:FMC which is used for many of the operations to derive urls, etc.
+            The path to the json model file.  This file is typically named 'ngfw.json' and obtained
+            from the target fdm.  Typically resides in the directory
+            /ngfw/var/cisco/ngfwWebUi/tomcat/webapps/ROOT/apispec.
+            This file provides the API model to MAPLE:fdm which is used for many of the operations to derive urls, etc.
         """
 
-        last_model_specs = {'last_model_file_size':None, 'last_model_mod_date': None}
-        last_model_file = '{}.{}'.format(self.json_file_path, 'last.pickle')
-        last_model_file_size = os.path.getsize(self.json_file_path)
-        last_model_mod_date = os.path.getmtime(self.json_file_path)
-        self._json_dict = None
-        if os.path.exists(last_model_file):
-            with open(last_model_file, 'rb') as f:
-                last_model_specs = _pickle.load(f)
-            if last_model_file_size == last_model_specs['last_model_file_size'] and \
-                    last_model_mod_date == last_model_specs['last_model_mod_date']:
-                last_model_pickle = '{}.{}'.format(self.json_file_path, 'pickle')
-                if os.path.exists(last_model_pickle):
-                    with open(last_model_pickle, 'rb') as f:
-                        self._json_dict = _pickle.load(f)
+        self._json_dict = json.load(open(self.json_file_path, 'r'))
 
-        if self._json_dict is None:
-            # Made it this far so we need to load file from disk
-            last_model_specs['last_model_file_size'] = last_model_file_size
-            last_model_specs['last_model_mod_date'] = last_model_mod_date
-            with open(last_model_file, 'wb') as f:
-                _pickle.dump(last_model_specs, f)
-            self._json_dict = json.load(open(self.json_file_path, 'r'))
+        self._API_path_keywords_list, self._all_API_paths_list, self._models_dict \
+            = fdm_helpers.get_all_reference_dicts(self)
 
-        reference_dicts_file = '{}.{}'.format(self.json_file_path, 'reference_pickle')
-        reference_dicts = {}
-        self._models_path_dict = None
-        if os.path.exists(reference_dicts_file):
-            with open(reference_dicts_file, 'rb') as f:
-                reference_dicts = _pickle.load(f)
-            if last_model_file_size == reference_dicts['last_model_file_size'] and \
-                    last_model_mod_date == reference_dicts['last_model_mod_date']:
-                self._resources_path_dict = reference_dicts['_resources_path_dict']
-                self._operations_dict = reference_dicts['_operations_dict']
-                self._models_path_dict = reference_dicts['_models_path_dict']
-                self._paths_hierarchy = reference_dicts['_paths_hierarchy']
-                self._API_path_keywords_list = reference_dicts['_API_path_keywords_list']
-                self._all_API_paths_list = reference_dicts['_all_API_paths_list']
-                self._path_models_dict = reference_dicts['_path_models_dict']
-                self._models_dict = reference_dicts['_models_dict']
-
-        if self._models_path_dict is None:
-            self._resources_path_dict, self._operations_dict, self._models_path_dict, \
-            self._paths_hierarchy, self._API_path_keywords_list, self._all_API_paths_list, \
-            self._path_models_dict, self._models_dict = fmc_helpers.get_all_reference_dicts(self)
-
-            reference_dicts['_resources_path_dict'] = self._resources_path_dict
-            reference_dicts['_operations_dict'] = self._operations_dict
-            reference_dicts['_models_path_dict'] = self._models_path_dict
-            reference_dicts['_paths_hierarchy'] = self._paths_hierarchy
-            reference_dicts['_API_path_keywords_list'] = self._API_path_keywords_list
-            reference_dicts['_all_API_paths_list'] = self._all_API_paths_list
-            reference_dicts['_path_models_dict'] = self._path_models_dict
-            reference_dicts['_models_dict'] = self._models_dict
-
-            reference_dicts['last_model_file_size'] = last_model_file_size
-            reference_dicts['last_model_mod_date'] = last_model_mod_date
-
-            with open(reference_dicts_file, 'wb') as f:
-                _pickle.dump(reference_dicts, f)
-
-    def get_all_models_dict(self):
-        """Returns the model dictionary created from the model input file.
-        
-        Returns a Python dictionary created from the json model input file.
-
-        """
-        
-        return self._models_dict
-    
-    def get_domain_id(self, domain='Global'):
-        """Returns the id of the given domain.
-        
-        Returns the id of the domain name given in the arugment.  This is the id to use in API calls 
-        for the respective domain.
-
-        *Parameters*
-
-        domain : string
-            The domain name for which to retrieve the id.
-        """
-                
-        return self.domain_ID_dict[domain]
-            
     def get_all_API_paths_list(self):
-        """Returns a list of all valid API paths for the FMC host.
+        """Returns a list of all valid API paths for the fdm host.
         
-        Returns a list of all the valid API paths for this FMC host.  Contains the domain id for the FMC but container and object
+        Returns a list of all the valid API paths for this fdm host.  Contains the domain id for the fdm but container and object
         will be required as indicated by placeholders {containerUUID} and {objectId}.
 
         """
@@ -1213,7 +1123,7 @@ class FMC(RestBase):
         
         request_templates_dict = {}
         for key, val in self._all_models.items():
-            request_templates_dict[key] = fmc_helpers.build_request_template_from_model(val)
+            request_templates_dict[key] = fdm_helpers.build_request_template_from_model(val)
 
     def _build_flattened_model_dict_by_name(self,model_name):
         """
@@ -1224,33 +1134,41 @@ class FMC(RestBase):
 
         return flatlined
 
-    def _get_token_and_domains(self):
+    def _get_token(self):
         """
         Under construction...
         """
 
         # Get a security token valid for 30 minutes.  Record the time to check for validity
+
         self._auth_token_time = time.time()
+
         response_dict, status, include_filtered, exclude_filtered, cache_hit = \
             tree_helpers.process_json_request(url=self._auth_url, responses_dict=self.responses_dict,
                                               method='post', headers=self._auth_headers, stop_on_error=True,
-                                              credentials_dict=self.credentials_dict, success_status_code=204,
-                                              verify=self.verify)
+                                              credentials_dict=self.credentials_dict, success_status_code=200,
+                                              verify=self.verify, json_body=json.dumps(self._auth_body))
 
-        auth_headers = response_dict['headers']
-        self._auth_token = auth_headers.get('X-auth-access-token', default=None)
-        self._refresh_token = auth_headers.get('X-auth-refresh-token', default=None)
-        if self._auth_token is None:
+        # Authorization: Bearer
+        logger.debug(pformat(response_dict))
+        auth_headers = response_dict['json_dict']
+        logger.debug(pformat(auth_headers))
+        if 'access_token' in auth_headers:
+            self._auth_token = auth_headers['access_token']
+            self._refresh_token = auth_headers['refresh_token']
+        else:
             logger.error('auth_token not found.  Returned headers = ', auth_headers, '\nExiting...')
             sys.exit()
-        self.domain_ID_dict = fmc_helpers.get_domain_dict(auth_headers)
-        self.request_headers['X-auth-access-token'] = self._auth_token
-        self._auth_headers['X-auth-access-token'] = self._auth_token
-        self._auth_headers['X-auth-refresh-token'] = self._refresh_token
+        self.request_headers['Authorization'] = 'Bearer ' + self._auth_token
+        self._auth_body['grant_type'] = 'refresh_token'
+        self._auth_body['refresh_token'] = self._refresh_token
+        if 'password' in self._auth_body:
+            self._auth_body.pop('password')
+            self._auth_body.pop('username')
 
     def build_response_pivot(self, csvfile):
 
-        fmc_helpers.build_response_pivot(self.responses_dict, csvfile)
+        fdm_helpers.build_response_pivot(self.responses_dict, csvfile)
 
     # Begin TODO, rework and under construction
     ################################################################################################################
