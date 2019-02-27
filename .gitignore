@@ -5,7 +5,9 @@
 build
 **.log
 **.txt
+**.*pickle
 /*.py
+!cmaple.egg-info/*
 !/setup.py
 !LICENSE.txt
 !README.txt
