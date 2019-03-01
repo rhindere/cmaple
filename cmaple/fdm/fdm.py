@@ -126,7 +126,7 @@ class FDM(RestBase):
         
         #Attributes inherited from leaf_base to override in this class
         self.next_link_query = '$..next'
-        self.credentials_dict = {}
+        self.credentials_dict = {} # Credentials are carried in the json payload for FDM...
 
         #Validate critical attributes
         self.fdm_host = input_validations.validate_ip_host(self.fdm_host)
@@ -620,50 +620,11 @@ class FDM(RestBase):
         persist_responses = self.persist_responses
         self.persist_responses = False
         child_url = ''
-        type = type_dict['dict']['type']
-        id = type_dict['dict']['id']
-        name = type_dict['dict']['name']
-        if type == 'PhysicalInterface':
-            if not type in self.anomalous_response_cache:
-                logger.debug('type %s is not in anomalous_response_cache...' % type)
-                responses_dict = self.GET_API_path(url='devices/devicerecords', responses_dict={})
-                logger.debug('from GET_API_path, responses_dict==================')
-                logger.debug(pformat(responses_dict))
-                device_ids = tree_helpers.get_objectpath_values("$..items[@.type is 'Device'].id", responses_dict)
-                for device_id in device_ids:
-                    responses_dict = self.GET_API_path(url='devices/devicerecords/%s' % device_id,
-                                                       responses_dict=responses_dict)
-                    responses_dict = self.GET_API_path(url='devices/devicerecords/%s/physicalinterfaces' % device_id,
-                                                       responses_dict=responses_dict)
-                    responses_dict = self.GET_API_path(url='devices/devicerecords/%s/subinterfaces' % device_id,
-                                                       responses_dict=responses_dict)
-                self.anomalous_response_cache[type] = responses_dict
-                logger.debug('anomalous response cache for type %s ===============')
-                logger.debug(pformat(self.anomalous_response_cache[type]))
-            device_ids = tree_helpers.get_objectpath_values("$..items[@.type is 'Device'].id",
-                                                            self.anomalous_response_cache[type])
-            logger.debug('device_ids =', device_ids)
+        # type = type_dict['dict']['type']
+        # id = type_dict['dict']['id']
+        # name = type_dict['dict']['name']
 
-            for device_id in device_ids:
-                logger.debug('processing  device_id =', device_id)
-                device_interface_url = '{}{}{}'.format(self.path_root, 'devices/devicerecords/', device_id)
-                device_interfaces = None
-                interface_ids = []
-                for url, val in self.anomalous_response_cache[type].items():
-                    if device_interface_url in url:
-                        device_interfaces = val
-                        interface_ids.extend(tree_helpers.get_objectpath_values(
-                            "$..items[@.type is 'PhysicalInterface'].id", device_interfaces))
-                        interface_ids.extend(tree_helpers.get_objectpath_values(
-                            "$..items[@.type is 'SubInterface'].id", device_interfaces))
-                for interface_id in interface_ids:
-                    logger.debug('processing interface id %s for match with id %s' % (interface_id, id))
-                    if interface_id == id:
-                        child_url = \
-                            '{}{}{}/{}{}'.format(self.path_root, 'devices/devicerecords/', device_id,
-                                                 'physicalinterfaces/', interface_id)
-                        logger.debug('found a match, child_url = %s' % child_url)
-                        break
+        # Place exception code here...
 
         self.persist_responses = persist_responses
         return child_url
@@ -687,34 +648,12 @@ class FDM(RestBase):
         persist_responses = self.persist_responses
         self.persist_responses = True
         child_url = ''
-        type = response_dict['json_dict']['type']
-        id = response_dict['json_dict']['id']
-        name = response_dict['json_dict']['name']
+        # type = response_dict['json_dict']['type']
+        # id = response_dict['json_dict']['id']
+        # name = response_dict['json_dict']['name']
         logger.warning('Handling anomalous composite type %s' % type)
-        if type == 'Device':
-            logger.debug('anomalous composite type is Device')
-            for api_path in self._all_API_paths_list:
-                if 'devices/devicerecords/{containerUUID}/' in api_path and not api_path.endswith('}'):
-                    device_api_path = api_path.replace('{containerUUID}', id)
-                    child_api_path = '{}{}'.format(self.path_root, device_api_path)
-                    logger.debug('child_api_path =', child_api_path)
-                    child_urls.append(child_api_path)
-            # We need to make sure subinterfaces are processed first...
-            for i in range(0, len(child_urls)):
-                if 'subinterfaces' in child_urls[i]:
-                    subinturl = child_urls.pop(i)
-                    child_urls.insert(0, subinturl)
-            if 'deviceGroup' in response_dict['json_dict']:
-                # Temporary until we are ready to deal with device groups... todo
-                response_dict['json_dict'].pop('deviceGroup')
-                print('popping devicegroup')
-                pprint(response_dict)
-        if type == 'DeviceHAPair':
-            logger.debug('anomalous composite type is DeviceHAPair')
-            primary_id = response_dict['json_dict']['primary']['id']
-            child_urls.append('{}{}{}'.format(self.path_root, 'devices/devicerecords/', primary_id))
-            secondary_id = response_dict['json_dict']['secondary']['id']
-            child_urls.append('{}{}{}'.format(self.path_root, 'devices/devicerecords/', secondary_id))
+
+        # Place exception code here...
 
         # Restore persist response state
         self.persist_responses = persist_responses
@@ -737,6 +676,30 @@ class FDM(RestBase):
             The parent url of this response.  Used to prevent circular object references.
         """
 
+        # Workaround for FDM due to some FDM objects not containing a reference to contained collections
+        # e.g. the main access policy for FDM does not contain a "accessrules" reference to obtain the rules
+        # This function will determine if any sub urls exist and create child urls for them
+        def get_unreferenced_child_urls(url, child_urls):
+            url_parts = url.split('/')
+            logger.debug('url parts = %s' % url_parts)
+            if url_parts[-1] in self._API_path_keywords_list: # If the url ends with a keyword, no need to process
+                return child_urls
+            id_pattern = r'[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}'
+            id_list = re.findall(id_pattern, url)
+            logger.debug('id list = %s' % id_list)
+            if id_list:
+                if len(id_list) == 1: # More than one would mean this is a sub object and we've gone as far as we can.
+                    parent_id = id_list[0]
+                    API_path = url.replace(self.path_root, '')
+                    API_path = API_path.replace(parent_id, '{parentId}')
+                    for path in self._all_API_paths_list:
+                        if API_path in path and '{objId}' not in path:
+                            child_path = path.replace('{parentId}', parent_id)
+                            child_path = self.path_root + re.sub(r'^/', '', child_path)
+                            child_urls.append(child_path)
+            return child_urls
+
+
         def recurse_for_child_dicts(json_dict, parent_key, type_list):
             if type(json_dict) is dict or type(json_dict) is OrderedDict:
                 if 'type' in json_dict and not parent_key == '':
@@ -757,11 +720,8 @@ class FDM(RestBase):
                 for json_member in json_dict:
                     recurse_for_child_dicts(json_member, parent_key, type_list)
 
-        anomalous_composites = ['Device',
-                                'DeviceHAPair',
-                                ]
-        anomalous_types = ['PhysicalInterface',
-                           ]
+        anomalous_composites = []
+        anomalous_types = []
         response_self_link = None
         response_self_id = None
         url = response_dict['url']
@@ -794,7 +754,6 @@ class FDM(RestBase):
             child_url = ''
             if type_dict['key'] == 'literals':
                 child_url = 'literal'
-                # continue
 
             lower_first_func = lambda s: s[:1].lower() + s[1:] if s else ''
             id_type = ''
@@ -807,10 +766,10 @@ class FDM(RestBase):
                 logger.warning('type attribute missing for child dict %s...' % type_dict)
 
             if child_url == '':
-                if not id_type in self._models_path_dict \
-                    and not type_dict['key'] in self._models_path_dict \
-                    and not lower_first_func(id_type) in self._models_path_dict \
-                    and not id_type.lower() in self._models_path_dict \
+                if not id_type in self._type_path_dict \
+                    and not type_dict['key'] in self._type_path_dict \
+                    and not lower_first_func(id_type) in self._type_path_dict \
+                    and not id_type.lower() in self._type_path_dict \
                         and not 'links' in type_dict['dict']:
                     logger.warning('no url found for child dict %s...' % type_dict)
                 else:
@@ -822,28 +781,28 @@ class FDM(RestBase):
                             logger.warning(
                                 'Child dictionary %s has a links node but self url is missing...' % type_dict)
                     elif not id_type == 'missing_type_attribute':
-                        if id_type in self._models_path_dict:
-                            child_url = self._models_path_dict[id_type]
-                        elif type_dict['key'] in self._models_path_dict:
-                            child_url = self._models_path_dict[type_dict['key']]
-                        elif lower_first_func(id_type) in self._models_path_dict:
-                            child_url = self._models_path_dict[lower_first_func(id_type)]
+                        if id_type in self._type_path_dict:
+                            child_url = self._type_path_dict[id_type]
+                        elif type_dict['key'] in self._type_path_dict:
+                            child_url = self._type_path_dict[type_dict['key']]
+                        elif lower_first_func(id_type) in self._type_path_dict:
+                            child_url = self._type_path_dict[lower_first_func(id_type)]
                         else:
-                            child_url = self._models_path_dict[id_type.lower()]
+                            child_url = self._type_path_dict[id_type.lower()]
 
                         logger.debug('child_model_url = %s' % (child_url))
-                        if '{containerUUID}' in child_url:
+                        if '{parentId}' in child_url:
                             if not response_self_id:
                                 logger.warning(
-                                    'Child type url %s needs a {containerUUID} but no parent id found...' % (child_url))
+                                    'Child type url %s needs a {parentId} but no parent id found...' % (child_url))
                             else:
-                                child_url = child_url.replace('{containerUUID}', response_self_id)
-                        if '{objectId}' in child_url:
+                                child_url = child_url.replace('{parentId}', response_self_id)
+                        if '{objId}' in child_url:
                             if 'id' in type_dict['dict']:
                                 object_id = type_dict['dict']['id']
-                                child_url = child_url.replace('{objectId}', object_id)
+                                child_url = child_url.replace('{objId}', object_id)
                             else:
-                                logger.warning('Child type url %s needs an {objectId} but no id found...' % (child_url))
+                                logger.warning('Child type url %s needs an {objId} but no id found...' % (child_url))
 
             if not child_url == '':
                 # Safeguard to prevent child url returning parent url - deployabledevice
@@ -867,6 +826,13 @@ class FDM(RestBase):
                     logger.warning('Child url %s resolved to parent url' % child_url)
             else:
                 logger.warning('no url found for child dict %s ' % type_dict)
+
+        # Check if no child_urls, then search for unreferenced child objects...
+        logger.debug('type list = %s' % type_list)
+        if not child_urls: # If something is in child_urls, means we've handled anomaly
+            logger.debug('Getting unreferenced child urls for url %s' % url)
+            child_urls = get_unreferenced_child_urls(url, child_urls)
+
         return child_urls, child_types
 
     #Begin class specific methods
@@ -954,8 +920,9 @@ class FDM(RestBase):
 
         self._json_dict = json.load(open(self.json_file_path, 'r'))
 
-        self._API_path_keywords_list, self._all_API_paths_list, self._models_dict \
-            = fdm_helpers.get_all_reference_dicts(self)
+        self._model_type_dict, self._type_model_dict, self._type_path_dict, self.path_type_dict, \
+            self._path_models_dict, self._models_path_dict, self._API_path_keywords_list, self._all_API_paths_list, \
+            self._models_dict = fdm_helpers.get_all_reference_dicts(self)
 
     def get_all_API_paths_list(self):
         """Returns a list of all valid API paths for the fdm host.

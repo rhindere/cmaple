@@ -157,17 +157,101 @@ def build_response_pivot(responses_dict, csvfile):
 def get_all_reference_dicts(fdm_instance):
 
     json_dict = fdm_instance._json_dict
-    models_dict = json_dict['definitions']
 
+    models_dict = {}
     API_path_keywords_list = []
+    type_model_dict = {}
+    model_type_dict = {}
+    type_path_dict = {}
+    path_type_dict = {}
+    path_model_dict = {}
+    model_path_dict = {}
+    wrapper_models_dict = {}
+    model_wrapper_dict = {}
+    type_wrapper_dict = {}
 
-    for tag in json_dict['tags']:
-        API_path_keywords_list.append(tag['name'])
+    # Populate models_dict
+    models_dict = json_dict['definitions']
+    # Populate type_model, model_type and wrapper
+    for model, model_dict in models_dict.items():
+        logger.debug('model = %s' % model)
+        logger.debug(pformat(model_dict))
+        if 'properties' in model_dict and 'type' in model_dict['properties'] \
+                and 'default' in model_dict['properties']['type']:
+            model_type = model_dict['properties']['type']['default']
+            type_model_dict[model_type] = model
+            model_type_dict[model] = model_type
+        elif 'Wrapper' in model and 'allOf' in model_dict:
+            wrapper_models_dict[model] = []
+            ref = model_dict['allOf'][0]
+            ref_model = ref['$ref'].split('/')[-1]
+            wrapper_models_dict[model] = ref_model
+            model_wrapper_dict[ref_model] = model
+        else:
+            logger.warning('Model %s is not a Wrapper or object...' % model)
+            logger.warning(pformat(model_dict))
+
+    # Populate type_wrapper_dict
+    for key, val in model_wrapper_dict.items():
+        if key in model_type_dict:
+            _type = model_type_dict[key]
+            type_wrapper_dict[_type] = val
+
+    def get_schema_ref(path_dict):
+        if type(path_dict) is dict:
+            if '$ref' in path_dict:
+                logger.debug('Found $ref %s' % path_dict['$ref'])
+                return path_dict['$ref']
+            else:
+                for key, val in path_dict.items():
+                    schema_ref = get_schema_ref(val)
+                    if schema_ref is not None:
+                        return schema_ref
+        elif type(path_dict) is list:
+            for element in path_dict:
+                schema_ref = get_schema_ref(element)
+                if schema_ref is not None:
+                    return schema_ref
+        return None # $ref not found
 
     all_API_paths_list = list(json_dict['paths'].keys())
+    for API_path in all_API_paths_list:
+        # Populate API_path_keywords_list
+        API_path_parts = API_path.split('/')
+        for API_path_part in API_path_parts:
+            if '{' not in API_path_part:
+                API_path_keywords_list.append(API_path_part)
+
+        # Populate path_model_dict, model_path_dict, type_path_dict, path_type_dict
+        if 'get' in json_dict['paths'][API_path]:
+            logger.debug('Attempting to get schema for API_path %s\n' % pformat(json_dict['paths'][API_path]))
+            get_schema = get_schema_ref(json_dict['paths'][API_path]['get']['responses']['200']['schema'])
+            if get_schema is None:
+                logger.warning('No schema $ref found for this API_Path...')
+                continue
+            model = get_schema.split('/')[-1]
+            path_model_dict[API_path] = model
+            model_path_dict[model] = API_path
+            if model in wrapper_models_dict:
+                wrapped_model = wrapper_models_dict[model]
+                if wrapped_model in model_type_dict:
+                    _type = model_type_dict[wrapped_model]
+                    prep_API_path = re.sub('^/', '', API_path)
+                    type_path_dict[_type] = prep_API_path
+                    path_type_dict[prep_API_path] = _type
+                else:
+                    logger.warning('Model %s not found in model_type_dict' % model)
+            else:
+                logger.warning('Model %s not found in wrapper_models_dict' % model)
+        else:
+            logger.warning('API_path %s does not have a "get" method...' % API_path)
 
     all_API_paths_list.sort()
-    return API_path_keywords_list, all_API_paths_list, models_dict
+    return \
+        OrderedDict(sorted(model_type_dict.items())), OrderedDict(sorted(type_model_dict.items())), \
+        OrderedDict(sorted(type_path_dict.items())), OrderedDict(sorted(path_type_dict.items())), \
+        OrderedDict(sorted(model_path_dict.items())), OrderedDict(sorted(path_model_dict.items())), \
+        API_path_keywords_list, all_API_paths_list, models_dict
 
 @logged(logger)
 @traced(logger)
