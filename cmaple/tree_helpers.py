@@ -54,6 +54,139 @@ import _pickle
 # Create a logger for this module...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 
+# try:
+#     # Create a multi-SSH runner.  Processes sets the number of processes
+#     # that can run at the same time.
+#     runner = MultiSSHRunner(processes=len(devices))
+#
+#     # We must add jobs one at a time (allows for more flexibility)
+#     for device in devices:
+#         runner.add_ssh_job(
+#             hostname=device, connect_timeout=connect_timeout,
+#             username=username, password=password,
+#             interaction=server_interaction)
+#
+#     # Run the interactions, returned is a list of outputs (outputs are in
+#     # whatever format returned by the interaction function)
+#     outputs = runner.run()
+#
+#     # Go through and print the command outputs
+#     for device, output in zip(devices, outputs):
+#         print
+#         '-- Device:', device, '--\n'
+#         output1, output2 = output
+#         print
+#         '/etc/*release output:'
+#         print
+#         output1
+#         print
+#         'uname -a output:'
+#         print
+#         output2
+# except KeyboardInterrupt:
+#     pass
+# except:
+#     traceback.print_exc()
+
+
+@logged(logger)
+@traced(logger)
+def process_cmd_request(group_list=None, cmd_list=None, responses_dict=None, cmd_expect=None, include_filter_regex=None,
+                        exclude_filter_regex=None, use_cache=False,
+                        stop_on_error=False, cli_cmds_list=[]):
+    """Generic request wrapper for all terminal commands.
+
+    """
+
+    print('Processing group %s with cmds %s...' % (group_list, cmd_list), file=sys.stderr)
+    logger.debug('Processing group %s with cmds %s...' % (group_list, cmd_list))
+    store_status = None
+    exclude_filtered = False
+    include_filtered = True
+    cache_hit = False
+    # if exclude_filter_regex and re.search(exclude_filter_regex, url):
+    #     logger.debug('cmd %s matched exclude filter regex %s, filtering...' % (cmd, exclude_filter_regex))
+    #     exclude_filtered = True
+    # elif include_filter_regex and not re.search(include_filter_regex, cmd):
+    #     logger.debug('cmd %s did not match include filter regex %s, filtering...' % (cmd, include_filter_regex))
+    #     include_filtered = False
+    # if use_cache and cmd in responses_dict:
+    #     logger.debug('cmd %s was found in the cache...' % (cmd))
+    #     cache_hit = True
+    r = None
+    if not exclude_filtered and include_filtered and not cache_hit:
+        # TODO add code to detect a timed out or broken connection...attempt to re-connect...
+        # try:
+        #     logger.debug('getting request method handle for method %s' % method)
+        #     request_method = getattr(requests, method)
+        # except Exception as err:
+        #     logger.error("Error getting method reference for method %s, error message--> " + str(err))
+        #     sys.exit(str(err))
+        for group in group_list:
+            # print(group)
+            for cmd in cmd_list:
+                try:
+                    # print('trying...')
+                    # logger.debug('Requesting cmd %s...' % cmd.cmd)
+                    r = cmd.run_cmd(group)
+                    if r.ok:
+                        if cmd_expect and re.match(cmd_expect, r.stdout):
+                            logger.debug('Request for cmd %s was successful.  Exit code = %s...' % (cmd, str(r.exited)))
+                            logger.debug('    stdout = %s' % (r.stdout))
+                    else:
+                        logger.warning('Request for cmd %s unsuccessful. \
+                                        Exit code %s with response %s...' % (cmd, r.exited, r.stdout))
+                        if stop_on_error:
+                            logger.warning('Request for cmd %s unsuccessful. \
+                                            Exit code %s with response %s...' % (cmd, r.exited, r.stdout))
+                            logger.error('stop_on_error set to True, exiting...')
+                            sys.exit()
+                except Exception as err:
+                    logger.warning("Error in processing cmd request--> " + str(err))
+                    if stop_on_error:
+                        logger.error("Error in processing json request--> " + str(err))
+                        logger.error('stop_on_error set to True, exiting...')
+                        sys.exit()
+
+            store_status, cmd_id = store_terminal_response_by_cmd(r, cmd.name, group.name, responses_dict,
+                                                                  include_filter_regex=include_filter_regex,
+                                                                  exclude_filter_regex=exclude_filter_regex,
+                                                                  include_filtered=include_filtered,
+                                                                  exclude_filtered=exclude_filtered,
+                                                                  cache_hit=cache_hit)
+
+    return responses_dict[cmd_id], store_status, include_filtered, exclude_filtered, cache_hit
+
+
+@logged(logger)
+@traced(logger)
+def store_terminal_response_by_cmd(r, cmd, group, responses_dict,
+                                   include_filter_regex=None, exclude_filter_regex=None,
+                                   include_filtered=False, exclude_filtered=False, cache_hit=False):
+    """Stores the terminal cmd response to the leafs responses_dict.
+
+    """
+    _time = get_utc_timestamp()
+
+    cmd_id = cmd + '_' + str(_time)
+
+    if cmd_id not in responses_dict:
+        responses_dict[cmd_id] = {'cmd': None, 'result': None, 'error': None, 'cmd_dict': None, 'status_code': None,
+                               'filtered': False, 'cache_hit': False}
+
+    responses_dict[cmd_id]['cmd'] = cmd
+    responses_dict[cmd_id]['result'] = r
+    responses_dict[cmd_id]['include_filtered'] = include_filtered
+    responses_dict[cmd_id]['exclude_filtered'] = exclude_filtered
+    responses_dict[cmd_id]['include_filter_regex'] = include_filter_regex
+    responses_dict[cmd_id]['exclude_filter_regex'] = exclude_filter_regex
+    responses_dict[cmd_id]['cache_hit'] = cache_hit
+
+    if not include_filtered or exclude_filtered or cache_hit:  # or r.status_code != good_status_code:
+        return False, cmd_id
+    else:
+        return True, cmd_id
+
 
 @logged(logger)
 @traced(logger)
@@ -199,21 +332,6 @@ def deep_update(d, u):
     return d
 
 
-# @logged(logger)
-# @traced(logger)
-# def update_index_dict(index_dict, update_dict):
-#     return
-#
-#
-# @logged(logger)
-# @traced(logger)
-# def add_response_to_index(responses_dict, response_dict):
-#     return
-#     if 'index' not in responses_dict:
-#         responses_dict['index'] = {}
-#     update_index_dict(responses_dict['index'], response_dict)
-#
-#
 @logged(logger)
 @traced(logger)
 def store_json_response_by_url(r, url, good_status_code, responses_dict,

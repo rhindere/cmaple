@@ -174,6 +174,10 @@ class CMapleTree:
             import cmaple.asa.asa
             self.leaf_modules[leaf] = cmaple.asa.asa
 
+        if leaf == 'ssh':
+            import cmaple.ssh.ssh
+            self.leaf_modules[leaf] = cmaple.ssh.ssh
+
         if leaf == 'bps':
             import cmaple.bps.bps
             self.leaf_modules[leaf] = cmaple.bps.bps

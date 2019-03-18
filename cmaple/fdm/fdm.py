@@ -112,7 +112,7 @@ class FDM(RestBase):
         """
 
         kwarg_defaults = {'json_file_path': None, 'fdm_host': None, 'fdm_port': None, 'fdm_username': None,
-                          'fdm_password': None, 'fdm_domain': 'Global', 'API_path_delimiter': '/', 'API_version': 'v2',
+                          'fdm_password': None, 'fdm_domain': 'Global', 'API_path_delimiter': '/',
                           'verify': False, 'default_get_item_limit': 400, 'rpm_retries': 5, 'backoff_timer': 30,
                           'persist_responses': True, 'restore_responses': False, 'leaf_dir': None,
                           'connect_device': True}
@@ -124,6 +124,12 @@ class FDM(RestBase):
 
         super(FDM, self).__init__()
         
+        # Load the model and build the reference dictionaries...
+        self._get_json_dict(self.json_file_path)
+
+        # Get the API version we are working with for this leaf...
+        self.API_version = 'v' + self._json_dict['info']['version'].split('.')[0]
+
         #Attributes inherited from leaf_base to override in this class
         self.next_link_query = '$..next'
         self.credentials_dict = {} # Credentials are carried in the json payload for FDM...
@@ -158,9 +164,6 @@ class FDM(RestBase):
         self.path_root = '{}/{}/{}/{}/'.format(self._url_host, 'api', 'fdm', self.API_version)
         # This cache will be used by _get_child_urls to store responses to handle anomaly cases
         self.anomalous_response_cache = {}
-
-        # Load the model and build the reference dictionaries...
-        self._get_json_dict(self.json_file_path)
 
     #Methods inherited from leaf_base to override in this class
     ##############################################################################################################
@@ -662,7 +665,6 @@ class FDM(RestBase):
     @logged(logger)
     @traced(logger)
     def _get_child_urls(self, response_dict, parent_url):
-
         """This method retrieves the url for all child objects of this response.
         This should only be called by internal methods.
 
@@ -676,6 +678,8 @@ class FDM(RestBase):
             The parent url of this response.  Used to prevent circular object references.
         """
 
+        logger.debug('parent url = %s' % parent_url)
+        logger.debug('\n' + pformat(response_dict))
         # Workaround for FDM due to some FDM objects not containing a reference to contained collections
         # e.g. the main access policy for FDM does not contain a "accessrules" reference to obtain the rules
         # This function will determine if any sub urls exist and create child urls for them
@@ -795,6 +799,7 @@ class FDM(RestBase):
                             if not response_self_id:
                                 logger.warning(
                                     'Child type url %s needs a {parentId} but no parent id found...' % (child_url))
+                                continue
                             else:
                                 child_url = child_url.replace('{parentId}', response_self_id)
                         if '{objId}' in child_url:
@@ -833,6 +838,7 @@ class FDM(RestBase):
             logger.debug('Getting unreferenced child urls for url %s' % url)
             child_urls = get_unreferenced_child_urls(url, child_urls)
 
+        logger.debug('child_urls = \n%s' % pformat(child_urls))
         return child_urls, child_types
 
     #Begin class specific methods

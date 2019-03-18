@@ -112,7 +112,7 @@ class BPS(RestBase):
             for the leaf instance are stored.
         """
 
-        kwarg_defaults = {'json_file_path': None, 'BPS_host': None, 'BPS_port': None, 'BPS_username': None,
+        kwarg_defaults = {'paths_file': None, 'BPS_host': None, 'BPS_port': None, 'BPS_username': None,
                           'BPS_password': None, 'BPS_domain': 'Default', 'API_path_delimiter':'/', 'API_version': 'v1',
                           'verify': False, 'default_get_item_limit': 100, 'rpm_retries': 5, 'backoff_timer': 30,
                           'persist_responses': True, 'restore_responses': False, 'leaf_dir': None}
@@ -161,6 +161,7 @@ class BPS(RestBase):
         self._API_path_keywords_list = []
         self._json_dict = None
         # self._get_json_dict(self.json_file_path)
+        self._all_API_paths_list = open(self.paths_file, 'r').readlines()
         # # pprint(self._json_dict)
         # self._resources_path_dict, self._operations_dict, self._models_path_dict, \
         # self._paths_hierarchy, self._API_path_keywords_list, self._all_API_paths_list, \
@@ -170,24 +171,6 @@ class BPS(RestBase):
 
     #Methods inherited from leaf_base to override in this class
     ##############################################################################################################
-    @logged(logger)
-    @traced(logger)
-    def walk_API_path_gets(self, url, **kwargs):
-
-        """Wrapper for restbase super class method walk_API_path_gets.
-
-        """
-
-        logger.debug('walk_API_path_gets calling recurse_API_child_gets with url %s...' % (url))
-        #if url in resource_path...
-
-        if not url in self._all_API_paths_list:
-            for url_path in self._all_API_paths_list:
-                if url_path.startswith(url) and len(url_path.split('/')) == 2:
-                    super(BPS, self).walk_API_path_gets(url_path, **kwargs)
-        else:
-            super(BPS, self).walk_API_path_gets(url, **kwargs)
-
     @logged(logger)
     @traced(logger)
     def _request_wrapper(self, recursed=False, **kwargs):
@@ -247,7 +230,7 @@ class BPS(RestBase):
 
     @logged(logger)
     @traced(logger)
-    def _get_child_urls(self,response_dict, parent_url):
+    def _get_child_urls(self, response_dict, parent_url):
 
         """This method retrieves the url for all child objects of this response.
         This should only be called by internal methods.
@@ -262,66 +245,8 @@ class BPS(RestBase):
             The parent url of this response.  Used to prevent circular object references.
         """
 
-        #pprint(response_dict)
-        child_links = tree_helpers.get_objectpath_values('$..items..selfLink', response_dict)
-        child_links += tree_helpers.get_objectpath_values('$..items..refLink', response_dict)
-        # pprint(child_links)
-        child_urls = []
-        child_types = {}
-        for child_link in child_links:
-            print('cl =', child_link)
-            child_link = re.sub(r'^/|/$', '', child_link)
-            child_link = re.sub(r'.+?api/', '', child_link)
-            child_link_parts = child_link.split('/')
-            child_url = ''
-            API_path_dict_pointer = self._API_path_dict
-            for i in range(len(child_link_parts)):
-                if child_link_parts[i] in API_path_dict_pointer:
-                    child_url = '{}/{}'.format(child_url, child_link_parts[i])
-                    print('fi=', child_url)
-                    API_path_dict_pointer = API_path_dict_pointer[child_link_parts[i]]
-                    if API_path_dict_pointer and i == len(child_link_parts)-1:
-                        for key, val in API_path_dict_pointer.items():
-                            if val:
-                                print('fifor=',val)
-                                child_url = '{}/{}'.format(child_url, key)
-                                break
-                else:
-                    if API_path_dict_pointer:
-                        API_path_dict_value = list(API_path_dict_pointer.keys())[0]
-                        if API_path_dict_value.startswith('{'):
-                            child_url = '{}/{}'.format(child_url, child_link_parts[i])
-                        if i < len(child_link_parts)-1:
-                            for key, val in API_path_dict_pointer.items():
-                                print('key=', key, 'clp+1=', child_link_parts[i+1])
-                                if list(API_path_dict_pointer[key].keys())[0] == child_link_parts[i+1]:
-                                    API_path_dict_pointer = API_path_dict_pointer[key]
-                                    break
-                        else:
-                            for key, val in API_path_dict_pointer.items():
-                                if val:
-                                    child_url = '{}/{}'.format(child_url, list(val.keys())[0])
-                                    print('li=', val)
-                                    print('cu=', child_url)
-                                    break
-                            break
-
-            print(child_url)
-            child_urls.append(re.sub(r'^/|/$', '', child_url))
-
-            # if not child_link == parent_url:
-            #     child_urls.append(child_link)
-
-        # for child_link in child_links:
-        #     for key, val in child_link.items():
-        #         if not val == parent_url:
-        #             child_urls.append(val)
-        #             if key not in child_types:
-        #                 child_types[key] = {'urls': [], 'type_dicts': []}
-        #             child_types[key]['urls'].append(val)
-        #             child_types[key]['type_dicts'].append({key: val})
-        # return child_urls, child_types
-        return child_urls, child_types
+        child_urls = tree_helpers.get_objectpath_values('$..href', response_dict)
+        return child_urls, {}
 
     #Begin class specific methods
     ################################################################################################################
