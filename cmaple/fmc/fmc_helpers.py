@@ -44,6 +44,31 @@ import csv
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 
 
+@logged(logger)
+@traced(logger)
+def prep_post_list(post_body, strip_nested_dicts=True):
+
+    def process_post(post_dict):
+        for key in ['metadata', 'id', 'links']:
+            if key in post_dict:
+                post_dict.pop(key)
+        if strip_nested_dicts:
+            keys = list(post_dict.keys())
+            for key in keys:
+                if type(post_dict[key]) is dict:
+                    post_dict.pop(key)
+
+    if type(post_body) is list:
+        for post_dict in post_body:
+            process_post(post_dict)
+    else:
+        process_post(post_body)
+
+    return post_body
+
+
+@logged(logger)
+@traced(logger)
 def build_response_pivot(responses_dict, csvfile):
 
     def recurse_child_types(_dict, fields, url_stack, field_stack, field_metadata, rows, parent_dict, parent_path):
@@ -152,6 +177,7 @@ def build_response_pivot(responses_dict, csvfile):
         csv_dict_writer.writerow(type_row)
     return csvfile
 
+
 @logged(logger)
 @traced(logger)
 def get_all_reference_dicts(FMC_instance):
@@ -179,6 +205,7 @@ def get_all_reference_dicts(FMC_instance):
     # Get the base paths
     resource_tuple_list = tree_helpers.get_jsonpath_full_paths_and_values('$.features.*.[*]',FMC_instance._json_dict)
     for i in range(0,len(resource_tuple_list)):
+        resource_dict_path = resource_tuple_list[i][0]
         resource_key = re.sub(r'features.|\[[0-9]+\]|\.','',resource_tuple_list[i][0])
         resource_dict = resource_tuple_list[i][1]
         base_path = resource_dict['basePath']
@@ -197,6 +224,26 @@ def get_all_reference_dicts(FMC_instance):
                     properties_path_list.append('properties')
                     properties_path = '.'.join(properties_path_list)
                     models_dict[model_ID] = tree_helpers.get_jsonpath_values(properties_path,resource_dict)[0]
+                    model_properties_type_list = \
+                        tree_helpers.get_jsonpath_full_paths_and_values('$..type', models_dict[model_ID])
+                    model_response_type_path = '{}.{}{}'.format(resource_dict_path,
+                                                              re.sub(r'models.+', 'operations.', model_path),
+                                                              '.responseData..type')
+                    logger.debug('model =', resource_dict_path, model_path, properties_path,
+                                 model_response_type_path, model_ID)
+                    model_response_type_list = \
+                        tree_helpers.get_jsonpath_full_paths_and_values(model_response_type_path,
+                                                                        FMC_instance._json_dict)
+                    if model_ID != 'AccessRule':
+                        continue
+                    for model_type in model_properties_type_list:
+                        if model_type[1] == 'object' and not re.findall(r'metadata|links|objects|items', model_type[0]):
+                            model_type_path_parts = model_type[0].split('.')
+                            model_type_name = model_type_path_parts[-2]
+                            logger.debug('type_name =', model_type_name)
+                            for response_type in model_response_type_list:
+                                if '{}{}{}'.format('.',model_type_name,'.') in response_type[0]:
+                                    logger.debug(response_type[0])
         operations_list = tree_helpers.get_jsonpath_values('$..operations',resource_dict)
         for operation_list in operations_list:
             model_ID = None

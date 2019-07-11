@@ -4,8 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-win_base.py implements generic REST functionality.  The class TextBase
-is designed to be sub classed only.
+<todo add doc string>
 
 Copyright (c) 2018 Cisco and/or its affiliates.
 
@@ -28,6 +27,7 @@ __license__ = "Cisco DEVNET"
 import sys
 import os
 import re
+import win32com.client
 import cmaple.tree_helpers as tree_helpers
 from cmaple.tree_helpers import set_default as sd
 import cmaple.input_validations as input_validations
@@ -43,26 +43,25 @@ import time
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 # Define global variables
 
+
 @logged(logger)
 @traced(logger)
-class TextBase(object):
+class WinBase(object):
 
     """
-    This class defines generic text functionality.
 
-    Classes sub classing this class will need to override specific methods and properties as called out in the
-    method docstrings and inline comments.
-
-    Method names not beginning with "_" are made available to cmaple_cli.py for use in operations config files.
+    <todo add doc string>
 
     """
 
     def __init__(self):
 
-        """__init__ TextBase inherits arguments from the parent class.  All argument validation is
-        performed by the parent class.
         """
 
-        if self.restore_responses:
-            tree_helpers.restore_responses(self.leaf_dir, self.responses_dict)
+        <todo add doc string>
+
+        """
+
+        pass
+
 

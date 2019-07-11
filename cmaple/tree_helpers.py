@@ -50,44 +50,43 @@ from datetime import datetime, timedelta
 import calendar
 import pytz
 import _pickle
+from functools import reduce  # forward compatibility for Python 3
+import operator
 
 # Create a logger for this module...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 
-# try:
-#     # Create a multi-SSH runner.  Processes sets the number of processes
-#     # that can run at the same time.
-#     runner = MultiSSHRunner(processes=len(devices))
-#
-#     # We must add jobs one at a time (allows for more flexibility)
-#     for device in devices:
-#         runner.add_ssh_job(
-#             hostname=device, connect_timeout=connect_timeout,
-#             username=username, password=password,
-#             interaction=server_interaction)
-#
-#     # Run the interactions, returned is a list of outputs (outputs are in
-#     # whatever format returned by the interaction function)
-#     outputs = runner.run()
-#
-#     # Go through and print the command outputs
-#     for device, output in zip(devices, outputs):
-#         print
-#         '-- Device:', device, '--\n'
-#         output1, output2 = output
-#         print
-#         '/etc/*release output:'
-#         print
-#         output1
-#         print
-#         'uname -a output:'
-#         print
-#         output2
-# except KeyboardInterrupt:
-#     pass
-# except:
-#     traceback.print_exc()
 
+@logged(logger)
+@traced(logger)
+def reduce_dict_get(_dict, map_list):
+    return reduce(operator.getitem, map_list, _dict)
+
+
+@logged(logger)
+@traced(logger)
+def reduce_dict_set(_dict, map_list, value):
+    reduce_dict_get(_dict, map_list[:-1])[map_list[-1]] = value
+
+
+@logged(logger)
+@traced(logger)
+def listify_xml_dict(xml_dict):
+    def recurse_xml_dict(xml, parent, parent_key):
+        if type(xml) is OrderedDict:
+            parent[parent_key] = [xml]
+            for key in list(xml.keys()):
+                recurse_xml_dict(xml[key], xml, key)
+        elif type(xml) is list:
+            for xml_dict in xml:
+                for key in list(xml_dict.keys()):
+                    recurse_xml_dict(xml_dict[key], xml_dict, key)
+        return
+
+    for key in list(xml_dict.keys()):
+        recurse_xml_dict(xml_dict[key], xml_dict, key)
+
+    return xml_dict
 
 @logged(logger)
 @traced(logger)

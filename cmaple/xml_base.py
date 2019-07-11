@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-win_base.py implements generic REST functionality.  The class TextBase
+win_base.py implements generic REST functionality.  The class RestBase
 is designed to be sub classed only.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
@@ -32,12 +32,15 @@ import cmaple.tree_helpers as tree_helpers
 from cmaple.tree_helpers import set_default as sd
 import cmaple.input_validations as input_validations
 import cmaple.output_transforms as output_transforms
+import xmltodict
 from collections import OrderedDict
 from pprint import pprint, pformat
 import logging
 from autologging import logged, traced
 from autologging import TRACE
 import time
+from jsonpath_ng import jsonpath
+from jsonpath_ng.ext import parse
 
 # Create a logger...
 logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
@@ -45,24 +48,38 @@ logger = logging.getLogger(re.sub('\.[^.]+$','',__name__))
 
 @logged(logger)
 @traced(logger)
-class TextBase(object):
+class XMLBase(object):
 
     """
-    This class defines generic text functionality.
 
-    Classes sub classing this class will need to override specific methods and properties as called out in the
-    method docstrings and inline comments.
-
-    Method names not beginning with "_" are made available to cmaple_cli.py for use in operations config files.
+    <todo add doc string>
 
     """
 
     def __init__(self):
 
-        """__init__ TextBase inherits arguments from the parent class.  All argument validation is
-        performed by the parent class.
         """
 
-        if self.restore_responses:
-            tree_helpers.restore_responses(self.leaf_dir, self.responses_dict)
+        <todo add doc string>
 
+        """
+
+        self.xml = ''
+        self.xml_dict = {}
+
+    def xml_to_dict(self, xml):
+        return tree_helpers.listify_xml_dict(xmltodict.parse(xml))
+
+    def dict_to_xml(self, xml_dict):
+        return xmltodict.unparse(xml_dict, pretty=True)
+
+    def load_xml_from_file(self, xml_file):
+        with open(xml_file) as fd:
+            self.xml = fd.read()
+            self.xml_dict = self.xml_to_dict(self.xml)
+        return self.xml_dict
+
+    def write_xml_to_file(self, xml_file):
+        with open(xml_file, 'w', encoding='utf-8') as fd:
+            self.xml = self.dict_to_xml(self.xml_dict)
+            fd.write(self.xml)

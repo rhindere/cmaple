@@ -248,6 +248,8 @@ class FMC(RestBase):
             return json_dict
 
         def prep_migration_json(url, response_dict, object_type):
+            logger.debug('in prep_migration_json with url %s, object_type %s and response_dict\n\t%s'
+                         % (url, object_type, pformat(response_dict)))
             json_copy = {}
             tree_helpers.deep_update(json_copy, response_dict['json_dict'])
             pop_keys = ['id', 'metadata', 'links']
@@ -264,9 +266,13 @@ class FMC(RestBase):
                         continue
                 elif object_type == 'container' and type(json_copy[key]) is dict and 'id' in json_copy[key]:
                     id = json_copy[key]['id']
+                    logger.debug('object_type is container and item id = %s' % id)
                     for child_url in response_dict['child_urls']:
+                        logger.debug('Processing container child url %s' % child_url)
                         if re.match('.+?/' + id, child_url):
+                            logger.debug('id %s found in child_url %s' % (id, child_url))
                             child_response = self.source_responses_dict[child_url]
+                            logger.debug('Child response_dict from source = \n\t%s' % pformat(child_response))
                             child_json = {}
                             tree_helpers.deep_update(child_json, child_response['json_dict'])
                             child_json.pop('id')
@@ -435,6 +441,14 @@ class FMC(RestBase):
                             url += '&section=%s' % section
                         else:
                             url += '?section=%s' % section
+            # elif type == 'AccessPolicy':
+            #     if 'metadata' in response_dict['json_dict']:
+            #         if 'parentPolicy' in response_dict['json_dict']['metadata']:
+            #             parent_policy = response_dict['json_dict']['metadata']['parentPolicy']['name']
+            #             if re.match(r'.+?\?[^/]+$', url):
+            #                 url += '&parentPolicy=%s' % parent_policy
+            #             else:
+            #                 url += '?parentPolicy=%s' % parent_policy
 
             elif type == 'PhysicalInterface':
                 # First we need to find the source device associated with this interface on the source fmc...
@@ -486,12 +500,12 @@ class FMC(RestBase):
                         response_dict['json_dict'].pop('securityZone')
             if 'type' in response_dict['json_dict'] and response_dict['json_dict']['type'] == 'Device' \
                     and 'deviceGroup' in response_dict['json_dict']:
-                print('found devicegroup')
+                # print('found devicegroup')
                 # We aren't ready to deal with device groups yet...todo
                 response_dict['json_dict'].pop('deviceGroup')
-                pprint(response_dict)
-            print('after type check')
-            pprint(response_dict)
+            #     pprint(response_dict)
+            # print('after type check')
+            # pprint(response_dict)
             logger.debug(pformat(response_dict))
             if 'type' in response_dict['json_dict']:
                 if response_dict['json_dict']['type'] in exclude_types:
@@ -547,6 +561,9 @@ class FMC(RestBase):
         id_mappings = {}
         name_to_id_mappings = {}
         tree_helpers.restore_responses(source_config_path, self.source_responses_dict)
+
+        # pprint(self.source_responses_dict)
+
         source_responses_urls = list(self.source_responses_dict.keys())
         recurse_migrate_config(self.source_responses_dict)
 
@@ -713,8 +730,8 @@ class FMC(RestBase):
             if 'deviceGroup' in response_dict['json_dict']:
                 # Temporary until we are ready to deal with device groups... todo
                 response_dict['json_dict'].pop('deviceGroup')
-                print('popping devicegroup')
-                pprint(response_dict)
+                # print('popping devicegroup')
+                # pprint(response_dict)
         if type == 'DeviceHAPair':
             logger.debug('anomalous composite type is DeviceHAPair')
             primary_id = response_dict['json_dict']['primary']['id']
@@ -778,7 +795,14 @@ class FMC(RestBase):
         if 'id' in response_dict['json_dict']:
             response_self_id = response_dict['json_dict']['id']
         else:
-            logger.warning('id node not found for url %s...' % (url))
+            logger.warning('id node not found for url %s...attempting to recover from parent url' % (url))
+            # 0027E388-0C9C-0ed3-0000-034359739117
+            uuids = re.findall(r'[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}', url)
+            if uuids:
+                response_self_id = uuids[-1]
+                logger.warning('Recovered uuid %s from url for id node value...' % response_self_id)
+            else:
+                logger.warning('Unable to recover uuid from url %s...' % url)
         if 'type' in response_dict['json_dict']:
             response_self_type = response_dict['json_dict']['type']
             logger.debug('response_self_type = %s' % response_self_type)
@@ -1003,7 +1027,6 @@ class FMC(RestBase):
                 self._all_API_paths_list = reference_dicts['_all_API_paths_list']
                 self._path_models_dict = reference_dicts['_path_models_dict']
                 self._models_dict = reference_dicts['_models_dict']
-
         if self._models_path_dict is None:
             self._resources_path_dict, self._operations_dict, self._models_path_dict, \
             self._paths_hierarchy, self._API_path_keywords_list, self._all_API_paths_list, \
@@ -1057,7 +1080,58 @@ class FMC(RestBase):
         
         return list(self._all_API_paths_list)
     
-    def post_csv_template_bulk(self,url=None,file_path=None):
+    # def post_csv_template(self,
+    #                       url=None,
+    #                       responses_dict=None,
+    #                       file_path=None,
+    #                       bulk=False,
+    #                       bulk_limit=1000,
+    #                       strip_nested_dicts=True
+    #                       ):
+    #
+    #     """Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and
+    #     posts all records with a bulk post.  Target API must support bulk post for the given url.
+    #
+    #     Returns - No return value.
+    #
+    #     *Parameters*
+    #
+    #     url: string, keyword, default=None
+    #         The target url to post records.
+    #     file_path: string, keyword, default=None
+    #         The full path to the file containing the csv records.
+    #     """
+    #
+    #     def post(post_body):
+    #         fmc_helpers.prep_post_list(post_body, strip_nested_dicts=strip_nested_dicts)
+    #         pprint(post_body)
+    #         self.post_json_request(url, post_body, responses_dict=responses_dict)
+    #
+    #     if responses_dict is None:
+    #         responses_dict = self.responses_dict
+    #
+    #     post_list = output_transforms.csv_to_post_list(file_path)
+    #     if bulk:
+    #         url = url + '?bulk=true'
+    #         n = bulk_limit
+    #         post_lists = [post_list[i * n:(i + 1) * n] for i in range((len(post_list) + n - 1) // n)]
+    #         for post_body in post_lists:
+    #             post(post_body)
+    #     else:
+    #         for post_body in post_list:
+    #             post(post_body)
+    #
+    #     logger.debug(pformat(responses_dict))
+    #     return responses_dict
+    #
+    def post_csv_template(self,
+                          url=None,
+                          responses_dict=None,
+                          file_path=None,
+                          bulk=False,
+                          bulk_limit=1000,
+                          strip_nested_dicts=True
+                          ):
 
         """Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and
         posts all records with a bulk post.  Target API must support bulk post for the given url.
@@ -1072,15 +1146,66 @@ class FMC(RestBase):
             The full path to the file containing the csv records.
         """
 
-        bulk_post_body = output_transforms.csv_to_bulk_post_body(file_path)
-        response_dict, status, include_filtered, exclude_filtered, cache_hit = \
-            self._request_wrapper(recursed=False, url=url, json_body=expanded_json,
-                                  responses_dict=self.responses_dict, headers=self.request_headers,
-                                  method='post', credentials_dict=self.credentials_dict, verify=self.verify,
-                                  success_status_code=201)
+        if responses_dict is None:
+            responses_dict = self.responses_dict
 
-        logger.debug(pformat(response_dict))
+        post_list = output_transforms.csv_to_post_list(file_path)
+        if bulk:
+            self.bulk_post(url=url, post_list=post_list, responses_dict=responses_dict, bulk_limit=bulk_limit)
+        else:
+            for post_body in post_list:
+                self.post_json_request(url, post_body, responses_dict=responses_dict)
+        return responses_dict
 
+    def bulk_post(self,
+                  url=None,
+                  post_list=None,
+                  responses_dict=None,
+                  bulk_limit=1000,
+                  ):
+
+        """
+        """
+
+        def post(post_body):
+            self.post_json_request(url, post_body, responses_dict=responses_dict)
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+
+        url = url + '?bulk=true'
+        n = bulk_limit
+        post_lists = [post_list[i * n:(i + 1) * n] for i in range((len(post_list) + n - 1) // n)]
+        for post_body in post_lists:
+            post(post_body)
+
+        logger.debug(pformat(responses_dict))
+        return responses_dict
+
+    # def post_csv_template_bulk(self, url=None, file_path=None):
+    #
+    #     """Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and
+    #     posts all records with a bulk post.  Target API must support bulk post for the given url.
+    #
+    #     Returns - No return value.
+    #
+    #     *Parameters*
+    #
+    #     url: string, keyword, default=None
+    #         The target url to post records.
+    #     file_path: string, keyword, default=None
+    #         The full path to the file containing the csv records.
+    #     """
+    #
+    #     bulk_post_body = output_transforms.csv_to_bulk_post_body(file_path)
+    #     response_dict, status, include_filtered, exclude_filtered, cache_hit = \
+    #         self._request_wrapper(recursed=False, url=url, json_body=bulk_post_body,
+    #                               responses_dict=self.responses_dict, headers=self.request_headers,
+    #                               method='post', credentials_dict=self.credentials_dict, verify=self.verify,
+    #                               success_status_code=201)
+    #
+    #     logger.debug(pformat(response_dict))
+    #
     def smart_get_url_list(self, url, responses_dict=None):
 
         """Used to intelligently retrieve and substitute object ids from provided names.
@@ -1251,6 +1376,86 @@ class FMC(RestBase):
     def build_response_pivot(self, csvfile):
 
         fmc_helpers.build_response_pivot(self.responses_dict, csvfile)
+
+    def get_deployable_devices(self):
+        """
+
+        """
+
+        responses_dict = {}
+        responses_dict = self.GET_API_path(url="deployment/deployabledevices?expanded=true",
+                                           responses_dict=responses_dict)
+
+        deployable_device_ids = []
+        for url, response_dict in responses_dict.items():
+            if 'items' in response_dict['json_dict']:
+                for device_dict in response_dict['json_dict']['items']:
+                    for device in device_dict['deviceMembers']:
+                        deployable_device_ids.append(device['id'])
+
+        return deployable_device_ids
+
+    def deploy_all_devices(self, responses_dict=None):
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+
+        deployable_device_ids = self.get_deployable_devices()
+        if deployable_device_ids:
+            self.deploy_configuration(deployable_device_ids=deployable_device_ids, responses_dict=responses_dict)
+        else:
+            return None
+
+        return responses_dict
+
+    def get_deployment_task_id(self, responses_dict):
+
+        url = list(responses_dict.keys())[0]
+        task_id = None
+        if 'metadata' in responses_dict[url]['json_dict']:
+            if 'task' in responses_dict[url]['json_dict']['metadata']:
+                if 'id' in responses_dict[url]['json_dict']['metadata']['task']:
+                    task_id = responses_dict[url]['json_dict']['metadata']['task']['id']
+        return task_id
+
+    def deploy_configuration(self, deployable_device_ids=None, responses_dict=None):
+        """
+
+        """
+
+        if responses_dict is None:
+            responses_dict = self.responses_dict
+
+        deployment_json_dict = {
+            "type": "DeploymentRequest",
+            "version": 0,
+            "forceDeploy": True,
+            "ignoreWarning": True,
+            "deviceList": deployable_device_ids
+        }
+
+        responses_dict = self.post_json_request('deployment/deploymentrequests',
+                                                deployment_json_dict,
+                                                responses_dict=responses_dict,
+                                                success_status_code=202)
+
+        return responses_dict
+
+    def get_deploy_status(self, task_id):
+
+        responses_dict = {}
+        responses_dict = self.GET_API_path(url='job/taskstatuses/' + task_id, responses_dict=responses_dict)
+        return responses_dict
+
+    def get_device_HA_pairs(self, responses_dict=None):
+        """
+
+        """
+
+        responses_dict = {}
+        responses_dict = self.GET_API_path(url="/devicehapairs/ftddevicehapairs?expanded=true",
+                                           responses_dict=responses_dict)
+        return responses_dict
 
     # Begin TODO, rework and under construction
     ################################################################################################################

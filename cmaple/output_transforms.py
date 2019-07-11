@@ -160,16 +160,19 @@ def create_outline(_dict=None,tab_string='',file=sys.stdout,smart_labels=True,re
 
 @logged(logger)
 @traced(logger)
-def object_dump(_dict=None, tab_string='', file=sys.stdout, responses_only=False):
+def object_dump(_dict=None, tab_string_add_string=None, file=sys.stdout, responses_only=False):
     """Creates an outline of '_dict' to 'file'.
 
     """
 
+    if tab_string_add_string is None:
+        tab_string_add_string = '\t'
+    
     def utf_print(_str, file=None):
         print(_str, file=file)
 
     def process_val(val, tab_string):
-        if type(val) is dict:
+        if type(val) is dict or type(val) is OrderedDict:
             process_dict(val, tab_string)
         elif type(val) is list:
             process_list(val, tab_string)
@@ -180,35 +183,108 @@ def object_dump(_dict=None, tab_string='', file=sys.stdout, responses_only=False
 
     def process_list(_list, tab_string):
         utf_print(tab_string + 'list', file=file)
-        tab_string += '\t'
+        tab_string += tab_string_add_string
         list_counter = 0
         for val in _list:
             if type(val) is dict:
                 list_counter += 1
                 utf_print(tab_string + str(list_counter), file=file)
-                process_val(val, tab_string + '\t')
+                process_val(val, tab_string + tab_string_add_string)
             else:
                 process_val(val, tab_string)
 
     def process_dict(_dict, tab_string):
         utf_print(tab_string + 'dict', file=file)
-        tab_string += '\t'
+        tab_string += tab_string_add_string
         for key, val in _dict.items():
             utf_print(tab_string + key, file=file)
-            process_val(val, tab_string + '\t')
+            process_val(val, tab_string + tab_string_add_string)
 
     # file = codecs.open('text.txt', 'w', 'utf-8')
     # sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
     if responses_only:
         _dict = get_jsonpath_values('$..json_dict', _dict)
     outline_str = ''
-    process_val(_dict, tab_string)
+    process_val(_dict, '')
 
 
+# @logged(logger)
+# @traced(logger)
+# def create_response_flatline(responses_dict,field_filter_regex='',file=None):
+#     """Creates a flatline dictionary for 'responses_dict'.
+#
+#     """
+#
+#     flatlines={}
+#     for response_url, response_dict in responses_dict.items():
+#         if response_dict['json_dict'] is None:
+#             continue
+#         #pprint(response_dict['json_dict'])
+#         flatlined = flatten_json(response_dict['json_dict'])
+#         #pprint(expand_flattened_json(flatlined))
+#         flatlined_keys = list(flatlined.keys())
+#         flatlined_keys.sort()
+#         flatlined_fields = []
+#         for flatlined_key in flatlined_keys:
+#             if not re.search(field_filter_regex, flatlined_key):
+#                 flatlined_fields.append(flatlined_key)
+#         if 'type' in response_dict['json_dict']:
+#             qualifier = response_dict['json_dict']['type']
+#         else:
+#             qualifier = re.sub('\?[^?]+$','',response_url)
+#         flatlined_signature = qualifier + '~' + re.sub(r'items~[^,]+,*','',','.join(flatlined_fields))
+#         if not flatlined_signature in flatlines:
+#             csv_string = io.StringIO(newline=None)
+#             csv_dict_writer = csv.DictWriter(csv_string,fieldnames=flatlined_fields,extrasaction='ignore')
+#             flatlines[flatlined_signature] = {'writer':csv_dict_writer,'StringIO':csv_string,'signature':flatlined_signature}
+#             csv_dict_writer.writeheader()
+#         flatlines[flatlined_signature]['writer'].writerow(flatlined)
+#     return flatlines
+#
+#
+# @logged(logger)
+# @traced(logger)
+# def create_response_csv(responses_dict,field_filter_regex='',file=None):
+#     """Creates a flatline dictionary for 'responses_dict'.
+#
+#     """
+#
+#     flatlines={}
+#     for response_url, response_dict in responses_dict.items():
+#         if response_dict['json_dict'] is None:
+#             continue
+#         # pprint(response_dict['json_dict'])
+#         flatlined = flatten_json(response_dict['json_dict'])
+#         # pprint(expand_flattened_json(flatlined))
+#         flatlined_keys = list(flatlined.keys())
+#         flatlined_keys.sort()
+#         flatlined_fields = []
+#         for flatlined_key in flatlined_keys:
+#             flatlined_fields.append(flatlined_key)
+#             # if not re.search(field_filter_regex, flatlined_key):
+#             #     flatlined_fields.append(flatlined_key)
+#         if 'type' in response_dict['json_dict']:
+#             qualifier = response_dict['json_dict']['type']
+#         else:
+#             qualifier = re.sub('\?[^?]+$','',response_url)
+#         flatlined_signature = qualifier + '~' + re.sub(r'items~[^,]+,*','',','.join(flatlined_fields))
+#         # flatlined_signature = qualifier + '~' + ','.join(flatlined_fields)
+#         if not flatlined_signature in flatlines:
+#             csv_string = io.StringIO(newline=None)
+#             csv_dict_writer = csv.DictWriter(csv_string,fieldnames=flatlined_fields,extrasaction='ignore')
+#             flatlines[flatlined_signature] = {'writer':csv_dict_writer,'StringIO':csv_string,'signature':flatlined_signature}
+#             csv_dict_writer.writeheader()
+#
+#         print('flatlined========================================================')
+#         pprint(flatlined)
+#         flatlines[flatlined_signature]['writer'].writerow(flatlined)
+#         print(flatlines[flatlined_signature]['StringIO'].getvalue())
+#     return flatlines
+#
 @logged(logger)
 @traced(logger)
-def create_response_flatline(responses_dict,field_filter_regex='',file=None):
-    """Creates a flatline dictionary for 'responses_dict'.
+def create_response_csv_text(responses_dict, field_filter_regex=''):
+    """Returns a flatlined dictionary for 'responses_dict'.
 
     """
 
@@ -216,66 +292,31 @@ def create_response_flatline(responses_dict,field_filter_regex='',file=None):
     for response_url, response_dict in responses_dict.items():
         if response_dict['json_dict'] is None:
             continue
-        #pprint(response_dict['json_dict'])
         flatlined = flatten_json(response_dict['json_dict'])
-        #pprint(expand_flattened_json(flatlined))
         flatlined_keys = list(flatlined.keys())
         flatlined_keys.sort()
         flatlined_fields = []
         for flatlined_key in flatlined_keys:
-            if not re.search(field_filter_regex, flatlined_key):
-                flatlined_fields.append(flatlined_key)
-        if 'type' in response_dict['json_dict']:
-            qualifier = response_dict['json_dict']['type']
-        else:
-            qualifier = re.sub('\?[^?]+$','',response_url)
-        flatlined_signature = qualifier + '~' + re.sub(r'items~[^,]+,*','',','.join(flatlined_fields))
-        if not flatlined_signature in flatlines:
-            csv_string = io.StringIO(newline=None)
-            csv_dict_writer = csv.DictWriter(csv_string,fieldnames=flatlined_fields,extrasaction='ignore')
-            flatlines[flatlined_signature] = {'writer':csv_dict_writer,'StringIO':csv_string,'signature':flatlined_signature}
-            csv_dict_writer.writeheader()
-        flatlines[flatlined_signature]['writer'].writerow(flatlined)
-    return flatlines
-
-@logged(logger)
-@traced(logger)
-def create_response_csv(responses_dict,field_filter_regex='',file=None):
-    """Creates a flatline dictionary for 'responses_dict'.
-
-    """
-
-    flatlines={}
-    for response_url, response_dict in responses_dict.items():
-        if response_dict['json_dict'] is None:
-            continue
-        # pprint(response_dict['json_dict'])
-        flatlined = flatten_json(response_dict['json_dict'])
-        # pprint(expand_flattened_json(flatlined))
-        flatlined_keys = list(flatlined.keys())
-        flatlined_keys.sort()
-        flatlined_fields = []
-        for flatlined_key in flatlined_keys:
+            # flatlined_fields.append(flatlined_key)
+            if not field_filter_regex is None:
+                if re.search(field_filter_regex, flatlined_key):
+                    continue
             flatlined_fields.append(flatlined_key)
-            # if not re.search(field_filter_regex, flatlined_key):
-            #     flatlined_fields.append(flatlined_key)
         if 'type' in response_dict['json_dict']:
             qualifier = response_dict['json_dict']['type']
         else:
-            qualifier = re.sub('\?[^?]+$','',response_url)
+            qualifier = re.sub('\?[^?]+$', '', response_url)
         flatlined_signature = qualifier + '~' + re.sub(r'items~[^,]+,*','',','.join(flatlined_fields))
-        # flatlined_signature = qualifier + '~' + ','.join(flatlined_fields)
         if not flatlined_signature in flatlines:
             csv_string = io.StringIO(newline=None)
             csv_dict_writer = csv.DictWriter(csv_string,fieldnames=flatlined_fields,extrasaction='ignore')
-            flatlines[flatlined_signature] = {'writer':csv_dict_writer,'StringIO':csv_string,'signature':flatlined_signature}
+            flatlines[flatlined_signature] = {'writer': csv_dict_writer,
+                                              'StringIO': csv_string,
+                                              'signature': flatlined_signature}
             csv_dict_writer.writeheader()
-
-        # print('flatlined========================================================')
-        pprint(flatlined)
         flatlines[flatlined_signature]['writer'].writerow(flatlined)
-        # print(flatlines[flatlined_signature]['StringIO'].getvalue())
-    return flatlines
+    return flatlines[flatlined_signature]['StringIO'].getvalue()
+
 
 @logged(logger)
 @traced(logger)
@@ -284,23 +325,33 @@ def csv_to_flatlined(csv_list=None):
     flatlined_list = []
     keys_string = csv_list.pop(0)
     keys = keys_string.split(',')
-    csv_records = csv.reader(csv_list,dialect='excel')
+    csv_records = csv.reader(csv_list, dialect='excel')
     for csv_record in csv_records:
-        record_dict = dict(zip(keys,csv_record))
+        record_dict = dict(zip(keys, csv_record))
         flatlined_list.append(record_dict)
     return flatlined_list
 
+
 @logged(logger)
 @traced(logger)
-def csv_to_bulk_post_body(file_path=None):
+def csv_to_post_json(file_path=None):
+
+    post_body_list = csv_to_post_list(file_path=file_path)
+    post_body_json = json.dumps(post_body_list)
+    return post_body_json
+
+
+@logged(logger)
+@traced(logger)
+def csv_to_post_list(file_path=None):
 
     csv_list = create_list_from_csv(file_path)
     post_body_list = []
     flatlined_list = csv_to_flatlined(csv_list)
     for flatlined in flatlined_list:
         post_body_list.append(expand_flattened_json(flatlined))
-    post_body_json = json.dumps(post_body_list)
-    return post_body_json
+    return post_body_list
+
 
 @logged(logger)
 @traced(logger)
@@ -316,6 +367,7 @@ def create_list_from_csv(file_path=None):
     csv_file.close()
 
     return csv_list
+
 
 @logged(logger)
 @traced(logger)
@@ -336,6 +388,7 @@ def create_csv_from_flatline(flatlined=None,field_filter_regex='',file=None):
             value_string = '"' + value_string + '"'
         field_value_string += value_string + ','
     return field_name_string + '\n' + field_value_string
+
 
 @logged(logger)
 @traced(logger)
@@ -360,6 +413,7 @@ def flatten_json(y):
 
     flat = flatten(y)
     return flat
+
 
 @logged(logger)
 @traced(logger)

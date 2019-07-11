@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-rest_base.py implements generic REST functionality.  The class RestBase
+win_base.py implements generic REST functionality.  The class RestBase
 is designed to be sub classed only.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
@@ -168,7 +168,6 @@ class RestBase(object):
         """
 
         def process_base_url(url_so_far, base_url, query_dict):
-            print('processing url', url_so_far, base_url)
             url = url_so_far
             url_parts = base_url.split('/')
             for i in range(0, len(url_parts)):
@@ -183,7 +182,6 @@ class RestBase(object):
                         query_responses = query_dict[url]
                     query_path = '{}/{}'.format(url, url_part)
                     if query_path not in query_dict:
-                        print(url_part, file=sys.stderr)
                         substitutes = tree_helpers.get_jsonpath_values(url_part, query_responses)
                         if not substitutes:
                             logger.info('No substitute values found for free form query %s in url %s' %
@@ -264,7 +262,7 @@ class RestBase(object):
                                   success_status_code=200)
         return response_dict
 
-    def post_json_request(self, url, json_dict, responses_dict=None):
+    def post_json_request(self, url, json_dict, responses_dict=None, success_status_code=201):
 
         """Generic wrapper for a REST API Post request.
 
@@ -299,7 +297,7 @@ class RestBase(object):
             self._request_wrapper(recursed=False, url=url, json_body=json_string,
                                   responses_dict=responses_dict, headers=self.request_headers,
                                   method='post', credentials_dict=self.credentials_dict, verify=self.verify,
-                                  success_status_code=201)
+                                  success_status_code=success_status_code)
         return response_dict
 
     def get_json_request(self, url, responses_dict=None):
@@ -578,7 +576,7 @@ class RestBase(object):
                 break
         return response_dict
 
-    def post_csv_template(self,url=None,file_path=None):
+    def post_csv_template(self, url=None, file_path=None):
 
         """Reads a csv file containing flatlined records (flattened with output_transforms.flatten_json(json_dict) and
         posts each record individually to the target.
@@ -612,7 +610,7 @@ class RestBase(object):
 
             logger.debug(pformat(response_dict))
 
-    def write_csv_template_from_response(self, response_json=None, file=sys.stdout):
+    def write_csv_template_from_response(self, response_dict=None, field_filter_regex=None, file=sys.stdout):
 
         """Flatlines response_json and writes to a csv record.
 
@@ -628,9 +626,12 @@ class RestBase(object):
             The file_handle target for the csv records.
         """
 
-        flatlined = output_transforms.flatten_json(response_json[0])
-        flatlined_csv = output_transforms.create_csv_from_flatline(flatlined, field_filter_regex='metadata', file=None)
-        return flatlined_csv
+        # flatlined = output_transforms.flatten_json(response_json[0])
+        # flatlined_csv = output_transforms.create_csv_from_flatline(flatlined, field_filter_regex='metadata', file=None)
+        # return flatlined_csv
+
+        csv_text = output_transforms.create_response_csv_text(response_dict, field_filter_regex=field_filter_regex)
+        return csv_text
 
     def GET_responses_by_jsonpath(self, jsonpath, responses_dict=None):
 

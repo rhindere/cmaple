@@ -53,7 +53,13 @@ class CMapleTree:
 
     The tree object provides methods to instantiate and manage MAPLE 'leaf' objects.
     """
-    def __init__(self,name=None,tree_dir=None,logging_config_dict={},logging_level='INFO',log_file_mode='w'):
+    def __init__(self, name=None,
+                 tree_dir=None,
+                 logging_config_dict={},
+                 logging_level='INFO',
+                 log_file_mode='w',
+                 log_file_name='cmaple.log',
+                 ):
 
         """__init__ receives a kwargs dict to define parameters.  This allows __init__ to pass these parameters
         to the superclass.
@@ -107,7 +113,7 @@ class CMapleTree:
         if logging_config_dict:
             logger.config.dictConfig(logging_config_dict)
         logger.setLevel(logging.getLevelName(logging_level))
-        file_handler = logging.FileHandler(os.path.join(maple_tree_dir, 'cmaple.log'), mode=log_file_mode)
+        file_handler = logging.FileHandler(os.path.join(maple_tree_dir, log_file_name), mode=log_file_mode)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
         logger.info('Starting new cmaple session...')

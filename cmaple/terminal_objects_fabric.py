@@ -4,7 +4,7 @@ Created on May 20, 2018
 
 @author: rhindere@cisco.com
 
-rest_base.py implements generic REST functionality.  The class TerminalBase
+win_base.py implements generic REST functionality.  The class TerminalBase
 is designed to be sub classed only.
 
 Copyright (c) 2018 Cisco and/or its affiliates.
