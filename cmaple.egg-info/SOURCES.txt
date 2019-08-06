@@ -4,7 +4,6 @@ cmaple/__init__.py
 cmaple/execute_timeline.py
 cmaple/input_validations.py
 cmaple/output_transforms.py
-cmaple/pmiko_test.py
 cmaple/rest_base.py
 cmaple/terminal_base.py
 cmaple/terminal_objects.py
