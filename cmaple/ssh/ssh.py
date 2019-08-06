@@ -131,12 +131,6 @@ class SSH(TerminalBase):
             Used to pass through arguments to wrapped methods.
         """
 
-        # if not recursed:
-        #
-        #     pass
-        #
-        # else:
-        #
         return tree_helpers.process_cmd_request(group_list=group_list, cmd_list=cmd_list, **kwargs)
 
     @logged(logger)

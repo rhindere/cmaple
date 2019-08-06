@@ -88,6 +88,7 @@ def listify_xml_dict(xml_dict):
 
     return xml_dict
 
+
 @logged(logger)
 @traced(logger)
 def process_cmd_request(group_list=None, cmd_list=None, responses_dict=None, cmd_expect=None, include_filter_regex=None,
@@ -128,18 +129,24 @@ def process_cmd_request(group_list=None, cmd_list=None, responses_dict=None, cmd
                     # print('trying...')
                     # logger.debug('Requesting cmd %s...' % cmd.cmd)
                     r = cmd.run_cmd(group)
-                    if r.ok:
-                        if cmd_expect and re.match(cmd_expect, r.stdout):
-                            logger.debug('Request for cmd %s was successful.  Exit code = %s...' % (cmd, str(r.exited)))
-                            logger.debug('    stdout = %s' % (r.stdout))
-                    else:
-                        logger.warning('Request for cmd %s unsuccessful. \
-                                        Exit code %s with response %s...' % (cmd, r.exited, r.stdout))
+                    if r['error_encountered']:
                         if stop_on_error:
                             logger.warning('Request for cmd %s unsuccessful. \
                                             Exit code %s with response %s...' % (cmd, r.exited, r.stdout))
                             logger.error('stop_on_error set to True, exiting...')
                             sys.exit()
+                    # if r.ok:
+                    #     if cmd_expect and re.match(cmd_expect, r.stdout):
+                    #         logger.debug('Request for cmd %s was successful.  Exit code = %s...' % (cmd, str(r.exited)))
+                    #         logger.debug('    stdout = %s' % (r.stdout))
+                    # else:
+                    #     logger.warning('Request for cmd %s unsuccessful. \
+                    #                     Exit code %s with response %s...' % (cmd, r.exited, r.stdout))
+                    #     if stop_on_error:
+                    #         logger.warning('Request for cmd %s unsuccessful. \
+                    #                         Exit code %s with response %s...' % (cmd, r.exited, r.stdout))
+                    #         logger.error('stop_on_error set to True, exiting...')
+                    #         sys.exit()
                 except Exception as err:
                     logger.warning("Error in processing cmd request--> " + str(err))
                     if stop_on_error:
@@ -169,12 +176,19 @@ def store_terminal_response_by_cmd(r, cmd, group, responses_dict,
 
     cmd_id = cmd + '_' + str(_time)
 
-    if cmd_id not in responses_dict:
-        responses_dict[cmd_id] = {'cmd': None, 'result': None, 'error': None, 'cmd_dict': None, 'status_code': None,
-                               'filtered': False, 'cache_hit': False}
+    cmd_id_index_counter = 0
+    while cmd_id + '_' + str(cmd_id_index_counter) in responses_dict:
+        cmd_id_index_counter += 1
 
+    cmd_id = cmd_id + '_' + str(cmd_id_index_counter)
+    responses_dict[cmd_id] = {'cmd_id': None, 'cmd': None, 'results': None, 'error': None, 'errors': None,
+                              'filtered': False, 'cache_hit': False}
+
+    responses_dict[cmd_id]['cmd_id'] = cmd_id
     responses_dict[cmd_id]['cmd'] = cmd
-    responses_dict[cmd_id]['result'] = r
+    responses_dict[cmd_id]['results'] = r['results']
+    responses_dict[cmd_id]['error'] = r['error_encountered']
+    responses_dict[cmd_id]['errors'] = r['errors']
     responses_dict[cmd_id]['include_filtered'] = include_filtered
     responses_dict[cmd_id]['exclude_filtered'] = exclude_filtered
     responses_dict[cmd_id]['include_filter_regex'] = include_filter_regex
@@ -256,10 +270,23 @@ def persist_response(leaf_dir, path_root, response_counter, response_dict):
 
 @logged(logger)
 @traced(logger)
+def persist_terminal_response(leaf_dir, response_counter, response_dict):
+    """Pickles the response to the leaf working directory.
+
+    """
+    cmd = response_dict['cmd_id']
+    pickle_file_name = ('%06d' % response_counter) + '_' + re.sub('[^a-zA-Z0-9]', '~', cmd) + '.response_pickle'
+    with open(os.path.join(leaf_dir, pickle_file_name), 'wb') as f:
+        _pickle.dump(response_dict, f)
+
+
+@logged(logger)
+@traced(logger)
 def restore_responses(leaf_dir, responses_dict):
     """Restores pickled responses from the leaf working directory to the leaf's responses_dict.
 
     """
+    print(leaf_dir, file=sys.stderr)
     leaf_dir_files = os.listdir(leaf_dir)
     for leaf_dir_file in leaf_dir_files:
         if '.response_pickle' in leaf_dir_file:

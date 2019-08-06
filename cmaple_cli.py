@@ -226,15 +226,28 @@ def process_RUN(config_dict,key,val):
 
 def process_place_holders(config_dict,key,val):
     logger.info('Processing config_dict %s with key %s and val %s' % (config_dict, key, val))
-    place_holders = re.findall(r'(\{([^}]+)\})',val)
+    place_holders = re.findall(r'(\{([^}]+)\}|@[a-zA-Z0-9_]+)',val)
+    logger.info(place_holders)
     for place_holder in place_holders:
-        logger.info('Processing place holder %s' % str(place_holder))
-        section = place_holder[1].split('$')[0]
-        item = place_holder[1].split('$')[1]
-        value = working_config[section][item]
-        if type(value) is str:
-            val = val.replace(place_holder[0],value)
-        config_dict[key] = val
+        logger.info('Processing place holder tuple %s with %s and %s' %
+                    (str(place_holder), place_holder[0], place_holder[1]))
+        if '@' in place_holder[0]:
+            try:
+                place_holder_string = place_holder[0].replace('@', '')
+                place_holder_value = arg_dict[place_holder_string]
+                val = val.replace(place_holder[0],place_holder_value)
+                logger.info('val = %s' % val)
+                config_dict[key] = val
+            except KeyError:
+                logger.error('Key error processing key %s with val %s' % (key, val))
+                sys.exit()
+        else:
+            section = place_holder[1].split('$')[0]
+            item = place_holder[1].split('$')[1]
+            value = working_config[section][item]
+            if type(value) is str:
+                val = val.replace(place_holder[0],value)
+            config_dict[key] = val
     if key.startswith('RUN '):
         logger.info('RUN detected, sending to process_RUN...')
         process_RUN(config_dict,key,val)

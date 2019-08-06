@@ -124,21 +124,21 @@ class FMC(RestBase):
 
         super(FMC, self).__init__()
         
-        #Attributes inherited from leaf_base to override in this class
+        # Attributes inherited from leaf_base to override in this class
         self.next_link_query = '$..next'
-        self.credentials_dict = {'username':self.FMC_username,'password':self.FMC_password}
+        self.credentials_dict = {'username': self.FMC_username, 'password': self.FMC_password}
 
-        #Validate critical attributes
+        # Validate critical attributes
         self.FMC_host = input_validations.validate_ip_host(self.FMC_host)
-        self.FMC_user = input_validations.validate_string_value(self.FMC_username,'fmc username')
-        self.FMC_password = input_validations.validate_string_value(self.FMC_password,'fmc password')
+        self.FMC_user = input_validations.validate_string_value(self.FMC_username, 'fmc username')
+        self.FMC_password = input_validations.validate_string_value(self.FMC_password, 'fmc password')
         
-        #Add class specific attributes
+        # Add class specific attributes
         self.domain_ID_dict = {}
         self._url_host = 'https://' + self.FMC_host
         if self.FMC_port and not int(self.FMC_port) == int(443):
             self._url_host += ':' + str(self.FMC_port)
-        self._auth_url = self._url_host + _API_AUTH_PATH.replace('{API_version}',self.API_version)
+        self._auth_url = self._url_host + _API_AUTH_PATH.replace('{API_version}', self.API_version)
         self.request_headers = {'Content-Type': 'application/json'}
         self._auth_headers = self.request_headers
         self._auth_token_time = None
@@ -149,7 +149,7 @@ class FMC(RestBase):
         self._refresh_token_count = 0
         if self.connect_device:
             self._get_token_and_domains()
-            self.FMC_domain = fmc_helpers.validate_FMC_domain(self.FMC_domain,self.domain_ID_dict)
+            self.FMC_domain = fmc_helpers.validate_FMC_domain(self.FMC_domain, self.domain_ID_dict)
             self.FMC_domain_ID = self.domain_ID_dict[self.FMC_domain]
         else:
             if self.restore_responses:
@@ -300,7 +300,9 @@ class FMC(RestBase):
                     name_to_id_mappings[type]['item_responses'] = item_responses
                 response_urls = list(name_to_id_mappings[type]['item_responses'].keys())
                 for response_url in response_urls:
-                    if 'items' in name_to_id_mappings[type]['item_responses'][response_url]['json_dict']:
+                    json_dict_value = name_to_id_mappings[type]['item_responses'][response_url]['json_dict']
+                    if json_dict_value and \
+                            'items' in name_to_id_mappings[type]['item_responses'][response_url]['json_dict']:
                         for item in name_to_id_mappings[type]['item_responses'][response_url]['json_dict']['items']:
                             if item['name'] == name:
                                 item_id = item['id']

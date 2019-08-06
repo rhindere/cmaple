@@ -43,7 +43,7 @@ console_handler.setLevel(logging.ERROR)
 formatter = logging.Formatter('%(asctime)s %(levelname)s:%(name)s:%(funcName)s:%(message)s')
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
-logger.setLevel(logging.INFO)
+logger.setLevel('INFO')
 
 
 @logged(logger)
@@ -96,10 +96,7 @@ class CMapleTree:
                     logger.error("Error creating cmaple working directory, error message--> " + str(err))
                     sys.exit(str(err))
 
-        # Get a pointer to the global variables
-        # Read in the global variable configuration...
-        self.globals = configparser.ConfigParser()
-        self.globals.read('globals.ini')
+        self.tree_dir = tree_dir
 
         # Create the tree directory named 'tree_name'
         maple_tree_dir = os.path.join(tree_dir, name)
@@ -112,15 +109,23 @@ class CMapleTree:
 
         if logging_config_dict:
             logger.config.dictConfig(logging_config_dict)
-        logger.setLevel(logging.getLevelName(logging_level))
+
+        # logger.setLevel(logging.getLevelName(logging_level))
+        logger.setLevel(logging_level)
         file_handler = logging.FileHandler(os.path.join(maple_tree_dir, log_file_name), mode=log_file_mode)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
         logger.info('Starting new cmaple session...')
-        
+
+        # Get a pointer to the global variables
+        # Read in the global variable configuration...
+        self.globals = configparser.ConfigParser()
+        self.globals.read('globals.ini')
+
         self.name = name
         self.leaf_modules = {}
         self.leaf_instances = {}
+        self.leaf_name_index = {}
         self.logging_config_dict = logging_config_dict
         self.logging_level = logging_level
         self.log_file_mode = log_file_mode
@@ -157,7 +162,8 @@ class CMapleTree:
             try:
                 os.mkdir(leaf_dir)
             except Exception as err:
-                logger.error("Error creating %s name %s working directory, error message--> %s" % (leaf_type, kwargs['name'], str(err)))
+                logger.error("Error creating %s name %s working directory, error message--> %s" %
+                             (leaf_type, kwargs['name'], str(err)))
                 sys.exit(str(err))
 
         if leaf == 'fmc':
@@ -206,8 +212,13 @@ class CMapleTree:
             sys.exit()
 
         leaf_class = getattr(self.leaf_modules[leaf], leaf.upper())
-        self.leaf_instances[leaf][kwargs['name']] = leaf_class(**kwargs, leaf_dir=leaf_dir)
-        
+        self.leaf_instances[leaf][kwargs['name']] = leaf_class(**kwargs,
+                                                               # leaf_dir=os.path.join(self.maple_tree_dir,leaf_dir))
+                                                               leaf_dir=leaf_dir,
+                                                               tree=self)
+
+        self.leaf_name_index[kwargs['name']] = self.leaf_instances[leaf][kwargs['name']]
+
         return self.leaf_instances[leaf][kwargs['name']]
 
     def multi_leaf_chained_smart_get(self, get_chains=None, responses_dict=None, query_dict=None):
@@ -249,6 +260,6 @@ class CMapleTree:
 
         return responses_dict, query_dict
 
-    def object_dump(self,_object):
+    def object_dump(self, _object):
 
         output_transforms.object_dump(_object)

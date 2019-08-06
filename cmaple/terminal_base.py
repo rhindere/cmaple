@@ -76,6 +76,7 @@ class TerminalBase(object):
         self._connection = None
         self.terminal_master = TerminalObjectsMaster()
 
+        self.response_counter = 0
         if self.restore_responses:
             tree_helpers.restore_responses(self.leaf_dir, self.responses_dict)
 
@@ -154,6 +155,10 @@ class TerminalBase(object):
 
         response_dict, status, include_filtered, exclude_filtered, cache_hit = \
             self._run_wrapper(group_list, cmd_list, responses_dict=responses_dict)
+
+        if self.persist_responses:
+            self.response_counter += 1
+            tree_helpers.persist_terminal_response(self.leaf_dir, self.response_counter, response_dict)
 
         return response_dict
 

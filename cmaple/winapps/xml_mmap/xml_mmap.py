@@ -17,6 +17,7 @@ from base64 import b64encode
 import logging
 from autologging import logged, traced
 from autologging import TRACE
+from inspect import isclass
 
 # Define global variables...
 path_delimiter = '->'
@@ -197,14 +198,6 @@ class MindManagerTopic:
                                                                                  self.mmap.path_delimiter)
 
         self.update_parent_indexes(self, self.name, self.topic_name_path, self.reversed_topic_name_path)
-        # # add to parent indexes
-        # if self.name not in self.parent_topic.topic_name_index:
-        #     self.parent_topic.topic_name_index[self.name] = []
-        # self.parent_topic.topic_name_index[self.name].append(self)
-        # self.parent_topic.topic_path_index[self.xml_topic_path] = self
-        # self.parent_topic.topic_name_path_index[self.topic_name_path] = self
-        # self.parent_topic.reversed_topic_name_path_index[self.reversed_topic_name_path] = self
-        # add to map indexes
         if self.name not in self.mmap.topic_name_index:
             self.mmap.topic_name_index[self.name] = []
         self.mmap.topic_name_index[self.name].append(self)
@@ -303,11 +296,41 @@ class MindManagerTopic:
                 return sub_topic
         return None
 
+    def recurse_child_topics_with_callback_to_dict(self, callback=None, names_dict=None):
+
+        print(self.name, file=sys.stderr)
+        callback_dict = callback(self)
+        callback = callback_dict['callback']
+        processed_name = callback_dict['processed_name']
+        if not callable(callback):
+            if callback is None:  # Abort the recursion
+                return False
+            if type(callback) is bool:
+                if callback:
+                    return True
+                else:
+                    return False
+        else:
+            names_dict[processed_name] = {}
+            names_dict = names_dict[processed_name]
+
+        for sub_topic in self.sub_topics:
+            if not sub_topic.recurse_child_topics_with_callback_to_dict(callback, names_dict):
+                return False
+
+        return True
+
     def recurse_child_topics_with_callback(self, callback=None, callback_results=None):
 
         callback = callback(self)
-        if callback is None:
-            return False
+        if not callable(callback):
+            if callback is None:  # Abort the recursion
+                return False
+            if type(callback) is bool:
+                if callback:
+                    return True
+                else:
+                    return False
 
         for sub_topic in self.sub_topics:
             if not sub_topic.recurse_child_topics_with_callback(callback, callback_results):

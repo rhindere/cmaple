@@ -252,12 +252,14 @@ def get_all_reference_dicts(FMC_instance):
                     path = re.sub('^/','',operation['path'])
                     method = tree_helpers.get_jsonpath_values('$..method',operation)[0]
                     if model_ID is None:
-                        for example in operation['examples']:
-                            if not 'override' in example['url']:
-                                if 'responseData' in example:
-                                    if 'type' in example['responseData']:
-                                        model_ID = example['responseData']['type']
-                                        break
+                        print(path, method, file=sys.stderr)
+                        if operation['examples'] is not None:
+                            for example in operation['examples']:
+                                if not 'override' in example['url']:
+                                    if 'responseData' in example:
+                                        if 'type' in example['responseData']:
+                                            model_ID = example['responseData']['type']
+                                            break
                     if not path in operations_dict:
                         operations_dict[path] = {'methods': {}, 'operation_path': operation['path']}
                     operations_dict[path]['methods'][method] = operation

@@ -180,6 +180,7 @@ class ThreadingServerGroup(SerialServerGroup):
                                              password=server['credential'].credential,
                                              interaction=cmd.run_cmd)
 
+
 @logged(logger)
 @traced(logger)
 class Credential(object):
@@ -223,17 +224,19 @@ class CMD(object):
     Under construction.
     """
 
-    def __init__(self, name, cmd=None, callback=None):
+    def __init__(self, name, cmd=None, timeout=10, callback=None):
         """__init__
         Under Construction.
         """
 
         self.name = name
         self.cmd = cmd
+        self.timeout = timeout
         self.pre_expect_pattern = None
         self.post_expect_pattern = None
         self.place_holder_objects = {}
         self.callback = callback
+        print(self.timeout)
 
     def replace_place_holders(self, place_holder_string):
         if place_holder_string is None:
@@ -277,7 +280,7 @@ class CMD(object):
                 # Connect to the host
                 try:
                     server['client'].connect(hostname=hostname, username=username, password=password)
-                    server['interact'] = SSHClientInteraction(server['client'], timeout=10, display=True)
+                    server['interact'] = SSHClientInteraction(server['client'], timeout=self.timeout, display=True)
                     server['interact'].expect(prompt)
                 except Exception as e:
                     results[hostname].append({'hostname': hostname, 'command': None, 'result': 'connection failed',
@@ -322,7 +325,8 @@ class CMD(object):
             try:
                 logger.debug('new cmd %s', send_cmd)
                 interact.send(send_cmd)
-                logger.debug('starting post_expect with pattern %s for command %s' % (self.post_expect_pattern, self.cmd))
+                logger.debug('starting post_expect with pattern %s for command %s' %
+                             (self.post_expect_pattern, self.cmd))
             except Exception as e:
                 results[hostname].append({'hostname': hostname, 'command': self.cmd,
                                           'send_cmd': send_cmd,
@@ -333,7 +337,7 @@ class CMD(object):
                                          )
                 errors['send_command'].append(results[-1])
                 error_encountered = True
-                logger.error('Error sending command %s for server %s with exception %s' %
+                logger.error('Error sending command "%s" for server %s with exception %s' %
                              (self.cmd, hostname, e))
                 continue
 
@@ -356,6 +360,8 @@ class CMD(object):
                                  (post_expect_pattern, hostname, self.cmd, e))
                     continue
 
+            logger.debug('output from sending cmd "%s"=%s' % (send_cmd, interact.current_output_clean))
+
             results[hostname].append({'hostname': hostname, 'command': self.cmd,
                                       'send_cmd': send_cmd,
                                       'pre_expect_pattern': pre_expect_pattern,
@@ -366,7 +372,7 @@ class CMD(object):
             logger.debug('Success sending command %s for server %s' %
                          (self.cmd, hostname))
 
-        return results, error_encountered, errors
+        return {'results': results, 'error_encountered': error_encountered, 'errors': errors}
 
     def add_pre_expect(self, expect):
 
